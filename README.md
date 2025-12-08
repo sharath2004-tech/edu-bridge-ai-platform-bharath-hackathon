@@ -199,7 +199,7 @@ Four distinct user roles with granular permissions:
 ![Marks Entry](./docs/images/marks-entry.png)
 *Intuitive marks entry with auto-grade calculation*
 
-### Mobile Responsive
+
 
 
 ---
