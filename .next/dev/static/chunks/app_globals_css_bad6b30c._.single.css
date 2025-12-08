@@ -3432,10 +3432,6 @@
     padding-inline: calc(var(--spacing) * 8);
   }
 
-  .py-0 {
-    padding-block: calc(var(--spacing) * 0);
-  }
-
   .py-0\.5 {
     padding-block: calc(var(--spacing) * .5);
   }
@@ -4240,10 +4236,6 @@
 
   .fade-in {
     --tw-enter-opacity: 0;
-  }
-
-  .running {
-    animation-play-state: running;
   }
 
   .slide-in-from-bottom-2 {
