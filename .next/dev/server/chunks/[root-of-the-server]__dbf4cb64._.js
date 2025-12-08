@@ -1120,12 +1120,13 @@ const AttendanceSchema = new __TURBOPACK__imported__module__$5b$externals$5d2f$m
         ],
         index: true
     },
+    classId: {
+        type: __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["Schema"].Types.ObjectId,
+        ref: 'Class',
+        index: true
+    },
     className: {
         type: String,
-        required: [
-            true,
-            'Class name is required'
-        ],
         trim: true,
         index: true
     },
@@ -1366,15 +1367,6 @@ const MarkSchema = new __TURBOPACK__imported__module__$5b$externals$5d2f$mongoos
     },
     remarks: {
         type: String,
-        required: [
-            true,
-            'Term is required'
-        ],
-        trim: true,
-        index: true
-    },
-    remarks: {
-        type: String,
         trim: true,
         maxlength: 500
     },
@@ -1402,7 +1394,7 @@ MarkSchema.index({
     subjectId: 1
 });
 // Pre-save hook to calculate percentage and grade
-MarkSchema.pre('save', function(next) {
+MarkSchema.pre('save', function() {
     if (this.marksScored !== undefined && this.totalMarks !== undefined) {
         this.percentage = this.marksScored / this.totalMarks * 100;
         // Calculate grade based on percentage
@@ -1414,7 +1406,6 @@ MarkSchema.pre('save', function(next) {
         else if (this.percentage >= 40) this.grade = 'D';
         else this.grade = 'F';
     }
-    next();
 });
 const __TURBOPACK__default__export__ = __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["default"].models.Mark || __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["default"].model('Mark', MarkSchema);
 }),

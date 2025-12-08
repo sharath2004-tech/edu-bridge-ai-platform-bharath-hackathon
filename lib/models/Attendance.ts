@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IAttendance extends Document {
   studentId: mongoose.Types.ObjectId;
   schoolId: mongoose.Types.ObjectId;
+  classId?: mongoose.Types.ObjectId;
   date: Date;
   status: 'Present' | 'Absent' | 'Late';
   markedBy?: mongoose.Types.ObjectId; // Teacher or Principal who marked attendance
@@ -28,9 +29,13 @@ const AttendanceSchema = new Schema<IAttendance>(
       required: [true, 'School ID is required'],
       index: true,
     },
+    classId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Class',
+      index: true,
+    },
     className: {
       type: String,
-      required: [true, 'Class name is required'],
       trim: true,
       index: true,
     },

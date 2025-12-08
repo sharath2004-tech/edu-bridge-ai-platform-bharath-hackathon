@@ -61,12 +61,6 @@ const MarkSchema = new Schema<IMark>(
     },
     remarks: {
       type: String,
-      required: [true, 'Term is required'],
-      trim: true,
-      index: true,
-    },
-    remarks: {
-      type: String,
       trim: true,
       maxlength: 500,
     },
@@ -86,7 +80,7 @@ MarkSchema.index({ studentId: 1, examId: 1, subjectId: 1 }, { unique: true });
 MarkSchema.index({ examId: 1, subjectId: 1 });
 
 // Pre-save hook to calculate percentage and grade
-MarkSchema.pre('save', function (next) {
+MarkSchema.pre('save', function () {
   if (this.marksScored !== undefined && this.totalMarks !== undefined) {
     this.percentage = (this.marksScored / this.totalMarks) * 100;
     
@@ -99,7 +93,6 @@ MarkSchema.pre('save', function (next) {
     else if (this.percentage >= 40) this.grade = 'D';
     else this.grade = 'F';
   }
-  next();
 });
 
 export default mongoose.models.Mark || mongoose.model<IMark>('Mark', MarkSchema);

@@ -164,8 +164,17 @@ async function connectDB() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000
+            serverSelectionTimeoutMS: 30000,
+            socketTimeoutMS: 75000,
+            connectTimeoutMS: 30000,
+            maxPoolSize: 10,
+            minPoolSize: 1,
+            retryWrites: true,
+            retryReads: true,
+            // Disable TLS validation to fix Node.js 22 SSL error
+            tls: true,
+            tlsAllowInvalidCertificates: true,
+            tlsAllowInvalidHostnames: true
         };
         cached.promise = __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["default"].connect(MONGODB_URI, opts).then((mongoose)=>{
             console.log('✅ MongoDB connected successfully');
@@ -292,11 +301,11 @@ async function POST(request) {
             });
         }
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$mongodb$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"])();
-        const { message, quizMode = false, language = 'english' } = await request.json();
-        if (!message) {
+        const { message, quizMode = false, language = 'english', fileContent = '', fileName = '' } = await request.json();
+        if (!message && !fileContent) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$16$2e$0$2e$7_react$2d$dom$40$19$2e$2$2e$0_react$40$19$2e$2$2e$0_$5f$react$40$19$2e$2$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 success: false,
-                error: 'Message is required'
+                error: 'Message or file is required'
             }, {
                 status: 400
             });
@@ -307,18 +316,25 @@ async function POST(request) {
         }).sort({
             timestamp: -1
         }).limit(10).lean();
+        // Prepare message content
+        let userMessageContent = message;
+        if (fileContent) {
+            // Truncate file content to prevent token overflow
+            const truncatedContent = fileContent.substring(0, 3000);
+            userMessageContent = `${message}\n\n[File: ${fileName}]\n${truncatedContent}${fileContent.length > 3000 ? '...(truncated)' : ''}`;
+        }
         // Save user message
         await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$models$2f$ChatMessage$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].create({
             userId: session.id,
             userName: session.name,
             role: 'user',
-            content: message,
+            content: userMessageContent,
             language,
             quizMode
         });
         // Check quiz mode first
         let aiResponse;
-        if (quizMode) {
+        if (quizMode && !fileContent) {
             // Quiz Safe Mode - refuse to help
             const quizResponses = {
                 english: "🔒 Quiz mode is active. I cannot help during the quiz. Continue your best!",

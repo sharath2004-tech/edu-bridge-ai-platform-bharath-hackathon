@@ -446,10 +446,12 @@ async function seedCompleteDatabase() {
       ['9th', '10th', '11th', '12th'].includes(c.className)
     )
 
+    let studentCounter = 0
     for (const classDoc of targetClasses) {
       const studentsInClass = []
       
       for (let i = 0; i < 30; i++) {
+        studentCounter++
         const firstName = studentFirstNames[Math.floor(Math.random() * studentFirstNames.length)]
         const lastName = studentLastNames[Math.floor(Math.random() * studentLastNames.length)]
         const parentFirstName = parentNames[Math.floor(Math.random() * parentNames.length)]
@@ -457,7 +459,7 @@ async function seedCompleteDatabase() {
         
         const student = await User.create({
           name: `${firstName} ${lastName}`,
-          email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${classDoc.className}.${classDoc.section}@student.edu`.replace(/\s/g, ''),
+          email: `student${studentCounter}.${classDoc.className}.${classDoc.section}@student.edu`.replace(/\s/g, ''),
           password: studentPassword,
           role: 'student',
           schoolId: classDoc.schoolId,
@@ -552,41 +554,6 @@ async function seedCompleteDatabase() {
 
     console.log(`   ✓ Created ${allExams.length} exams`)
 
-    // ==================== MARKS ====================
-    console.log('\n📊 Creating Marks...')
-
-    let totalMarks = 0
-
-    for (const exam of allExams) {
-      const students = await User.find({ classId: exam.classId, role: 'student' })
-      const subjects = await Subject.find({ classId: exam.classId })
-      
-      for (const student of students) {
-        for (const subject of subjects) {
-          // Generate realistic marks (between 40-100)
-          const marksScored = Math.floor(Math.random() * 60) + 40
-          const totalMarks = 100
-          
-          const teacher = allTeachers.find(t => t.schoolId.equals(exam.schoolId))
-          
-          await Mark.create({
-            schoolId: exam.schoolId,
-            examId: exam._id,
-            studentId: student._id,
-            subjectId: subject._id,
-            marksScored,
-            totalMarks,
-            remarks: marksScored >= 80 ? 'Excellent performance' : marksScored >= 60 ? 'Good work' : 'Needs improvement',
-            markedBy: teacher?._id,
-          })
-          
-          totalMarks++
-        }
-      }
-    }
-
-    console.log(`   ✓ Created ${totalMarks} mark entries`)
-
     // ==================== ATTENDANCE ====================
     console.log('\n📅 Creating Attendance Records...')
 
@@ -594,8 +561,8 @@ async function seedCompleteDatabase() {
     const endDate = new Date('2024-12-07')
     const attendanceStatuses = ['Present', 'Present', 'Present', 'Present', 'Present', 'Absent', 'Late'] // More present days
 
-    let totalAttendance = 0
-    const students = await User.find({ role: 'student' })
+    const allStudents = await User.find({ role: 'student' })
+    const attendanceRecords = []
 
     // Create attendance for last 3 months (working days only)
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
@@ -603,27 +570,74 @@ async function seedCompleteDatabase() {
       // Skip weekends
       if (dayOfWeek === 0 || dayOfWeek === 6) continue
 
-      for (const student of students) {
+      for (const student of allStudents) {
         const status = attendanceStatuses[Math.floor(Math.random() * attendanceStatuses.length)]
         const teacher = allTeachers.find(t => t.schoolId.equals(student.schoolId))
         
-        await Attendance.create({
+        attendanceRecords.push({
           schoolId: student.schoolId,
           studentId: student._id,
+          classId: student.classId,
           date: new Date(d),
           status,
           markedBy: teacher?._id,
           notes: status === 'Absent' ? 'No reason provided' : '',
-          // Legacy fields
-          className: student.className,
-          section: student.section,
         })
-        
-        totalAttendance++
       }
     }
 
-    console.log(`   ✓ Created ${totalAttendance} attendance records`)
+    await Attendance.insertMany(attendanceRecords)
+    console.log(`   ✓ Created ${attendanceRecords.length} attendance records`)
+
+    // ==================== MARKS ====================
+    console.log('\n📊 Creating Marks (only for students with attendance)...')
+
+    const markRecords = []
+
+    for (const exam of allExams) {
+      const examDate = exam.date
+      const students = await User.find({ classId: exam.classId, role: 'student' })
+      const subjects = await Subject.find({ classId: exam.classId })
+      
+      for (const student of students) {
+        // Check if student was present around exam date (within 7 days)
+        const startRange = new Date(examDate)
+        startRange.setDate(startRange.getDate() - 7)
+        const endRange = new Date(examDate)
+        endRange.setDate(endRange.getDate() + 7)
+        
+        const recentAttendance = await Attendance.findOne({
+          studentId: student._id,
+          date: { $gte: startRange, $lte: endRange },
+          status: { $in: ['Present', 'Late'] }
+        })
+        
+        // Only create marks for students who were present
+        if (recentAttendance) {
+          for (const subject of subjects) {
+            // Generate realistic marks (between 40-100)
+            const marksScored = Math.floor(Math.random() * 60) + 40
+            const maxMarks = 100
+            
+            const teacher = allTeachers.find(t => t.schoolId.equals(exam.schoolId))
+            
+            markRecords.push({
+              schoolId: exam.schoolId,
+              examId: exam._id,
+              studentId: student._id,
+              subjectId: subject._id,
+              marksScored,
+              totalMarks: maxMarks,
+              remarks: marksScored >= 80 ? 'Excellent performance' : marksScored >= 60 ? 'Good work' : 'Needs improvement',
+              markedBy: teacher?._id,
+            })
+          }
+        }
+      }
+    }
+
+    await Mark.insertMany(markRecords)
+    console.log(`   ✓ Created ${markRecords.length} mark entries (only for present students)`)
 
     // ==================== COURSES (Learning Content) ====================
     console.log('\n🎓 Creating Sample Courses...')
@@ -632,6 +646,8 @@ async function seedCompleteDatabase() {
     const csTeacher = gvhsTeachers[1]
     const englishTeacher = gvhsTeachers[2]
     const physicsTeacher = gvhsTeachers[3]
+    
+    const sampleStudents = allStudents.slice(0, 20)
 
     const course1 = await Course.create({
       title: 'Complete Web Development Bootcamp 2025',
@@ -661,7 +677,7 @@ async function seedCompleteDatabase() {
         },
       ],
       quizzes: [],
-      enrolledStudents: students.slice(0, 10).map(s => s._id),
+      enrolledStudents: sampleStudents.slice(0, 10).map(s => s._id),
       rating: 4.8,
       reviews: [],
       status: 'published',
@@ -688,7 +704,7 @@ async function seedCompleteDatabase() {
         },
       ],
       quizzes: [],
-      enrolledStudents: students.slice(10, 20).map(s => s._id),
+      enrolledStudents: sampleStudents.slice(10, 20).map(s => s._id),
       rating: 4.9,
       reviews: [],
       status: 'published',
@@ -714,8 +730,8 @@ async function seedCompleteDatabase() {
     console.log('\n   Academic:')
     console.log(`   - ${totalStudents} Students`)
     console.log(`   - ${allExams.length} Exams`)
-    console.log(`   - ${totalMarks} Mark Entries`)
-    console.log(`   - ${totalAttendance} Attendance Records`)
+    console.log(`   - ${markRecords.length} Mark Entries (only for present students)`)
+    console.log(`   - ${attendanceRecords.length} Attendance Records`)
     console.log(`   - 2 Online Courses`)
     
     console.log('\n🔐 LOGIN CREDENTIALS:')

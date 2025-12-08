@@ -621,12 +621,13 @@ const AttendanceSchema = new __TURBOPACK__imported__module__$5b$externals$5d2f$m
         ],
         index: true
     },
+    classId: {
+        type: __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["Schema"].Types.ObjectId,
+        ref: 'Class',
+        index: true
+    },
     className: {
         type: String,
-        required: [
-            true,
-            'Class name is required'
-        ],
         trim: true,
         index: true
     },
