@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowRight, BookOpen, Users, Zap, GraduationCap } from "lucide-react"
+import { ArrowRight, BookOpen, GraduationCap, Users, Zap } from "lucide-react"
 import Link from "next/link"
 
 export default function Home() {
