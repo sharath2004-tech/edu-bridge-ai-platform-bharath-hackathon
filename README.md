@@ -200,8 +200,7 @@ Four distinct user roles with granular permissions:
 *Intuitive marks entry with auto-grade calculation*
 
 ### Mobile Responsive
-![Mobile View](./docs/images/mobile-responsive.png)
-*Fully responsive design for tablets and smartphones*
+
 
 ---
 
