@@ -200,12 +200,7 @@ const SchoolSchema = new __TURBOPACK__imported__module__$5b$externals$5d2f$mongo
     timestamps: true
 });
 // Indexes for better query performance
-SchoolSchema.index({
-    code: 1
-});
-SchoolSchema.index({
-    email: 1
-});
+// Note: code and email already have indexes from schema definitions
 SchoolSchema.index({
     isActive: 1
 });
@@ -242,8 +237,17 @@ async function connectDB() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000
+            serverSelectionTimeoutMS: 30000,
+            socketTimeoutMS: 75000,
+            connectTimeoutMS: 30000,
+            maxPoolSize: 10,
+            minPoolSize: 1,
+            retryWrites: true,
+            retryReads: true,
+            // Disable TLS validation to fix Node.js 22 SSL error
+            tls: true,
+            tlsAllowInvalidCertificates: true,
+            tlsAllowInvalidHostnames: true
         };
         cached.promise = __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["default"].connect(MONGODB_URI, opts).then((mongoose)=>{
             console.log('✅ MongoDB connected successfully');

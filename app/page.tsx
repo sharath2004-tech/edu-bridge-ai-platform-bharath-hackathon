@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowRight, BookOpen, Users, Zap } from "lucide-react"
+import { ArrowRight, BookOpen, Users, Zap, GraduationCap } from "lucide-react"
 import Link from "next/link"
 
 export default function Home() {
@@ -10,7 +10,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">EB</span>
+              <GraduationCap className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-semibold text-lg">EduBridge AI</span>
           </div>
@@ -59,14 +59,16 @@ export default function Home() {
           {/* Visual Element */}
           <div className="relative h-96 hidden md:flex items-center justify-center animate-slideInRight">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-3xl"></div>
-            <div className="relative bg-card border border-border rounded-2xl p-8 shadow-xl w-full">
-              <div className="space-y-4">
-                <div className="h-8 bg-muted rounded-lg w-3/4"></div>
-                <div className="h-4 bg-muted rounded w-full"></div>
-                <div className="h-4 bg-muted rounded w-5/6"></div>
-                <div className="pt-4 space-y-2">
-                  <div className="h-3 bg-primary/20 rounded w-full"></div>
-                  <div className="h-3 bg-primary/20 rounded w-4/5"></div>
+            <div className="relative bg-card border border-border rounded-2xl overflow-hidden shadow-xl w-full h-full">
+              <img 
+                src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80" 
+                alt="Students learning with technology" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                <div className="text-white">
+                  <h3 className="text-xl font-bold mb-2">Modern Education Platform</h3>
+                  <p className="text-sm text-white/90">Empowering students and teachers with AI-driven insights</p>
                 </div>
               </div>
             </div>
