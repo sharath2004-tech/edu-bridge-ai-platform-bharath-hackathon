@@ -235,12 +235,7 @@ const SchoolSchema = new __TURBOPACK__imported__module__$5b$externals$5d2f$mongo
     timestamps: true
 });
 // Indexes for better query performance
-SchoolSchema.index({
-    code: 1
-});
-SchoolSchema.index({
-    email: 1
-});
+// Note: code and email already have indexes from schema definitions
 SchoolSchema.index({
     isActive: 1
 });
@@ -301,9 +296,10 @@ const UserSchema = new __TURBOPACK__imported__module__$5b$externals$5d2f$mongoos
     role: {
         type: String,
         enum: [
-            'student',
+            'super-admin',
+            'principal',
             'teacher',
-            'admin'
+            'student'
         ],
         default: 'student',
         required: true
@@ -322,6 +318,70 @@ const UserSchema = new __TURBOPACK__imported__module__$5b$externals$5d2f$mongoos
             500,
             'Bio cannot be more than 500 characters'
         ]
+    },
+    phone: {
+        type: String,
+        trim: true
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    // Teacher-specific fields
+    subjectSpecialization: {
+        type: String,
+        trim: true
+    },
+    teacherRole: {
+        type: String,
+        enum: [
+            'Teacher',
+            'HOD',
+            'Vice Principal'
+        ]
+    },
+    assignedClasses: [
+        {
+            type: __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["Schema"].Types.ObjectId,
+            ref: 'Class'
+        }
+    ],
+    assignedSubjects: [
+        {
+            type: __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["Schema"].Types.ObjectId,
+            ref: 'Subject'
+        }
+    ],
+    // Student-specific fields
+    classId: {
+        type: __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["Schema"].Types.ObjectId,
+        ref: 'Class',
+        index: true
+    },
+    rollNo: {
+        type: Number,
+        min: 1
+    },
+    parentName: {
+        type: String,
+        trim: true
+    },
+    parentPhone: {
+        type: String,
+        trim: true
+    },
+    // Legacy fields (backward compatibility)
+    className: {
+        type: String,
+        trim: true
+    },
+    section: {
+        type: String,
+        trim: true
+    },
+    rollNumber: {
+        type: String,
+        trim: true
     },
     enrolledCourses: [
         {
@@ -362,6 +422,11 @@ const UserSchema = new __TURBOPACK__imported__module__$5b$externals$5d2f$mongoos
 UserSchema.index({
     role: 1
 });
+UserSchema.index({
+    schoolId: 1,
+    role: 1
+});
+// email already has unique index from schema definition
 const User = __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["default"].models.User || __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["default"].model('User', UserSchema);
 const __TURBOPACK__default__export__ = User;
 }),
@@ -392,8 +457,17 @@ async function connectDB() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000
+            serverSelectionTimeoutMS: 30000,
+            socketTimeoutMS: 75000,
+            connectTimeoutMS: 30000,
+            maxPoolSize: 10,
+            minPoolSize: 1,
+            retryWrites: true,
+            retryReads: true,
+            // Disable TLS validation to fix Node.js 22 SSL error
+            tls: true,
+            tlsAllowInvalidCertificates: true,
+            tlsAllowInvalidHostnames: true
         };
         cached.promise = __TURBOPACK__imported__module__$5b$externals$5d2f$mongoose__$5b$external$5d$__$28$mongoose$2c$__cjs$29$__["default"].connect(MONGODB_URI, opts).then((mongoose)=>{
             console.log('✅ MongoDB connected successfully');
