@@ -1,1 +1,12 @@
-{}
+{
+  "/api/principal/attendance/route": "app/api/principal/attendance/route.js",
+  "/api/principal/stats/route": "app/api/principal/stats/route.js",
+  "/api/principal/students/route": "app/api/principal/students/route.js",
+  "/api/principal/teachers/route": "app/api/principal/teachers/route.js",
+  "/principal/attendance/page": "app/principal/attendance/page.js",
+  "/principal/classes/page": "app/principal/classes/page.js",
+  "/principal/dashboard/page": "app/principal/dashboard/page.js",
+  "/principal/students/create/page": "app/principal/students/create/page.js",
+  "/principal/students/page": "app/principal/students/page.js",
+  "/principal/teachers/page": "app/principal/teachers/page.js"
+}

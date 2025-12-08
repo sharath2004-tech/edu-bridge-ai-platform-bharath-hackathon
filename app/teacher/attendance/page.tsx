@@ -37,21 +37,44 @@ export default function TeacherAttendancePage() {
   }
 
   const fetchStudents = async () => {
-    const res = await fetch(`/api/teacher/students?classId=${selectedClass}`)
-    const data = await res.json()
-    if (data.success) setStudents(data.students)
+    if (!selectedClass) return
+    
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/teacher/students?classId=${selectedClass}&limit=100`)
+      const data = await res.json()
+      console.log('Students data:', data)
+      if (data.success) {
+        setStudents(data.students || [])
+      } else {
+        console.error('Failed to fetch students:', data.error)
+        setStudents([])
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error)
+      setStudents([])
+    } finally {
+      setLoading(false)
+    }
   }
 
   const fetchAttendance = async () => {
-    const dateStr = format(selectedDate, 'yyyy-MM-dd')
-    const res = await fetch(`/api/teacher/attendance?classId=${selectedClass}&date=${dateStr}`)
-    const data = await res.json()
-    if (data.success) {
-      const attMap: Record<string, string> = {}
-      data.attendance.forEach((att: any) => {
-        attMap[att.studentId._id || att.studentId] = att.status
-      })
-      setAttendance(attMap)
+    if (!selectedClass) return
+    
+    try {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd')
+      const res = await fetch(`/api/teacher/attendance?classId=${selectedClass}&date=${dateStr}`)
+      const data = await res.json()
+      console.log('Attendance data:', data)
+      if (data.success) {
+        const attMap: Record<string, string> = {}
+        data.attendance.forEach((att: any) => {
+          attMap[att.studentId._id || att.studentId] = att.status
+        })
+        setAttendance(attMap)
+      }
+    } catch (error) {
+      console.error('Error fetching attendance:', error)
     }
   }
 
