@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 46, "column": 0}, "map": {"version":3,"sources":["file:///E:/projects/edu-bridge-ai-platform/app/api/auth/logout/route.ts"],"sourcesContent":["import { NextRequest, NextResponse } from 'next/server'\n\nexport async function POST(_req: NextRequest) {\n  const res = NextResponse.json({ success: true })\n  res.cookies.set('edubridge_session', '', { path: '/', maxAge: 0 })\n  return res\n}\n"],"names":[],"mappings":";;;;AAAA;;AAEO,eAAe,KAAK,IAAiB;IAC1C,MAAM,MAAM,+QAAY,CAAC,IAAI,CAAC;QAAE,SAAS;IAAK;IAC9C,IAAI,OAAO,CAAC,GAAG,CAAC,qBAAqB,IAAI;QAAE,MAAM;QAAK,QAAQ;IAAE;IAChE,OAAO;AACT"}}]
+}
