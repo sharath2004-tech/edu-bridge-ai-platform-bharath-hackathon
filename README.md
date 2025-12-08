@@ -696,7 +696,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact & Support
 
-- **Email**: support@edubridge.ai
+- **Email**: 2004sharath@gmail.com
 - **GitHub**: [sharath2004-tech](https://github.com/sharath2004-tech)
 - **Issues**: [GitHub Issues](https://github.com/sharath2004-tech/edu-bridge-ai-platform/issues)
 

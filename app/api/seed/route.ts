@@ -59,7 +59,7 @@ export async function POST() {
       name: 'Green Valley High School',
       code: 'GVHS2025',
       email: 'info@greenvalley.edu',
-      phone: '+1-555-0101',
+      phone: '+19 9110583958',
       address: {
         street: '123 Education Lane',
         city: 'Springfield',
