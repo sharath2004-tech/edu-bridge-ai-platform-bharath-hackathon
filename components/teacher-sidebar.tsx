@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { BarChart3, BookOpen, ClipboardList, FileText, LayoutDashboard, LogOut, Menu, Settings, Sparkles, Users, X } from "lucide-react"
+import { BarChart3, BookOpen, CalendarCheck, ClipboardList, FileText, LayoutDashboard, LogOut, Menu, Settings, Sparkles, Users, X, GraduationCap } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -12,6 +12,8 @@ const menuItems = [
   { href: "/teacher/quizzes", label: "Quizzes", icon: ClipboardList },
   { href: "/teacher/content", label: "Content", icon: FileText },
   { href: "/teacher/students", label: "Students", icon: Users },
+  { href: "/teacher/attendance", label: "Attendance", icon: CalendarCheck },
+  { href: "/teacher/marks", label: "Marks", icon: GraduationCap },
   { href: "/teacher/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/teacher/settings", label: "Settings", icon: Settings },
 ]
