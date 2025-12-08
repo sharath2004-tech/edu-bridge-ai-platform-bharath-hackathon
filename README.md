@@ -199,6 +199,9 @@ Four distinct user roles with granular permissions:
 ![Marks Entry](./docs/images/marks-entry.png)
 *Intuitive marks entry with auto-grade calculation*
 
+### AI Tools
+![AI Tools](./docs/images/ai-tools.png)
+*Teacher guide tools*
 
 
 

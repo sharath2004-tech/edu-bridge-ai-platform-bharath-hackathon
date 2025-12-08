@@ -1,23 +1,7 @@
 {
-  "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/api/auth/logout/route": "app/api/auth/logout/route.js",
-  "/api/chat/route": "app/api/chat/route.js",
-  "/api/gamification/route": "app/api/gamification/route.js",
-  "/api/principal/attendance/route": "app/api/principal/attendance/route.js",
   "/api/principal/stats/route": "app/api/principal/stats/route.js",
   "/api/principal/students/route": "app/api/principal/students/route.js",
-  "/api/teacher/attendance/route": "app/api/teacher/attendance/route.js",
-  "/api/teacher/classes/route": "app/api/teacher/classes/route.js",
-  "/api/teacher/exams/route": "app/api/teacher/exams/route.js",
-  "/api/teacher/marks/route": "app/api/teacher/marks/route.js",
-  "/api/teacher/students/route": "app/api/teacher/students/route.js",
-  "/api/teacher/subjects/route": "app/api/teacher/subjects/route.js",
-  "/login/page": "app/login/page.js",
-  "/offline/page": "app/offline/page.js",
-  "/principal/attendance/page": "app/principal/attendance/page.js",
   "/principal/dashboard/page": "app/principal/dashboard/page.js",
-  "/student/dashboard/page": "app/student/dashboard/page.js",
-  "/teacher/attendance/page": "app/teacher/attendance/page.js",
-  "/teacher/dashboard/page": "app/teacher/dashboard/page.js",
-  "/teacher/marks/page": "app/teacher/marks/page.js"
+  "/teacher/ai-tools/question-paper/page": "app/teacher/ai-tools/question-paper/page.js",
+  "/teacher/dashboard/page": "app/teacher/dashboard/page.js"
 }
