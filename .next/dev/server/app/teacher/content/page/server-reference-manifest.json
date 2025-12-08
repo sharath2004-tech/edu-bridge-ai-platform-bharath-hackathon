@@ -1,0 +1,35 @@
+{
+  "node": {
+    "407a5cc0ce602874f2b4b368ce19a0223309716200": {
+      "workers": {
+        "app/teacher/content/page": {
+          "moduleId": "[project]/.next-internal/server/app/teacher/content/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/teacher/content/page.tsx [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "$$RSC_SERVER_ACTION_0",
+          "filename": "app/teacher/content/page.tsx"
+        }
+      },
+      "layer": {
+        "app/teacher/content/page": "rsc"
+      },
+      "exportedName": "$$RSC_SERVER_ACTION_0",
+      "filename": "app/teacher/content/page.tsx"
+    },
+    "40e7373149445e650d495fd2bfc67b195a9b1715dc": {
+      "workers": {
+        "app/teacher/content/page": {
+          "moduleId": "[project]/.next-internal/server/app/teacher/content/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/teacher/content/page.tsx [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "$$RSC_SERVER_ACTION_1",
+          "filename": "app/teacher/content/page.tsx"
+        }
+      },
+      "layer": {
+        "app/teacher/content/page": "rsc"
+      },
+      "exportedName": "$$RSC_SERVER_ACTION_1",
+      "filename": "app/teacher/content/page.tsx"
+    }
+  },
+  "edge": {}
+}

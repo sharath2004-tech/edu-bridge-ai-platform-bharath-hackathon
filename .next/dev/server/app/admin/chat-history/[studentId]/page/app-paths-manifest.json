@@ -1,0 +1,3 @@
+{
+  "/admin/chat-history/[studentId]/page": "app/admin/chat-history/[studentId]/page.js"
+}
