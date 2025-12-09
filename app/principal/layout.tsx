@@ -10,6 +10,7 @@ import {
     Clock,
     GraduationCap,
     LayoutDashboard,
+    LogOut,
     Menu,
     School,
     Settings,
@@ -96,12 +97,23 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
           </nav>
 
           {/* User Section */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t space-y-2">
             <Button variant="outline" className="w-full justify-start" asChild>
               <Link href="/principal/settings">
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Link>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={async () => {
+                await fetch('/api/auth/logout', { method: 'POST' })
+                window.location.href = '/login'
+              }}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
             </Button>
           </div>
         </div>

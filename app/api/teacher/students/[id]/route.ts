@@ -1,6 +1,6 @@
-import connectDB from '@/lib/mongodb'
 import { getSession } from '@/lib/auth'
 import User from '@/lib/models/User'
+import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function DELETE(

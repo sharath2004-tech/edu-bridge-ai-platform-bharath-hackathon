@@ -1,11 +1,11 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Award, BookOpen, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { BookOpen, TrendingUp, Award } from 'lucide-react'
 
 export default function StudentMarksPage() {
   const [exams, setExams] = useState<any[]>([])

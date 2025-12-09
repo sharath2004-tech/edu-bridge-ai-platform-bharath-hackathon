@@ -1,12 +1,12 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Calendar } from '@/components/ui/calendar'
-import { useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { format } from 'date-fns'
-import { CalendarDays, TrendingUp, TrendingDown } from 'lucide-react'
+import { CalendarDays, TrendingDown, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function StudentAttendancePage() {
   const [attendance, setAttendance] = useState<any[]>([])

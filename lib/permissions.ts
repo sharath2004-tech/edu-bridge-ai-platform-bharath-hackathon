@@ -43,6 +43,8 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     { resource: 'attendance', action: 'read', scope: 'school' },
     { resource: 'marks', action: 'read', scope: 'school' },
     { resource: 'reports', action: 'read', scope: 'school' },
+    { resource: 'stats', action: 'read', scope: 'school' },
+    { resource: 'analytics', action: 'read', scope: 'school' },
     { resource: 'timetable', action: 'manage', scope: 'school' },
     { resource: 'courses', action: 'manage', scope: 'school' },
   ],

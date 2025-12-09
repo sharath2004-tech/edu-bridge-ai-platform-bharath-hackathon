@@ -1,6 +1,6 @@
-import connectDB from '@/lib/mongodb'
 import Class from '@/lib/models/Class'
 import Subject from '@/lib/models/Subject'
+import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {

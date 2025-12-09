@@ -186,6 +186,16 @@ const rolePermissions = {
             scope: 'school'
         },
         {
+            resource: 'stats',
+            action: 'read',
+            scope: 'school'
+        },
+        {
+            resource: 'analytics',
+            action: 'read',
+            scope: 'school'
+        },
+        {
             resource: 'timetable',
             action: 'manage',
             scope: 'school'
