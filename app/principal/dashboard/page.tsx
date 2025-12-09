@@ -44,11 +44,17 @@ export default function PrincipalDashboardPage() {
 
       if (statsRes.ok) {
         const data = await statsRes.json()
-        setStats(data.stats)
+        console.log('Stats response:', data)
+        if (data.success && data.stats) {
+          setStats(data.stats)
+        }
+      } else {
+        console.error('Stats API failed:', statsRes.status, await statsRes.text())
       }
 
       if (studentsRes.ok) {
         const data = await studentsRes.json()
+        console.log('Students response:', data)
         // Get the 5 most recent students
         const sorted = (data.students || []).sort((a: RecentStudent, b: RecentStudent) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

@@ -1,5 +1,5 @@
 import { authenticateAndAuthorize } from '@/lib/auth-middleware'
-import { User } from '@/lib/models'
+import { Class, Course, User } from '@/lib/models'
 import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
@@ -8,9 +8,8 @@ export async function GET(request: NextRequest) {
   try {
     const authResult = authenticateAndAuthorize(request, {
       requiredRoles: ['principal', 'super-admin'],
-      resource: 'analytics',
-      action: 'read',
-      scope: 'school'
+      resource: 'stats',
+      action: 'read'
     })
 
     if (authResult instanceof NextResponse) {
@@ -30,28 +29,20 @@ export async function GET(request: NextRequest) {
     const schoolId = user.schoolId
 
     // Get counts
-    const [totalStudents, totalTeachers, school] = await Promise.all([
+    const [totalStudents, totalTeachers, totalClasses, totalCourses, school] = await Promise.all([
       User.countDocuments({ schoolId, role: 'student' }),
       User.countDocuments({ schoolId, role: 'teacher' }),
+      Class.countDocuments({ schoolId }),
+      Course.countDocuments({ schoolId }),
       School.findById(schoolId)
     ])
-
-    // Get unique classes
-    const classes = await User.distinct('className', { 
-      schoolId, 
-      role: 'student',
-      className: { $exists: true, $ne: null }
-    })
-
-    // Get total courses (you can adjust this based on your Course model)
-    const totalCourses = school?.stats?.totalCourses || 0
 
     return NextResponse.json({
       success: true,
       stats: {
         totalStudents,
         totalTeachers,
-        totalClasses: classes.length,
+        totalClasses,
         totalCourses,
         schoolName: school?.name,
         schoolCode: school?.code
@@ -59,6 +50,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error: any) {
+    console.error('Stats API Error:', error)
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

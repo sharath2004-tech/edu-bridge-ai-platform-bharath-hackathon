@@ -1,9 +1,9 @@
-import connectDB from '@/lib/mongodb'
 import Class from '@/lib/models/Class'
 import Exam from '@/lib/models/Exam'
 import School from '@/lib/models/School'
 import Subject from '@/lib/models/Subject'
 import User from '@/lib/models/User'
+import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {

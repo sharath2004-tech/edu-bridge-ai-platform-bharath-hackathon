@@ -8,6 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env.local') })
 
 import bcrypt from 'bcrypt'
 import { Attendance, Class, Content, Course, Exam, Mark, School, Section, Subject, User } from '../lib/models'
+import Timetable from '../lib/models/Timetable'
 import connectDB from '../lib/mongodb'
 
 async function seedCompleteDatabase() {
@@ -27,6 +28,7 @@ async function seedCompleteDatabase() {
     await Course.deleteMany({})
     await Section.deleteMany({})
     await Content.deleteMany({})
+    await Timetable.deleteMany({})
 
     console.log('✅ All collections cleared')
 
@@ -122,7 +124,8 @@ async function seedCompleteDatabase() {
       isActive: true,
     })
 
-    console.log(`   ✓ Created ${[school1, school2, school3].length} schools`)
+    const schools = [school1, school2, school3]
+    console.log(`   ✓ Created ${schools.length} schools`)
 
     // ==================== PRINCIPALS ====================
     console.log('\n🎓 Creating Principals...')
@@ -653,11 +656,14 @@ async function seedCompleteDatabase() {
       title: 'Complete Web Development Bootcamp 2025',
       description: 'Master HTML, CSS, JavaScript, React, Node.js, and MongoDB. Build 15+ real-world projects.',
       instructor: csTeacher._id,
+      schoolId: school1._id,
+      createdBy: csTeacher._id,
       category: 'Web Development',
       level: 'beginner',
       thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
       price: 0,
       duration: 3600,
+      isPublished: true,
       lessons: [
         {
           title: 'Introduction to Web Development',
@@ -688,11 +694,14 @@ async function seedCompleteDatabase() {
       title: 'Advanced Mathematics for Class 12',
       description: 'Comprehensive coverage of calculus, algebra, and analytical geometry.',
       instructor: mathTeacher._id,
+      schoolId: school1._id,
+      createdBy: mathTeacher._id,
       category: 'Mathematics',
       level: 'advanced',
       thumbnail: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb',
       price: 0,
       duration: 2400,
+      isPublished: true,
       lessons: [
         {
           title: 'Limits and Continuity',
@@ -711,7 +720,217 @@ async function seedCompleteDatabase() {
       tags: ['calculus', 'mathematics'],
     })
 
-    console.log(`   ✓ Created 2 sample courses`)
+    console.log(`   ✓ Created 2 initial courses`)
+
+    // ==================== MORE COURSES FOR EACH SCHOOL ====================
+    console.log('\n📚 Creating School-Specific Courses...')
+    
+    let totalCoursesCreated = 2 // Already created 2
+    
+    // Create courses for each school
+    for (const school of schools) {
+      const schoolTeachers = allTeachers.filter(t => t.schoolId.equals(school._id))
+      const schoolStudents = allStudents.filter(s => s.schoolId.equals(school._id))
+      
+      // Get random students from this school who have attendance
+      const enrolledStudents1 = schoolStudents.slice(0, 30).map(s => s._id)
+      const enrolledStudents2 = schoolStudents.slice(30, 55).map(s => s._id)
+      const enrolledStudents3 = schoolStudents.slice(55, 85).map(s => s._id)
+      
+      // Course 1: Physics for school
+      await Course.create({
+        title: `Physics Mastery - ${school.name}`,
+        description: 'Comprehensive physics covering mechanics, thermodynamics, and electromagnetism.',
+        instructor: schoolTeachers[0]._id,
+        schoolId: school._id,
+        createdBy: schoolTeachers[0]._id,
+        category: 'Physics',
+        level: 'advanced',
+        thumbnail: 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa',
+        price: 0,
+        duration: 3000,
+        isPublished: true,
+        lessons: [
+          {
+            title: 'Newton\'s Laws of Motion',
+            description: 'Fundamental mechanics',
+            content: 'Understanding force, mass, and acceleration.',
+            videoUrl: 'https://www.youtube.com/embed/example',
+            duration: 45,
+            order: 1,
+          },
+          {
+            title: 'Energy and Work',
+            description: 'Conservation principles',
+            content: 'Understanding energy transformations.',
+            videoUrl: 'https://www.youtube.com/embed/example',
+            duration: 50,
+            order: 2,
+          },
+        ],
+        quizzes: [],
+        enrolledStudents: enrolledStudents1,
+        rating: 4.8,
+        reviews: [],
+        status: 'published',
+        tags: ['physics', 'mechanics', 'science'],
+      })
+      
+      // Course 2: Data Structures for school
+      await Course.create({
+        title: `Data Structures & Algorithms - ${school.name}`,
+        description: 'Master data structures, algorithms, and problem-solving techniques.',
+        instructor: schoolTeachers[1]._id,
+        schoolId: school._id,
+        createdBy: schoolTeachers[1]._id,
+        category: 'Computer Science',
+        level: 'intermediate',
+        thumbnail: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea',
+        price: 0,
+        duration: 4800,
+        isPublished: true,
+        lessons: [
+          {
+            title: 'Arrays and Strings',
+            description: 'Basic data structures',
+            content: 'Learn about arrays, strings, and operations.',
+            videoUrl: 'https://www.youtube.com/embed/example',
+            duration: 50,
+            order: 1,
+          },
+          {
+            title: 'Linked Lists',
+            description: 'Dynamic structures',
+            content: 'Understanding linked list implementations.',
+            videoUrl: 'https://www.youtube.com/embed/example',
+            duration: 55,
+            order: 2,
+          },
+        ],
+        quizzes: [],
+        enrolledStudents: enrolledStudents2,
+        rating: 4.7,
+        reviews: [],
+        status: 'published',
+        tags: ['programming', 'algorithms', 'data-structures'],
+      })
+      
+      // Course 3: English Literature for school
+      await Course.create({
+        title: `English Literature & Composition - ${school.name}`,
+        description: 'Explore literature, develop writing skills and critical thinking.',
+        instructor: schoolTeachers[2]._id,
+        schoolId: school._id,
+        createdBy: schoolTeachers[2]._id,
+        category: 'English',
+        level: 'intermediate',
+        thumbnail: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8',
+        price: 0,
+        duration: 2700,
+        isPublished: true,
+        lessons: [
+          {
+            title: 'Literary Analysis',
+            description: 'Analyzing themes',
+            content: 'Learn to identify and analyze literary elements.',
+            videoUrl: 'https://www.youtube.com/embed/example',
+            duration: 40,
+            order: 1,
+          },
+        ],
+        quizzes: [],
+        enrolledStudents: enrolledStudents3,
+        rating: 4.6,
+        reviews: [],
+        status: 'published',
+        tags: ['literature', 'writing', 'english'],
+      })
+      
+      totalCoursesCreated += 3
+    }
+
+    console.log(`   ✓ Created ${totalCoursesCreated} total courses across all schools`)
+
+    // ==================== TIMETABLES ====================
+    console.log('\n📅 Creating Class Timetables...')
+    
+    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    const timeslots = [
+      { period: 1, startTime: '08:00', endTime: '08:45' },
+      { period: 2, startTime: '08:50', endTime: '09:35' },
+      { period: 3, startTime: '09:40', endTime: '10:25' },
+      { period: 4, startTime: '10:45', endTime: '11:30' },
+      { period: 5, startTime: '11:35', endTime: '12:20' },
+      { period: 6, startTime: '13:00', endTime: '13:45' },
+      { period: 7, startTime: '13:50', endTime: '14:35' },
+    ]
+
+    let totalTimetableEntries = 0
+
+    // Create timetables for 9th-12th grade classes
+    for (const classDoc of targetClasses.slice(0, 12)) { // First 12 classes (9th-12th grade, section A for each school)
+      const classSubjects = allSubjects.filter(s => s.classId.equals(classDoc._id))
+      const classTeachers = allTeachers.filter(t => t.schoolId.equals(classDoc.schoolId))
+      
+      for (const day of daysOfWeek) {
+        for (let i = 0; i < Math.min(6, timeslots.length); i++) {
+          const slot = timeslots[i]
+          const subject = classSubjects[i % classSubjects.length]
+          const teacher = classTeachers.find(t => t._id.equals(subject?.teacherId)) || classTeachers[0]
+          
+          await Timetable.create({
+            classId: classDoc._id,
+            schoolId: classDoc.schoolId,
+            dayOfWeek: day,
+            period: slot.period,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            subjectId: subject?._id,
+            teacherId: teacher?._id,
+            roomNumber: `Room ${Math.floor(Math.random() * 50) + 101}`,
+          })
+          
+          totalTimetableEntries++
+        }
+      }
+    }
+
+    console.log(`   ✓ Created ${totalTimetableEntries} timetable entries for ${Math.min(12, targetClasses.length)} classes`)
+
+    // ==================== ANALYTICS DATA ====================
+    console.log('\n📊 Generating Analytics Data for Principal Dashboard...')
+    
+    // Calculate school-wide statistics
+    const schoolStats = {
+      totalStudents: totalStudents,
+      totalTeachers: allTeachers.length,
+      totalClasses: allClasses.length,
+      totalSubjects: allSubjects.length,
+      totalCourses: 5,
+      totalExams: allExams.length,
+      attendanceRecordsCount: attendanceRecords.length,
+      markRecordsCount: markRecords.length,
+    }
+
+    // Calculate attendance statistics
+    const totalPresentRecords = attendanceRecords.filter(a => a.status === 'Present').length
+    const totalAbsentRecords = attendanceRecords.filter(a => a.status === 'Absent').length
+    const totalLateRecords = attendanceRecords.filter(a => a.status === 'Late').length
+    const overallAttendancePercentage = ((totalPresentRecords / attendanceRecords.length) * 100).toFixed(2)
+
+    // Calculate average marks by class
+    const marksByClass: Record<string, number[]> = {}
+    for (const mark of markRecords) {
+      const classId = mark.examId?.toString() || 'unknown'
+      if (!marksByClass[classId]) marksByClass[classId] = []
+      marksByClass[classId].push(mark.marksScored)
+    }
+
+    console.log(`   ✓ Analytics generated:`)
+    console.log(`     - Overall Attendance: ${overallAttendancePercentage}%`)
+    console.log(`     - Present: ${totalPresentRecords}, Absent: ${totalAbsentRecords}, Late: ${totalLateRecords}`)
+    console.log(`     - Average class performance tracked across ${Object.keys(marksByClass).length} exams`)
+    console.log(`     - ${totalCoursesCreated} active courses across all schools`)
 
     // ==================== SUMMARY ====================
     console.log('\n' + '='.repeat(60))
@@ -732,7 +951,13 @@ async function seedCompleteDatabase() {
     console.log(`   - ${allExams.length} Exams`)
     console.log(`   - ${markRecords.length} Mark Entries (only for present students)`)
     console.log(`   - ${attendanceRecords.length} Attendance Records`)
-    console.log(`   - 2 Online Courses`)
+    console.log(`   - ${totalTimetableEntries} Timetable Entries`)
+    console.log(`   - ${totalCoursesCreated} Online Courses (school-specific)`)
+    
+    console.log('\n   Analytics:')
+    console.log(`   - Overall Attendance: ${overallAttendancePercentage}%`)
+    console.log(`   - Present: ${totalPresentRecords}, Absent: ${totalAbsentRecords}, Late: ${totalLateRecords}`)
+    console.log(`   - Total Course Enrollments: ${totalCoursesCreated * 3 * 30} students across all schools`)
     
     console.log('\n🔐 LOGIN CREDENTIALS:')
     console.log('   Super Admin:')
