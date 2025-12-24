@@ -36,7 +36,6 @@ const ClassSchema = new Schema<IClass>(
     classTeacherId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      index: true,
     },
     academicYear: {
       type: String,

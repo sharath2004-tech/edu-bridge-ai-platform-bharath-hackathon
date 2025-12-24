@@ -46,7 +46,6 @@ const AttendanceSchema = new Schema<IAttendance>(
     date: {
       type: Date,
       required: [true, 'Date is required'],
-      index: true,
     },
     status: {
       type: String,

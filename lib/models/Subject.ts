@@ -41,7 +41,6 @@ const SubjectSchema = new Schema<ISubject>(
     teacherId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      index: true,
     },
     description: {
       type: String,
