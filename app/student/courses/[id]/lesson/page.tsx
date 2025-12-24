@@ -1,10 +1,10 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { VideoPlayer } from "@/components/video-player"
-import { ArrowLeft, ArrowRight, MessageCircle, Download, Volume2, Maximize, CheckCircle } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle, Download, Maximize, MessageCircle, Volume2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
