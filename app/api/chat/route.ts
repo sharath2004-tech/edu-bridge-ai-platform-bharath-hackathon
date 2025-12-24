@@ -3,13 +3,93 @@ import ChatMessage from '@/lib/models/ChatMessage'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
-// Cohere API Integration
+// Gemini API Integration (Primary)
+async function generateGeminiResponse(userMessage: string, language: string, chatHistory: any[]): Promise<string> {
+  try {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+    
+    if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY not configured, falling back to Cohere')
+      return generateCohereResponse(userMessage, language, chatHistory)
+    }
+
+    // Build conversation history for context
+    const conversationHistory = chatHistory
+      .slice(-5) // Last 5 messages for context
+      .reverse()
+      .map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }]
+      }))
+
+    const systemPrompt = `You are EduBridge AI, a helpful learning assistant for students. Your role is to:
+- Provide clear, educational explanations
+- Encourage students with positive feedback
+- Break down complex topics into simple steps
+- Support multiple regional languages (English, Telugu, Hindi, Tamil, Kannada)
+- Never directly give quiz answers
+- Be encouraging and motivational
+
+Current language preference: ${language}`
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: systemPrompt }]
+            },
+            ...conversationHistory,
+            {
+              role: 'user',
+              parts: [{ text: userMessage }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 500,
+            topP: 0.8,
+            topK: 40
+          }
+        }),
+      }
+    )
+
+    if (!response.ok) {
+      console.error('Gemini API error:', response.status, await response.text())
+      console.log('Falling back to Cohere...')
+      return generateCohereResponse(userMessage, language, chatHistory)
+    }
+
+    const data = await response.json()
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text
+    
+    if (generatedText) {
+      return generatedText
+    } else {
+      console.log('No text generated from Gemini, falling back to Cohere...')
+      return generateCohereResponse(userMessage, language, chatHistory)
+    }
+  } catch (error) {
+    console.error('Error calling Gemini API:', error)
+    console.log('Falling back to Cohere...')
+    return generateCohereResponse(userMessage, language, chatHistory)
+  }
+}
+
+// Cohere API Integration (Fallback)
 async function generateCohereResponse(userMessage: string, language: string, chatHistory: any[]): Promise<string> {
   try {
     const COHERE_API_KEY = process.env.COHERE_API_KEY
     
     if (!COHERE_API_KEY) {
-      console.error('COHERE_API_KEY not configured')
+      console.error('COHERE_API_KEY not configured, using static fallback')
       return generateFallbackResponse(userMessage, language)
     }
 
@@ -156,8 +236,8 @@ export async function POST(request: NextRequest) {
       }
       aiResponse = quizResponses[language as keyof typeof quizResponses] || quizResponses.english
     } else {
-      // Generate AI response using Cohere
-      aiResponse = await generateCohereResponse(message, language, recentMessages)
+      // Generate AI response using Gemini (with Cohere fallback)
+      aiResponse = await generateGeminiResponse(message, language, recentMessages)
     }
 
     // Save AI response

@@ -50,8 +50,6 @@ export default function LessonPage() {
             lessonId="lesson456"
             onProgress={handleVideoProgress}
           />
-            </div>
-          </div>
 
           {/* Lesson Info */}
           <Card className="p-6 border border-border mb-6 animate-slideInLeft" style={{ animationDelay: "0.1s" }}>

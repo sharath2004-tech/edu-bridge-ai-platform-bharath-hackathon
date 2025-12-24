@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "cross-env NODE_OPTIONS='--max-old-space-size=8192' next build",
+    "build:debug": "cross-env NODE_OPTIONS='--max-old-space-size=8192' NEXT_PRIVATE_DISABLE_TURBOPACK=1 next build",
     "dev": "next dev",
-    "lint": "eslint .",
+    "lint": "next lint",
     "start": "next start",
     "seed": "cross-env NODE_OPTIONS='--tls-min-v1.0' tsx --env-file=.env.local scripts/seed-complete.ts",
-    "seed:old": "tsx scripts/seed.ts"
+    "seed:old": "tsx scripts/seed.ts",
+    "vercel-build": "next build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -42,6 +44,7 @@
     "@vercel/analytics": "latest",
     "autoprefixer": "^10.4.20",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
