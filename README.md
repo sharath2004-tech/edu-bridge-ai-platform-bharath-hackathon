@@ -10,7 +10,7 @@
   [![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
   [![Cohere AI](https://img.shields.io/badge/Cohere-AI-purple?style=for-the-badge)](https://cohere.ai/)
   
-  [Features](#-features) • [Demo](#-demo) • [Installation](#-installation) • [Usage](#-usage) • [Architecture](#-architecture) • [API](#-api-documentation)
+  **[🚀 Deploy Now](https://vercel.com/new/clone?repository-url=https://github.com/sharath2004-tech/edu-bridge-ai-platform)** | [Features](#-features) • [Demo](#-demo) • [Installation](#-installation) • [Usage](#-usage) • [Architecture](#-architecture) • [API](#-api-documentation)
 </div>
 
 ---
