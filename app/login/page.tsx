@@ -15,26 +15,40 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
+    
     try {
       const res = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        credentials: 'include', // Important for cookies
       })
 
+      const data = await res.json()
+      
       if (!res.ok) {
+        setError(data?.error || 'Login failed. Please check your credentials.')
         setIsLoading(false)
         return
       }
-      const data = await res.json()
-      const role = data?.data?.role ?? "student"
-      // Redirect based on role
-      window.location.href = `/${role}/dashboard`
+      
+      if (data.success) {
+        const role = data?.data?.role ?? "student"
+        // Redirect based on role
+        window.location.href = `/${role}/dashboard`
+      } else {
+        setError(data?.error || 'Login failed')
+        setIsLoading(false)
+      }
     } catch (err) {
+      console.error('Login error:', err)
+      setError('Network error. Please check your connection and try again.')
       setIsLoading(false)
     }
   }
@@ -102,6 +116,13 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-500 text-sm animate-slideInLeft">
+                {error}
+              </div>
+            )}
 
             {/* Remember & Forgot */}
             <div
