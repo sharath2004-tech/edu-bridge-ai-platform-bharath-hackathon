@@ -10,7 +10,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Email and password required' }, { status: 400 })
     }
 
-    await connectDB()
+    // Connect to database with error handling
+    try {
+      await connectDB()
+    } catch (dbError: any) {
+      console.error('Database connection error:', dbError)
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Database connection failed. Please try again later.',
+        details: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+      }, { status: 503 })
+    }
     
     const user = await User.findOne({ email }).select('+password')
     if (!user) {
@@ -24,7 +34,8 @@ export async function POST(req: NextRequest) {
 
     // Set a simple session cookie with minimal user info
     const payload = { 
-      id: String(user._id), 
+      id: String(user._id),
+      userId: String(user._id), // For backwards compatibility
       role: user.role, 
       name: user.name, 
       email: user.email,
@@ -35,7 +46,7 @@ export async function POST(req: NextRequest) {
     // Cookie settings that work on Vercel
     res.cookies.set('edubridge_session', JSON.stringify(payload), {
       httpOnly: true,
-      secure: true, // Always use secure in production (Vercel uses HTTPS)
+      secure: process.env.NODE_ENV === 'production', // Use secure only in production
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
@@ -45,7 +56,8 @@ export async function POST(req: NextRequest) {
     console.error('Login error:', error)
     return NextResponse.json({ 
       success: false, 
-      error: error.message || 'Login failed. Please try again.' 
+      error: error.message || 'Login failed. Please try again.',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 })
   }
 }
