@@ -44,10 +44,17 @@ export default function SignUpPage() {
       const res = await fetch('/api/schools')
       if (res.ok) {
         const data = await res.json()
-        setSchools(data.schools)
+        if (data.schools && data.schools.length > 0) {
+          setSchools(data.schools)
+        } else {
+          setError('No schools found. Please contact your administrator or use the school registration page.')
+        }
+      } else {
+        setError('Unable to load schools. Please refresh the page or contact support.')
       }
     } catch (error) {
       console.error('Error fetching schools:', error)
+      setError('Network error. Please check your connection and try again.')
     }
   }
 
@@ -88,9 +95,15 @@ export default function SignUpPage() {
         return
       }
       
+      if (formData.password.length < 6) {
+        setError('Password must be at least 6 characters long')
+        setIsLoading(false)
+        return
+      }
+      
       // Validate school for all users (students, teachers, principals)
       if (!formData.schoolId) {
-        setError('Please select or verify your school')
+        setError('Please select or verify your school before proceeding')
         setIsLoading(false)
         return
       }
@@ -98,27 +111,30 @@ export default function SignUpPage() {
       const res = await fetch(`/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include', // Important for cookies
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
           password: formData.password,
           role: formData.role,
-          schoolId: formData.schoolId || undefined,
+          schoolId: formData.schoolId,
         }),
       })
       
       const data = await res.json()
       
-      if (!res.ok) {
-        setError(data.error || 'Failed to create account. Please try again.')
+      if (!res.ok || !data.success) {
+        setError(data.error || 'Registration failed. Please try again.')
         setIsLoading(false)
         return
       }
       
+      // Success - redirect to dashboard
       const role = data?.data?.role ?? "student"
       window.location.href = `/${role}/dashboard`
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred. Please try again.')
+      console.error('Signup error:', err)
+      setError(err.message || 'Network error. Please check your connection and try again.')
       setIsLoading(false)
     }
   }
