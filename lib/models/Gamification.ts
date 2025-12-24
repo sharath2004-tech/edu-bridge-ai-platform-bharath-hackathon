@@ -44,7 +44,6 @@ const GamificationSchema = new mongoose.Schema({
   }]
 }, { timestamps: true })
 
-GamificationSchema.index({ userId: 1 })
 GamificationSchema.index({ xp: -1 })
 GamificationSchema.index({ level: -1 })
 
