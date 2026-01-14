@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { AlertCircle, ArrowLeft, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 
 export default function CreateTeacherPage() {
   const router = useRouter()
