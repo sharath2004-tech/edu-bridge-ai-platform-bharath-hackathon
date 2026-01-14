@@ -2,22 +2,20 @@
 node_modules
 .pnp
 .pnp.js
+.yarn/
 
 # Testing
 coverage
+.nyc_output
 
 # Next.js
-.next
-out
-build
-dist
+.next/
+out/
+build/
+dist/
 
 # Production
 .vercel
-
-# Misc
-.DS_Store
-*.pem
 
 # Debug
 npm-debug.log*
@@ -33,12 +31,24 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Vercel
-.vercel
+# OS files
+.DS_Store
+*.pem
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Vercel
+.vercel
 
 # Documentation (internal)
 /DATABASE_SCHEMA.md
@@ -46,3 +56,17 @@ next-env.d.ts
 /QUICK_REFERENCE.md
 /SCHOOL_REGISTRATION_COMPLETE.md
 /SECTION_AND_COHERE_INTEGRATION.md
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Uploaded files (keep folder structure but ignore contents)
+public/uploads/*
+!public/uploads/.gitkeep
