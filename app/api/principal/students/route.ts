@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const className = searchParams.get('class')
     const section = searchParams.get('section')
+    const classId = searchParams.get('classId')
 
     // Build query based on role
     const query: any = { role: 'student' }
@@ -45,7 +46,11 @@ export async function GET(request: NextRequest) {
       // Get teacher data to check assigned classes
       const teacherData = await User.findById(user.id).select('assignedClasses')
       if (teacherData && teacherData.assignedClasses && teacherData.assignedClasses.length > 0) {
-        query.className = { $in: teacherData.assignedClasses }
+        // Convert to string array for comparison
+        const assignedClassIds = teacherData.assignedClasses.map((cls: any) => 
+          typeof cls === 'string' ? cls : cls.toString()
+        )
+        query.classId = { $in: assignedClassIds }
       } else {
         // Teacher has no assigned classes, return empty
         return NextResponse.json({
@@ -56,7 +61,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Filter by class if provided
+    // Filter by classId if provided (for attendance/marks filtering)
+    if (classId) {
+      query.classId = classId
+    }
+
+    // Filter by class name if provided
     if (className) {
       query.className = className
     }
@@ -218,7 +228,22 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(generatedPassword, 10)
 
-    // Create student account
+    // Find the Class document by className and section
+    const Class = (await import('@/lib/models/Class')).default
+    const classDoc = await Class.findOne({
+      schoolId,
+      className,
+      section: section || 'A'
+    })
+
+    if (!classDoc) {
+      return NextResponse.json(
+        { success: false, error: `Class ${className} Section ${section || 'A'} not found. Please create the class first.` },
+        { status: 400 }
+      )
+    }
+
+    // Create student account with classId
     const student = await User.create({
       name,
       email: email.toLowerCase(),
@@ -226,8 +251,9 @@ export async function POST(request: NextRequest) {
       role: 'student',
       phone,
       schoolId,
+      classId: classDoc._id, // Important: Add the Class ObjectId reference
       className,
-      section,
+      section: section || 'A',
       rollNumber,
       bio: bio || `Student at ${school.name}`,
       mustChangePassword: !password // If auto-generated, must change password

@@ -16,6 +16,20 @@ export async function GET() {
 
     await connectDB()
 
+    // Fetch teacher's assigned classes
+    const Class = (await import('@/lib/models/Class')).default
+    const teacher = await User.findById(session.userId).select('assignedClasses')
+    let classes = []
+    if (teacher && teacher.assignedClasses && teacher.assignedClasses.length > 0) {
+      const classIds = teacher.assignedClasses.map((cls: any) => 
+        typeof cls === 'string' ? cls : cls.toString()
+      )
+      classes = await Class.find({
+        _id: { $in: classIds },
+        schoolId: session.schoolId
+      }).select('className section').lean()
+    }
+
     // Fetch teacher's courses from their school only
     const courses = await Course.find({
       instructor: session.id,
@@ -68,7 +82,12 @@ export async function GET() {
       success: true,
       data: {
         stats,
-        courses: coursesData
+        courses: coursesData,
+        classes: classes.map(c => ({
+          id: String(c._id),
+          className: c.className,
+          section: c.section
+        }))
       }
     })
   } catch (error: any) {
