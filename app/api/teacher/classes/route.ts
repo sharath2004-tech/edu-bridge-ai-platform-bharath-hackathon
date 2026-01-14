@@ -20,17 +20,26 @@ export async function GET(request: NextRequest) {
       const User = (await import('@/lib/models/User')).default
       const teacher = await User.findById(session.userId).select('assignedClasses')
       
+      console.log('Teacher data:', { userId: session.userId, assignedClasses: teacher?.assignedClasses })
+      
       if (teacher && teacher.assignedClasses && teacher.assignedClasses.length > 0) {
-        // assignedClasses can be ObjectIds or class names
-        query.$or = [
-          { _id: { $in: teacher.assignedClasses } },
-          { className: { $in: teacher.assignedClasses } }
-        ]
+        // Convert assignedClasses to proper format
+        const classIds = teacher.assignedClasses.map((cls: any) => {
+          // Handle both ObjectId and string types
+          return typeof cls === 'string' ? cls : cls.toString()
+        })
+        
+        console.log('Converted class IDs:', classIds)
+        
+        // assignedClasses contains Class ObjectIds
+        query._id = { $in: classIds }
       } else {
         // Teacher has no assigned classes
+        console.log('Teacher has no assigned classes')
         return NextResponse.json({
           success: true,
-          classes: []
+          classes: [],
+          message: 'No classes assigned to this teacher'
         })
       }
     } else if (session.role === 'principal') {

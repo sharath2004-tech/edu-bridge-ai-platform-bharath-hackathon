@@ -30,9 +30,20 @@ export default function TeacherAttendancePage() {
   }, [selectedClass, selectedDate])
 
   const fetchClasses = async () => {
-    const res = await fetch('/api/teacher/classes')
-    const data = await res.json()
-    if (data.success) setClasses(data.classes)
+    try {
+      const res = await fetch('/api/teacher/classes')
+      const data = await res.json()
+      console.log('Teacher classes response:', data)
+      if (data.success) {
+        setClasses(data.classes || [])
+      } else {
+        console.error('Failed to fetch classes:', data.error)
+        setClasses([])
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error)
+      setClasses([])
+    }
   }
 
   const fetchStudents = async () => {
@@ -124,11 +135,15 @@ export default function TeacherAttendancePage() {
                 <SelectValue placeholder="Select Class" />
               </SelectTrigger>
               <SelectContent>
-                {classes.map(cls => (
-                  <SelectItem key={cls._id} value={cls._id}>
-                    {cls.className}-{cls.section}
-                  </SelectItem>
-                ))}
+                {classes.length === 0 ? (
+                  <div className="p-2 text-sm text-muted-foreground">No classes assigned</div>
+                ) : (
+                  classes.map(cls => (
+                    <SelectItem key={cls._id} value={cls._id}>
+                      {cls.className} - Section {cls.section}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
 
