@@ -4,7 +4,7 @@ import User from '@/lib/models/User'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
-// GET - Fetch all schools or a specific school
+// GET - Fetch admin's own school only
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
@@ -17,65 +17,48 @@ export async function GET(request: NextRequest) {
 
     await connectDB()
 
-    const { searchParams } = new URL(request.url)
-    const schoolId = searchParams.get('id')
-    const code = searchParams.get('code')
-
-    if (schoolId) {
-      const school = await School.findById(schoolId)
-      if (!school) {
-        return NextResponse.json(
-          { success: false, error: 'School not found' },
-          { status: 404 }
-        )
-      }
-      
-      // Get school statistics
-      const totalStudents = await User.countDocuments({ schoolId: school._id, role: 'student' })
-      const totalTeachers = await User.countDocuments({ schoolId: school._id, role: 'teacher' })
-      
-      school.stats = {
-        totalStudents,
-        totalTeachers,
-        totalCourses: school.stats?.totalCourses || 0
-      }
-      await school.save()
-
-      return NextResponse.json({ success: true, school })
+    // Admin can only see their own school
+    if (!session.schoolId) {
+      return NextResponse.json(
+        { success: false, error: 'No school assigned to this admin' },
+        { status: 400 }
+      )
     }
 
-    if (code) {
-      const school = await School.findOne({ code: code.toUpperCase() })
-      if (!school) {
-        return NextResponse.json(
-          { success: false, error: 'School not found' },
-          { status: 404 }
-        )
-      }
-      return NextResponse.json({ success: true, school })
+    const school = await School.findById(session.schoolId)
+    if (!school) {
+      return NextResponse.json(
+        { success: false, error: 'School not found' },
+        { status: 404 }
+      )
     }
-
-    // Fetch all schools with stats
-    const schools = await School.find().sort({ createdAt: -1 })
     
-    // Update stats for all schools
-    for (const school of schools) {
-      const totalStudents = await User.countDocuments({ schoolId: school._id, role: 'student' })
-      const totalTeachers = await User.countDocuments({ schoolId: school._id, role: 'teacher' })
-      
-      school.stats = {
+    // Get school statistics
+    const totalStudents = await User.countDocuments({ schoolId: school._id, role: 'student' })
+    const totalTeachers = await User.countDocuments({ schoolId: school._id, role: 'teacher' })
+    const totalPrincipals = await User.countDocuments({ schoolId: school._id, role: 'principal' })
+    
+    school.stats = {
+      totalStudents,
+      totalTeachers,
+      totalCourses: school.stats?.totalCourses || 0
+    }
+    await school.save()
+
+    return NextResponse.json({ 
+      success: true, 
+      school,
+      stats: {
         totalStudents,
         totalTeachers,
+        totalPrincipals,
         totalCourses: school.stats?.totalCourses || 0
       }
-      await school.save()
-    }
-
-    return NextResponse.json({ success: true, schools })
+    })
   } catch (error: any) {
-    console.error('Error fetching schools:', error)
+    console.error('Error fetching school:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch schools', message: error.message },
+      { success: false, error: 'Failed to fetch school', message: error.message },
       { status: 500 }
     )
   }
