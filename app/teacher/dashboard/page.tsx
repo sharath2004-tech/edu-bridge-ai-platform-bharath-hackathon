@@ -22,6 +22,11 @@ interface DashboardData {
     rating: number
     views: number
   }[]
+  classes?: {
+    id: string
+    className: string
+    section: string
+  }[]
 }
 
 export default function TeacherDashboard() {
@@ -182,14 +187,50 @@ export default function TeacherDashboard() {
         </div>
 
         <div className="space-y-4">
+          {/* Assigned Classes */}
+          <Card className="p-4 border border-border">
+            <h3 className="font-semibold mb-3">Your Classes</h3>
+            {loading ? (
+              <div className="space-y-2">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-10 bg-muted animate-pulse rounded" />
+                ))}
+              </div>
+            ) : data?.classes && data.classes.length > 0 ? (
+              <div className="space-y-2">
+                {data.classes.map((cls) => (
+                  <Link
+                    key={cls.id}
+                    href={`/teacher/students?classId=${cls.id}`}
+                    className="block w-full px-3 py-2 text-left text-sm hover:bg-muted rounded transition-colors border border-border"
+                  >
+                    <div className="font-medium">{cls.className}</div>
+                    <div className="text-xs text-muted-foreground">Section {cls.section}</div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No classes assigned yet</p>
+            )}
+          </Card>
+
           {/* Quick Actions */}
           <Card className="p-4 border border-border">
             <h3 className="font-semibold mb-3">Quick Actions</h3>
             <div className="space-y-2">
-              {["Create New Course", "Upload Content", "Review Submissions", "Message Students"].map((action, i) => (
-                <button key={i} className="w-full px-3 py-2 text-left text-sm hover:bg-muted rounded transition-colors">
-                  {action}
-                </button>
+              {[
+                { label: "Mark Attendance", href: "/teacher/attendance" },
+                { label: "View Students", href: "/teacher/students" },
+                { label: "Upload Content", href: "/teacher/content" },
+                { label: "Create Course", href: "/teacher/courses/create" }
+              ].map((action, i) => (
+                <Link
+                  key={i}
+                  href={action.href}
+                  className="block w-full px-3 py-2 text-left text-sm hover:bg-muted rounded transition-colors"
+                >
+                  {action.label}
+                </Link>
               ))}
             </div>
           </Card>

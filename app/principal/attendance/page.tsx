@@ -54,11 +54,11 @@ export default function AttendancePage() {
   }, [])
 
   useEffect(() => {
-    if (selectedClass && selectedSection) {
+    if (selectedClassId) {
       fetchStudents()
       fetchExistingAttendance()
     }
-  }, [selectedClass, selectedSection, selectedDate])
+  }, [selectedClassId, selectedDate])
 
   const fetchClasses = async () => {
     try {
@@ -75,8 +75,8 @@ export default function AttendancePage() {
   const fetchStudents = async () => {
     try {
       setLoading(true)
-      console.log('Fetching students for:', { selectedClass, selectedSection })
-      const res = await fetch(`/api/principal/students?class=${encodeURIComponent(selectedClass)}&section=${selectedSection}`)
+      console.log('Fetching students for classId:', selectedClassId)
+      const res = await fetch(`/api/principal/students?classId=${selectedClassId}`)
       if (res.ok) {
         const data = await res.json()
         console.log('Students fetched:', data)
