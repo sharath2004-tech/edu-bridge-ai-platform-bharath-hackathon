@@ -22,13 +22,28 @@ function LoginForm() {
   const [selectedRole, setSelectedRole] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [showSchools, setShowSchools] = useState(false)
+  const [schools, setSchools] = useState<any[]>([])
   const [error, setError] = useState("")
 
   useEffect(() => {
     if (errorParam === 'unauthorized') {
       setError('You do not have permission to access that page.')
     }
+    fetchSchools()
   }, [errorParam])
+
+  const fetchSchools = async () => {
+    try {
+      const res = await fetch('/api/schools')
+      const data = await res.json()
+      if (data.success) {
+        setSchools(data.schools || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch schools:', error)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -127,10 +142,19 @@ function LoginForm() {
 
           {/* School Code Input */}
           <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.08s" }}>
-            <Label htmlFor="schoolCode" className="flex items-center gap-2">
-              <span className="text-primary">🏫</span>
-              School Code
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="schoolCode" className="flex items-center gap-2">
+                <span className="text-primary">🏫</span>
+                School Code
+              </Label>
+              <button
+                type="button"
+                onClick={() => setShowSchools(!showSchools)}
+                className="text-xs text-primary hover:underline"
+              >
+                {showSchools ? "Hide" : "View"} School Codes
+              </button>
+            </div>
             <Input
               id="schoolCode"
               type="text"
@@ -140,6 +164,27 @@ function LoginForm() {
               required
               className="bg-muted/50 uppercase"
             />
+            {showSchools && schools.length > 0 && (
+              <div className="mt-2 p-3 bg-muted/30 border border-border rounded-lg max-h-40 overflow-y-auto">
+                <p className="text-xs font-medium mb-2 text-muted-foreground">Available School Codes:</p>
+                <div className="space-y-1">
+                  {schools.map((school) => (
+                    <button
+                      key={school._id}
+                      type="button"
+                      onClick={() => {
+                        setSchoolCode(school.code)
+                        setShowSchools(false)
+                      }}
+                      className="w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-xs flex justify-between items-center group"
+                    >
+                      <span className="font-medium">{school.code}</span>
+                      <span className="text-muted-foreground truncate ml-2">{school.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Email/ID Input */}
