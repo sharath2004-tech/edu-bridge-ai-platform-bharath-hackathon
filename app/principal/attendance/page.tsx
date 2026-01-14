@@ -75,14 +75,16 @@ export default function AttendancePage() {
   const fetchStudents = async () => {
     try {
       setLoading(true)
+      console.log('Fetching students for:', { selectedClass, selectedSection })
       const res = await fetch(`/api/principal/students?class=${encodeURIComponent(selectedClass)}&section=${selectedSection}`)
       if (res.ok) {
         const data = await res.json()
+        console.log('Students fetched:', data)
         setStudents(data.students || [])
         
         // Initialize attendance records
         const initialAttendance: Record<string, AttendanceRecord> = {}
-        data.users?.forEach((student: Student) => {
+        data.students?.forEach((student: Student) => {
           if (!attendance[student._id]) {
             initialAttendance[student._id] = {
               studentId: student._id,
@@ -92,6 +94,8 @@ export default function AttendancePage() {
           }
         })
         setAttendance(prev => ({ ...initialAttendance, ...prev }))
+      } else {
+        console.error('Failed to fetch students:', res.status, res.statusText)
       }
     } catch (error) {
       console.error('Error fetching students:', error)
