@@ -55,6 +55,8 @@ function LoginForm() {
         if (redirectUrl && !redirectUrl.includes('/login')) {
           window.location.href = redirectUrl
         } else if (role === 'super-admin') {
+          window.location.href = '/super-admin/dashboard'
+        } else if (role === 'admin') {
           window.location.href = '/admin/dashboard'
         } else {
           window.location.href = `/${role}/dashboard`
