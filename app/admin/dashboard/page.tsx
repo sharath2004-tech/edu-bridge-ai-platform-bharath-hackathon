@@ -15,7 +15,7 @@ interface DashboardData {
     userActivity: {
       students: { value: number; max: number }
       teachers: { value: number; max: number }
-      admins: { value: number; max: number }
+      principals: { value: number; max: number }
     }
   }
   recentUsers: {
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
                 {[
                   { label: "Students", value: data?.stats.userActivity.students.value || 0, max: data?.stats.userActivity.students.max || 100, color: "from-primary/60 to-primary/40" },
                   { label: "Teachers", value: data?.stats.userActivity.teachers.value || 0, max: data?.stats.userActivity.teachers.max || 100, color: "from-accent/60 to-accent/40" },
-                  { label: "Admins", value: data?.stats.userActivity.admins.value || 0, max: data?.stats.userActivity.admins.max || 100, color: "from-secondary/60 to-secondary/40" },
+                  { label: "Principals", value: data?.stats.userActivity.principals.value || 0, max: data?.stats.userActivity.principals.max || 100, color: "from-secondary/60 to-secondary/40" },
                 ].map((item, i) => (
                   <div key={i}>
                     <div className="flex items-center justify-between mb-2">
