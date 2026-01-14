@@ -284,13 +284,3 @@ export default function SuperAdminDashboard() {
     </div>
   )
 }
-                <h4 className="font-semibold">Analytics</h4>
-                <p className="text-sm text-muted-foreground">Platform statistics</p>
-              </div>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
