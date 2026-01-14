@@ -165,7 +165,7 @@ export async function sendAdminCredentials(
             </div>
             
             <center>
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login" class="button">
+              <a href="https://edu-bridge-ai-platform-bharath-hack.vercel.app/login" class="button">
                 Login to Dashboard
               </a>
             </center>
@@ -209,7 +209,7 @@ IMPORTANT: This is a temporary password. Please change it immediately after your
 
 Your school registration is pending approval from our admin team. You will be notified once approved.
 
-Login URL: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login
+Login URL: https://edu-bridge-ai-platform-bharath-hack.vercel.app/login
 
 Best regards,
 EduBridge AI Platform Team
@@ -309,7 +309,7 @@ export async function sendSchoolApprovalEmail(
             </ul>
             
             <center>
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login" class="button">
+              <a href="https://edu-bridge-ai-platform-bharath-hack.vercel.app/login" class="button">
                 Access Your Dashboard
               </a>
             </center>

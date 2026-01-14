@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server'
 
 // Role hierarchy for authorization
 const ROLE_HIERARCHY: Record<string, number> = {
-  'super-admin': 4,
+  'super-admin': 5,
+  'admin': 4,
   'principal': 3,
   'teacher': 2,
   'student': 1,
@@ -11,10 +12,11 @@ const ROLE_HIERARCHY: Record<string, number> = {
 
 // Route access requirements
 const ROUTE_ACCESS: Record<string, { minRole: string; allowedRoles?: string[] }> = {
-  '/admin': { minRole: 'super-admin' },
-  '/principal': { minRole: 'principal', allowedRoles: ['principal', 'super-admin'] },
-  '/teacher': { minRole: 'teacher', allowedRoles: ['teacher', 'principal', 'super-admin'] },
-  '/student': { minRole: 'student', allowedRoles: ['student', 'teacher', 'principal', 'super-admin'] },
+  '/super-admin': { minRole: 'super-admin', allowedRoles: ['super-admin'] },
+  '/admin': { minRole: 'admin', allowedRoles: ['admin', 'super-admin'] },
+  '/principal': { minRole: 'principal', allowedRoles: ['principal', 'admin', 'super-admin'] },
+  '/teacher': { minRole: 'teacher', allowedRoles: ['teacher', 'principal', 'admin', 'super-admin'] },
+  '/student': { minRole: 'student', allowedRoles: ['student', 'teacher', 'principal', 'admin', 'super-admin'] },
 }
 
 function hasAccess(userRole: string | undefined, routePrefix: string): boolean {
@@ -52,6 +54,8 @@ export function middleware(req: NextRequest) {
     const url = req.nextUrl.clone()
     // Map roles to their dashboard routes
     if (role === 'super-admin') {
+      url.pathname = '/super-admin/dashboard'
+    } else if (role === 'admin') {
       url.pathname = '/admin/dashboard'
     } else if (role === 'principal') {
       url.pathname = '/principal/dashboard'
