@@ -5,6 +5,7 @@ export interface IStandaloneQuiz extends Document {
   subject: string
   description?: string
   instructor: mongoose.Types.ObjectId
+  schoolId?: mongoose.Types.ObjectId
   questions: {
     question: string
     options: string[]
@@ -37,6 +38,10 @@ const StandaloneQuizSchema = new Schema<IStandaloneQuiz>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    schoolId: {
+      type: Schema.Types.ObjectId,
+      ref: 'School',
     },
     questions: [
       {

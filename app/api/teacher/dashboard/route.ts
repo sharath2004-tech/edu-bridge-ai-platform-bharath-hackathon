@@ -16,17 +16,25 @@ export async function GET() {
 
     await connectDB()
 
-    // Fetch teacher's courses
+    // Fetch teacher's courses from their school only
     const courses = await Course.find({
       instructor: session.id,
+      schoolId: session.schoolId,
       status: { $ne: 'archived' }
     }).select('title enrolledStudents rating').lean()
 
-    // Count total students (unique across all courses)
+    // Count total students from teacher's school only (unique across all courses)
     const allStudentIds = new Set()
-    courses.forEach(course => {
-      course.enrolledStudents?.forEach((id: any) => allStudentIds.add(String(id)))
-    })
+    if (courses.length > 0) {
+      // Get actual students from the school to verify
+      const studentIds = courses.flatMap(c => c.enrolledStudents || [])
+      const schoolStudents = await User.find({
+        _id: { $in: studentIds },
+        schoolId: session.schoolId,
+        role: 'student'
+      }).select('_id').lean()
+      schoolStudents.forEach(s => allStudentIds.add(String(s._id)))
+    }
 
     const stats = {
       activeCourses: courses.length,
@@ -37,9 +45,10 @@ export async function GET() {
         : '0'
     }
 
-    // Get recent courses with details
+    // Get recent courses with details from teacher's school only
     const recentCourses = await Course.find({
       instructor: session.id,
+      schoolId: session.schoolId,
       status: 'published'
     })
       .select('title enrolledStudents lessons rating')

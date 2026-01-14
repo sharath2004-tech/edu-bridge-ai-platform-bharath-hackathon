@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       title,
       description,
       instructor: session.id,
+      schoolId: session.schoolId,
       category,
       level: level || 'beginner',
       price: price || 0,
