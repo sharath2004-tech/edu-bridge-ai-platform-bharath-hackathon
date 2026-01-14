@@ -27,13 +27,14 @@ import { useToast } from "@/hooks/use-toast"
 interface Class {
   _id: string
   className: string
-  grade: string
   section: string
   classTeacherId?: {
     name: string
     email: string
   }
-  studentCount?: number
+  schoolId?: {
+    name: string
+  }
 }
 
 const CLASS_NAMES = [
@@ -42,7 +43,7 @@ const CLASS_NAMES = [
 
 const SECTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
-export default function ClassesPage() {
+export default function AdminClassesPage() {
   const [classes, setClasses] = useState<Class[]>([])
   const [teachers, setTeachers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,7 +68,7 @@ export default function ClassesPage() {
       const data = await response.json()
       
       if (data.success) {
-        setClasses(data.classes)
+        setClasses(data.classes || [])
       }
     } catch (error) {
       console.error('Failed to fetch classes:', error)
@@ -78,7 +79,7 @@ export default function ClassesPage() {
 
   const fetchTeachers = async () => {
     try {
-      const response = await fetch('/api/principal/teachers')
+      const response = await fetch('/api/admin/users?role=teacher')
       const data = await response.json()
       
       if (data.success) {
@@ -131,24 +132,6 @@ export default function ClassesPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  if (loading && classes.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Classes</h1>
-            <p className="text-muted-foreground">Manage classes and sections</p>
-          </div>
-        </div>
-        <Card className="p-8">
-          <div className="text-center">
-            <p className="text-muted-foreground">Loading classes...</p>
-          </div>
-        </Card>
-      </div>
-    )
   }
 
   return (
@@ -272,7 +255,7 @@ export default function ClassesPage() {
               <Users className="h-6 w-6 text-blue-500" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{new Set(classes.map(c => c.grade)).size}</p>
+              <p className="text-2xl font-bold">{new Set(classes.map(c => c.className)).size}</p>
               <p className="text-sm text-muted-foreground">Grade Levels</p>
             </div>
           </div>
@@ -291,43 +274,61 @@ export default function ClassesPage() {
         </Card>
       </div>
 
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Class Name</TableHead>
-              <TableHead>Grade</TableHead>
-              <TableHead>Section</TableHead>
-              <TableHead>Class Teacher</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {classes.map((cls) => (
-              <TableRow key={cls._id}>
-                <TableCell className="font-medium">{cls.className}</TableCell>
-                <TableCell>{cls.grade}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{cls.section}</Badge>
-                </TableCell>
-                <TableCell>
-                  {cls.classTeacherId ? (
-                    <div>
-                      <p className="font-medium text-sm">{cls.classTeacherId.name}</p>
-                      <p className="text-xs text-muted-foreground">{cls.classTeacherId.email}</p>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">Not assigned</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="default" className="bg-green-500">Active</Badge>
-                </TableCell>
+      {loading ? (
+        <Card className="p-8">
+          <div className="text-center">
+            <p className="text-muted-foreground">Loading classes...</p>
+          </div>
+        </Card>
+      ) : classes.length === 0 ? (
+        <Card className="p-8">
+          <div className="text-center">
+            <BookOpen className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="font-semibold mb-2">No classes yet</h3>
+            <p className="text-muted-foreground mb-4">Create your first class to get started</p>
+            <Button onClick={() => setShowDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Class
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Class Name</TableHead>
+                <TableHead>Section</TableHead>
+                <TableHead>Class Teacher</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+            </TableHeader>
+            <TableBody>
+              {classes.map((cls) => (
+                <TableRow key={cls._id}>
+                  <TableCell className="font-medium">{cls.className}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{cls.section}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {cls.classTeacherId ? (
+                      <div>
+                        <p className="font-medium text-sm">{cls.classTeacherId.name}</p>
+                        <p className="text-xs text-muted-foreground">{cls.classTeacherId.email}</p>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Not assigned</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="default" className="bg-green-500">Active</Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
     </div>
   )
 }
