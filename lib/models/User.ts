@@ -15,8 +15,8 @@ export interface IUser extends Document {
   // Teacher-specific fields
   subjectSpecialization?: string;
   teacherRole?: 'Teacher' | 'HOD' | 'Vice Principal';
-  assignedClasses?: mongoose.Types.ObjectId[]; // Array of Class IDs
-  assignedSubjects?: mongoose.Types.ObjectId[]; // Array of Subject IDs
+  assignedClasses?: (mongoose.Types.ObjectId | string)[]; // Array of Class IDs or names
+  assignedSubjects?: (mongoose.Types.ObjectId | string)[]; // Array of Subject IDs or names
   // Student-specific fields
   classId?: mongoose.Types.ObjectId; // Reference to Class model
   rollNo?: number;
@@ -105,14 +105,12 @@ const UserSchema = new Schema<IUser>(
     },
     assignedClasses: [
       {
-        type: Schema.Types.ObjectId,
-        ref: 'Class',
+        type: Schema.Types.Mixed, // Allow both ObjectId and String for flexibility
       },
     ],
     assignedSubjects: [
       {
-        type: Schema.Types.ObjectId,
-        ref: 'Subject',
+        type: Schema.Types.Mixed, // Allow both ObjectId and String for flexibility
       },
     ],
     // Student-specific fields
