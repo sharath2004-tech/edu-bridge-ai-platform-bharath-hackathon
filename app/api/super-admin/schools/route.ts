@@ -1,7 +1,9 @@
 import School from '@/lib/models/School'
+import User from '@/lib/models/User'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
+import { sendSchoolApprovalEmail } from '@/lib/email'
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,6 +69,28 @@ export async function PUT(request: NextRequest) {
         { success: false, error: 'School not found' },
         { status: 404 }
       )
+    }
+
+    // If school was just approved, send approval email to admin
+    if (updateData.isActive === true && school.isActive) {
+      try {
+        // Find the admin/principal for this school
+        const admin = await User.findOne({ 
+          schoolId: school._id, 
+          role: { $in: ['admin', 'principal'] } 
+        })
+        
+        if (admin) {
+          await sendSchoolApprovalEmail(
+            admin.email,
+            admin.name,
+            school.name
+          )
+        }
+      } catch (emailError) {
+        console.error('Error sending approval email:', emailError)
+        // Don't fail the approval if email fails
+      }
     }
 
     return NextResponse.json(

@@ -3,6 +3,7 @@ import User from '@/lib/models/User'
 import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
 import { NextRequest, NextResponse } from 'next/server'
+import { generatePassword, sendAdminCredentials } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,11 +31,10 @@ export async function POST(request: NextRequest) {
     const adminEmail = formData.get('adminEmail') as string
     const adminMobile = formData.get('adminMobile') as string
     const designation = formData.get('designation') as string
-    const password = formData.get('password') as string
 
-    // Validate required fields
+    // Validate required fields (password not required from form - will be auto-generated)
     if (!schoolName || !schoolCode || !addressLine1 || !district || !state || !pincode ||
-        !adminName || !adminEmail || !adminMobile || !password) {
+        !adminName || !adminEmail || !adminMobile) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
@@ -115,20 +115,38 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Create principal user account
-    const hashedPassword = await bcrypt.hash(password, 10)
+    // Generate random password for admin
+    const generatedPassword = generatePassword(12)
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10)
+    
+    // Create admin user account (principal role)
     const adminUser = await User.create({
       name: adminName,
       email: adminEmail.toLowerCase(),
       password: hashedPassword,
-      role: 'principal',
+      role: 'admin', // Create as admin for the school
       phone: adminMobile,
       schoolId: school._id,
-      bio: `${designation} at ${schoolName}`
+      bio: `${designation || 'Administrator'} at ${schoolName}`
     })
 
-    // Send confirmation email (TODO: Implement email service)
-    // await sendConfirmationEmail(adminEmail, schoolName, schoolCode)
+    // Send email with credentials
+    try {
+      const emailSent = await sendAdminCredentials(
+        adminEmail.toLowerCase(),
+        adminName,
+        schoolName,
+        schoolCode.toUpperCase(),
+        generatedPassword
+      )
+      
+      if (!emailSent) {
+        console.warn('Email sending failed, but registration completed')
+      }
+    } catch (emailError) {
+      console.error('Error sending email:', emailError)
+      // Don't fail the registration if email fails
+    }
 
     return NextResponse.json({
       success: true,
