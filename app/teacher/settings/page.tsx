@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -33,6 +35,70 @@ export default function TeacherSettingsPage() {
           </div>
           <Button>Save Changes</Button>
         </div>
+      </Card>
+
+      <Card className="p-6">
+        <h3 className="font-semibold mb-4">Change Password</h3>
+        <form onSubmit={async (e) => {
+          e.preventDefault()
+          const formData = new FormData(e.currentTarget)
+          const currentPassword = formData.get('currentPassword') as string
+          const newPassword = formData.get('newPassword') as string
+          const confirmPassword = formData.get('confirmPassword') as string
+
+          if (newPassword !== confirmPassword) {
+            alert('New passwords do not match')
+            return
+          }
+
+          try {
+            const res = await fetch('/api/auth/change-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ currentPassword, newPassword })
+            })
+            const data = await res.json()
+            if (data.success) {
+              alert('Password changed successfully!')
+              e.currentTarget.reset()
+            } else {
+              alert(data.error || 'Failed to change password')
+            }
+          } catch (error) {
+            alert('An error occurred')
+          }
+        }} className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Current Password</label>
+            <Input 
+              name="currentPassword"
+              type="password" 
+              placeholder="Enter current password"
+              required
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">New Password</label>
+            <Input 
+              name="newPassword"
+              type="password" 
+              placeholder="Enter new password (min 6 characters)"
+              minLength={6}
+              required
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Confirm New Password</label>
+            <Input 
+              name="confirmPassword"
+              type="password" 
+              placeholder="Confirm new password"
+              minLength={6}
+              required
+            />
+          </div>
+          <Button type="submit">Change Password</Button>
+        </form>
       </Card>
 
       <Card className="p-6">
