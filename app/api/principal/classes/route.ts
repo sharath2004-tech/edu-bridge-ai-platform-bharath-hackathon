@@ -74,6 +74,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { className, section, classTeacherId, academicYear } = body
 
+    console.log('Create class request:', { 
+      userRole: user.role, 
+      userSchoolId: user.schoolId,
+      className, 
+      section, 
+      classTeacherId 
+    })
+
     if (!className || !section) {
       return NextResponse.json(
         { success: false, error: 'Class name and section are required' },

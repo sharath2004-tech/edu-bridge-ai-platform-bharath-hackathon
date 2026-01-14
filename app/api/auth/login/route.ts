@@ -1,13 +1,18 @@
 import { User } from '@/lib/models'
+import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, selectedRole } = await req.json()
-    if (!email || !password) {
-      return NextResponse.json({ success: false, error: 'Email and password required' }, { status: 400 })
+    const { schoolCode, identifier, password, selectedRole } = await req.json()
+    
+    if (!schoolCode || !identifier || !password) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'School code, user ID/email, and password are required' 
+      }, { status: 400 })
     }
 
     // Connect to database with error handling
@@ -22,9 +27,37 @@ export async function POST(req: NextRequest) {
       }, { status: 503 })
     }
     
-    const user = await User.findOne({ email }).select('+password')
+    // Find school by code
+    const school = await School.findOne({ code: schoolCode.toUpperCase() })
+    if (!school) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Invalid school code' 
+      }, { status: 401 })
+    }
+
+    if (!school.isActive) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'School account is inactive. Please contact support.' 
+      }, { status: 403 })
+    }
+    
+    // Find user by email or roll number within the school
+    const query: any = {
+      schoolId: school._id,
+      $or: [
+        { email: identifier.toLowerCase() },
+        { rollNo: isNaN(Number(identifier)) ? null : Number(identifier) }
+      ]
+    }
+
+    const user = await User.findOne(query).select('+password')
     if (!user) {
-      return NextResponse.json({ success: false, error: 'Invalid email or password' }, { status: 401 })
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Invalid credentials' 
+      }, { status: 401 })
     }
     
     const ok = await bcrypt.compare(password, user.password)
