@@ -45,6 +45,20 @@ function parseSession(sessionCookie: string | undefined): { role?: string; id?: 
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+  
+  // Skip middleware for public static files and API routes
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/static') ||
+    pathname.includes('.') || // Files with extensions (images, manifest, etc)
+    pathname === '/favicon.ico' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml'
+  ) {
+    return NextResponse.next()
+  }
+
   const sessionCookie = req.cookies.get('edubridge_session')?.value
   const session = parseSession(sessionCookie)
   const role = session?.role
@@ -101,5 +115,15 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/change-password', '/super-admin/:path*', '/admin/:path*', '/principal/:path*', '/teacher/:path*', '/student/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder files
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|js|css|woff|woff2|ttf|ico)$).*)',
+  ],
 }
