@@ -65,6 +65,17 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Allow access to change-password for authenticated users
+  if (pathname === '/change-password') {
+    if (!role) {
+      const url = req.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    // Allow authenticated users to access password change page
+    return NextResponse.next()
+  }
+
   // Redirect unauthenticated users from protected routes
   const protectedPrefixes = ['/super-admin', '/admin', '/principal', '/teacher', '/student']
   for (const prefix of protectedPrefixes) {
@@ -90,5 +101,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/super-admin/:path*', '/admin/:path*', '/principal/:path*', '/teacher/:path*', '/student/:path*'],
+  matcher: ['/', '/change-password', '/super-admin/:path*', '/admin/:path*', '/principal/:path*', '/teacher/:path*', '/student/:path*'],
 }

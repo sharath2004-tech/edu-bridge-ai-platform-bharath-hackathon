@@ -127,7 +127,8 @@ export async function POST(request: NextRequest) {
       role: 'admin', // Create as admin for the school
       phone: adminMobile,
       schoolId: school._id,
-      bio: `${designation || 'Administrator'} at ${schoolName}`
+      bio: `${designation || 'Administrator'} at ${schoolName}`,
+      mustChangePassword: true // Require password change on first login
     })
 
     // Send email with credentials

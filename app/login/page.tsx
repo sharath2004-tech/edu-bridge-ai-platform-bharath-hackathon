@@ -51,6 +51,12 @@ function LoginForm() {
       }
       
       if (data.success) {
+        // Check if user must change password (temporary password)
+        if (data?.data?.mustChangePassword) {
+          window.location.href = '/change-password'
+          return
+        }
+
         const role = data?.data?.role ?? "student"
         // Redirect to original destination or dashboard
         if (redirectUrl && !redirectUrl.includes('/login')) {

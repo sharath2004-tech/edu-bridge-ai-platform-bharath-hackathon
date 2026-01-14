@@ -11,6 +11,7 @@ export interface IUser extends Document {
   bio?: string;
   phone?: string;
   isActive: boolean;
+  mustChangePassword?: boolean; // Flag for temporary password
   // Teacher-specific fields
   subjectSpecialization?: string;
   teacherRole?: 'Teacher' | 'HOD' | 'Vice Principal';
@@ -88,6 +89,10 @@ const UserSchema = new Schema<IUser>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    mustChangePassword: {
+      type: Boolean,
+      default: false,
     },
     // Teacher-specific fields
     subjectSpecialization: {

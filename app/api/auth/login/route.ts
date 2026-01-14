@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
       role: user.role, 
       name: user.name, 
       email: user.email,
-      schoolId: user.schoolId ? String(user.schoolId) : undefined
+      schoolId: user.schoolId ? String(user.schoolId) : undefined,
+      mustChangePassword: user.mustChangePassword || false
     }
     const res = NextResponse.json({ success: true, data: payload })
     
