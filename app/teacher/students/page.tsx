@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -165,6 +165,26 @@ export default function TeacherStudentsPage() {
     (student.rollNo && student.rollNo.toString().includes(searchQuery))
   )
 
+  if (classes.length === 0 && !loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Students</h1>
+          <p className="text-muted-foreground">Manage students in your classes</p>
+        </div>
+        <Card className="p-8">
+          <div className="text-center">
+            <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="font-semibold mb-2">No Classes Assigned</h3>
+            <p className="text-muted-foreground mb-4">
+              You don't have any classes assigned yet. Please contact your principal or admin to assign classes to you.
+            </p>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -174,7 +194,7 @@ export default function TeacherStudentsPage() {
         </div>
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={classes.length === 0}>
               <Plus className="mr-2 h-4 w-4" />
               Add Student
             </Button>

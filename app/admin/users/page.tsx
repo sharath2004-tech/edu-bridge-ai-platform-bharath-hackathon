@@ -25,6 +25,8 @@ export default function AdminUsersPage() {
   const [userToDelete, setUserToDelete] = useState<any>(null)
   const [creating, setCreating] = useState(false)
   const [credentials, setCredentials] = useState<any>(null)
+  const [classes, setClasses] = useState<any[]>([])
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([])
   const { toast } = useToast()
 
   const [newUser, setNewUser] = useState({
@@ -38,6 +40,12 @@ export default function AdminUsersPage() {
   useEffect(() => {
     fetchUsers()
   }, [roleFilter, searchQuery])
+
+  useEffect(() => {
+    if (isCreateDialogOpen && newUser.role === 'teacher') {
+      fetchClasses()
+    }
+  }, [isCreateDialogOpen, newUser.role])
 
   const fetchUsers = () => {
     const params = new URLSearchParams()
@@ -53,6 +61,18 @@ export default function AdminUsersPage() {
       .catch(() => setLoading(false))
   }
 
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch('/api/principal/classes')
+      const data = await res.json()
+      if (data.success) {
+        setClasses(data.classes || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch classes:', error)
+    }
+  }
+
   const pagination = usePagination({
     items: users,
     itemsPerPage: 15
@@ -63,10 +83,14 @@ export default function AdminUsersPage() {
     setCreating(true)
 
     try {
+      const payload = {
+        ...newUser,
+        ...(newUser.role === 'teacher' && selectedClasses.length > 0 ? { assignedClasses: selectedClasses } : {})
+      }
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser)
+        body: JSON.stringify(payload)
       })
 
       const data = await res.json()
@@ -89,6 +113,7 @@ export default function AdminUsersPage() {
           phone: '',
           sendEmail: true
         })
+        setSelectedClasses([])
         fetchUsers()
       } else {
         toast({
@@ -238,6 +263,52 @@ export default function AdminUsersPage() {
                   placeholder="10-digit mobile number"
                 />
               </div>
+
+              {newUser.role === 'teacher' && (
+                <div>
+                  <Label>Assigned Classes (Optional)</Label>
+                  {classes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground p-3 border rounded-lg">
+                      No classes available. Create classes first to assign them.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-3 border rounded-lg max-h-48 overflow-y-auto">
+                      {classes.map((cls: any) => {
+                        const classLabel = `${cls.className} - ${cls.section}`
+                        return (
+                          <label key={cls._id} className="flex items-center gap-2 cursor-pointer text-sm">
+                            <input
+                              type="checkbox"
+                              checked={selectedClasses.includes(cls.className)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  if (!selectedClasses.includes(cls.className)) {
+                                    setSelectedClasses([...selectedClasses, cls.className])
+                                  }
+                                } else {
+                                  const hasOtherSections = classes.some(
+                                    (c: any) => c.className === cls.className && c._id !== cls._id && selectedClasses.includes(c.className)
+                                  )
+                                  if (!hasOtherSections) {
+                                    setSelectedClasses(selectedClasses.filter(c => c !== cls.className))
+                                  }
+                                }
+                              }}
+                              className="w-4 h-4 rounded border-gray-300"
+                            />
+                            <span>{classLabel}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  )}
+                  {selectedClasses.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Selected: {selectedClasses.join(', ')}
+                    </p>
+                  )}
+                </div>
+              )}
               
               <div className="flex items-center space-x-2">
                 <input

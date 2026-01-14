@@ -94,10 +94,14 @@ export default function ClassesPage() {
     setLoading(true)
 
     try {
+      const payload = {
+        ...formData,
+        classTeacherId: formData.classTeacherId || undefined
+      }
       const res = await fetch('/api/principal/classes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       })
 
       const data = await res.json()
@@ -213,14 +217,14 @@ export default function ClassesPage() {
               <div>
                 <Label htmlFor="classTeacherId">Class Teacher (Optional)</Label>
                 <Select
-                  value={formData.classTeacherId}
-                  onValueChange={(value) => setFormData({ ...formData, classTeacherId: value })}
+                  value={formData.classTeacherId || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, classTeacherId: value === "none" ? "" : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select teacher" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {teachers.map((teacher) => (
                       <SelectItem key={teacher._id} value={teacher._id}>
                         {teacher.name}
