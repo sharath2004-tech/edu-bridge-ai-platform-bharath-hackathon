@@ -1,10 +1,10 @@
 import { authenticateAndAuthorize } from '@/lib/auth-middleware'
+import { generatePassword, sendAdminCredentials } from '@/lib/email'
 import { User } from '@/lib/models'
 import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
 import { NextRequest, NextResponse } from 'next/server'
-import { generatePassword, sendAdminCredentials } from '@/lib/email'
 
 // GET - List all students (filtered by role and school)
 export async function GET(request: NextRequest) {
