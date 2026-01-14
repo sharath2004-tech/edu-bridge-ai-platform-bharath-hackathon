@@ -1,5 +1,5 @@
 import { getSession } from '@/lib/auth'
-import { Course, School, User } from '@/lib/models'
+import { Course, User } from '@/lib/models'
 import connectDB from '@/lib/mongodb'
 import { NextResponse } from 'next/server'
 
