@@ -1,4 +1,4 @@
-import { TopNav } from '@/components/top-nav'
+import { SuperAdminSidebar } from '@/components/super-admin-sidebar'
 
 export default function SuperAdminLayout({
   children,
@@ -6,10 +6,12 @@ export default function SuperAdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopNav />
-      <main className="container mx-auto py-8">
-        {children}
+    <div className="min-h-screen bg-background">
+      <SuperAdminSidebar />
+      <main className="ml-0 lg:ml-64 min-h-screen">
+        <div className="p-8">
+          {children}
+        </div>
       </main>
     </div>
   )
