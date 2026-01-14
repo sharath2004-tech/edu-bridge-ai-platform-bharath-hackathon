@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card"
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -172,6 +173,9 @@ export default function ClassesPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create New Class</DialogTitle>
+              <DialogDescription>
+                Create a new class with sections and assign a class teacher
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
