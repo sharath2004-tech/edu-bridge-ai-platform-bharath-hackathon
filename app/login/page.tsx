@@ -18,6 +18,7 @@ function LoginForm() {
   
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [selectedRole, setSelectedRole] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
@@ -37,7 +38,7 @@ function LoginForm() {
       const res = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, selectedRole: selectedRole || undefined }),
         credentials: 'include', // Important for cookies
       })
 
@@ -91,6 +92,27 @@ function LoginForm() {
 
       <Card className="p-6 border border-border shadow-lg">
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Role Selection */}
+          <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.05s" }}>
+            <Label htmlFor="role" className="flex items-center gap-2">
+              <span className="text-primary">👤</span>
+              Login As
+            </Label>
+            <select
+              id="role"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+            >
+              <option value="">Select Your Role</option>
+              <option value="super-admin">Super Administrator</option>
+              <option value="admin">Administrator</option>
+              <option value="principal">Principal / Head of School</option>
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+            </select>
+          </div>
+
           {/* Email Input */}
           <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.1s" }}>
             <Label htmlFor="email" className="flex items-center gap-2">
