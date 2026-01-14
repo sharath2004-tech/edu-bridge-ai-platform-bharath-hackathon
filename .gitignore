@@ -70,3 +70,4 @@ pids/
 # Uploaded files (keep folder structure but ignore contents)
 public/uploads/*
 !public/uploads/.gitkeep
+.vercel
