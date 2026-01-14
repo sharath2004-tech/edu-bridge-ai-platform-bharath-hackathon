@@ -15,7 +15,24 @@ export async function GET(request: NextRequest) {
     const query: any = {}
     if (session.role === 'teacher') {
       query.schoolId = session.schoolId
-      // Optionally filter by assigned classes
+      
+      // Filter by teacher's assigned classes
+      const User = (await import('@/lib/models/User')).default
+      const teacher = await User.findById(session.userId).select('assignedClasses')
+      
+      if (teacher && teacher.assignedClasses && teacher.assignedClasses.length > 0) {
+        // assignedClasses can be ObjectIds or class names
+        query.$or = [
+          { _id: { $in: teacher.assignedClasses } },
+          { className: { $in: teacher.assignedClasses } }
+        ]
+      } else {
+        // Teacher has no assigned classes
+        return NextResponse.json({
+          success: true,
+          classes: []
+        })
+      }
     } else if (session.role === 'principal') {
       query.schoolId = session.schoolId
     }
