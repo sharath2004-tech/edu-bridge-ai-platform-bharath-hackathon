@@ -1,10 +1,10 @@
 import { getSession } from '@/lib/auth'
+import { generatePassword, sendAdminCredentials } from '@/lib/email'
 import { User } from '@/lib/models'
+import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
 import { NextRequest, NextResponse } from 'next/server'
-import { generatePassword, sendAdminCredentials } from '@/lib/email'
-import School from '@/lib/models/School'
 
 // Admin: create principal, teacher, or student for their school
 export async function POST(req: NextRequest) {
