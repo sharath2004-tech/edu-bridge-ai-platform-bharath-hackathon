@@ -24,7 +24,6 @@ export default function SignUpPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "student",
     schoolCode: "",
     schoolId: "",
   })
@@ -116,7 +115,7 @@ export default function SignUpPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role: formData.role,
+          role: 'student', // Always student for self-registration
           schoolId: formData.schoolId,
         }),
       })
@@ -208,25 +207,13 @@ export default function SignUpPage() {
               />
             </div>
 
-            {/* Role Selection */}
-            <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.3s" }}>
-              <Label htmlFor="role" className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-primary" />I am a
-              </Label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-              >
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="principal">Principal / Head of School</option>
-              </select>
+            {/* Info Message - Students Only */}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 animate-slideInLeft" style={{ animationDelay: "0.3s" }}>
+              <p className="font-semibold mb-1">Student Registration</p>
+              <p className="text-xs">Teachers and principals must be added by school administrators. Only students can self-register.</p>
             </div>
 
-            {/* School Selection - For all roles */}
+            {/* School Selection */}
             {(
               <div className="space-y-3 animate-slideInLeft" style={{ animationDelay: "0.35s" }}>
                 <Label className="flex items-center gap-2">
