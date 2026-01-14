@@ -1,39 +1,179 @@
-import { requireRole } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { User } from '@/lib/models'
 import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
 import { NextRequest, NextResponse } from 'next/server'
+import { generatePassword, sendAdminCredentials } from '@/lib/email'
+import School from '@/lib/models/School'
 
-// Admin: create teacher or admin
+// Admin: create principal, teacher, or student for their school
 export async function POST(req: NextRequest) {
-  const session = await requireRole('admin')
-  if (!session) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+  try {
+    const session = await getSession()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Unauthorized - Admin access required' }, { status: 401 })
+    }
+
+    if (!session.schoolId) {
+      return NextResponse.json({ success: false, error: 'No school assigned to this admin' }, { status: 400 })
+    }
+
+    await connectDB()
+    
+    const { name, email, role, phone, sendEmail } = await req.json()
+    
+    if (!name || !email || !role) {
+      return NextResponse.json({ success: false, error: 'Name, email, and role are required' }, { status: 400 })
+    }
+    
+    // Admin can only create principal, teacher, or student
+    if (!['principal', 'teacher', 'student'].includes(role)) {
+      return NextResponse.json({ success: false, error: 'Admin can only create principals, teachers, or students' }, { status: 400 })
+    }
+    
+    const exists = await User.findOne({ email: email.toLowerCase() })
+    if (exists) {
+      return NextResponse.json({ success: false, error: 'User already exists with this email' }, { status: 400 })
+    }
+    
+    // Generate password
+    const generatedPassword = generatePassword(12)
+    const hashed = await bcrypt.hash(generatedPassword, 10)
+    
+    // Create user for admin's school
+    const user = await User.create({ 
+      name, 
+      email: email.toLowerCase(), 
+      password: hashed, 
+      role,
+      schoolId: session.schoolId,
+      phone: phone || undefined
+    })
+    
+    // Send email if requested
+    if (sendEmail && email) {
+      try {
+        const school = await School.findById(session.schoolId)
+        await sendAdminCredentials(
+          email.toLowerCase(),
+          name,
+          school?.name || 'Your School',
+          school?.code || 'N/A',
+          generatedPassword
+        )
+      } catch (emailError) {
+        console.error('Error sending email:', emailError)
+      }
+    }
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: 'User created successfully',
+      user: { 
+        id: String(user._id), 
+        name: user.name, 
+        email: user.email, 
+        role: user.role 
+      },
+      credentials: sendEmail ? undefined : {
+        email: email.toLowerCase(),
+        password: generatedPassword
+      }
+    }, { status: 201 })
+  } catch (error: any) {
+    console.error('Error creating user:', error)
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
-  await connectDB()
-  const { name, email, password, role } = await req.json()
-  if (!name || !email || !password) {
-    return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
-  }
-  if (!['teacher','admin'].includes(role)) {
-    return NextResponse.json({ success: false, error: 'Role must be teacher or admin' }, { status: 400 })
-  }
-  const exists = await User.findOne({ email })
-  if (exists) {
-    return NextResponse.json({ success: false, error: 'User already exists' }, { status: 400 })
-  }
-  const hashed = await bcrypt.hash(password, 10)
-  const user = await User.create({ name, email, password: hashed, role })
-  return NextResponse.json({ success: true, data: { id: String(user._id), name: user.name, email: user.email, role: user.role } }, { status: 201 })
 }
 
-// Admin: list users
-export async function GET() {
-  const session = await requireRole('admin')
-  if (!session) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+// Admin: list users from their school only
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Unauthorized - Admin access required' }, { status: 401 })
+    }
+
+    if (!session.schoolId) {
+      return NextResponse.json({ success: false, error: 'No school assigned to this admin' }, { status: 400 })
+    }
+
+    await connectDB()
+    
+    const { searchParams } = new URL(request.url)
+    const role = searchParams.get('role')
+    const search = searchParams.get('search')
+    
+    // Build query - only users from admin's school
+    const query: any = { schoolId: session.schoolId }
+    
+    if (role && role !== 'all') {
+      query.role = role
+    }
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ]
+    }
+    
+    const users = await User.find(query)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .limit(500)
+      .lean()
+    
+    return NextResponse.json({ 
+      success: true, 
+      users,
+      count: users.length
+    })
+  } catch (error: any) {
+    console.error('Error fetching users:', error)
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
-  await connectDB()
-  const users = await User.find().select('-password').limit(100)
-  return NextResponse.json({ success: true, data: users })
+}
+
+// Admin: delete user from their school
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Unauthorized - Admin access required' }, { status: 401 })
+    }
+
+    if (!session.schoolId) {
+      return NextResponse.json({ success: false, error: 'No school assigned to this admin' }, { status: 400 })
+    }
+
+    await connectDB()
+    
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+    
+    if (!userId) {
+      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 })
+    }
+    
+    // Find user and verify they belong to admin's school
+    const user = await User.findById(userId)
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
+    }
+    
+    if (String(user.schoolId) !== String(session.schoolId)) {
+      return NextResponse.json({ success: false, error: 'Cannot delete users from other schools' }, { status: 403 })
+    }
+    
+    await User.findByIdAndDelete(userId)
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: 'User deleted successfully'
+    })
+  } catch (error: any) {
+    console.error('Error deleting user:', error)
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+  }
 }
