@@ -16,7 +16,8 @@ function LoginForm() {
   const redirectUrl = searchParams.get('redirect')
   const errorParam = searchParams.get('error')
   
-  const [email, setEmail] = useState("")
+  const [schoolCode, setSchoolCode] = useState("")
+  const [identifier, setIdentifier] = useState("") // Can be email or roll number
   const [password, setPassword] = useState("")
   const [selectedRole, setSelectedRole] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -38,7 +39,12 @@ function LoginForm() {
       const res = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, selectedRole: selectedRole || undefined }),
+        body: JSON.stringify({ 
+          schoolCode: schoolCode.toUpperCase(), 
+          identifier, 
+          password, 
+          selectedRole: selectedRole || undefined 
+        }),
         credentials: 'include', // Important for cookies
       })
 
@@ -119,22 +125,39 @@ function LoginForm() {
             </select>
           </div>
 
-          {/* Email Input */}
+          {/* School Code Input */}
+          <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.08s" }}>
+            <Label htmlFor="schoolCode" className="flex items-center gap-2">
+              <span className="text-primary">🏫</span>
+              School Code
+            </Label>
+            <Input
+              id="schoolCode"
+              type="text"
+              placeholder="Enter school code (e.g., SCH001)"
+              value={schoolCode}
+              onChange={(e) => setSchoolCode(e.target.value.toUpperCase())}
+              required
+              className="bg-muted/50 uppercase"
+            />
+          </div>
+
+          {/* Email/ID Input */}
           <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.1s" }}>
-            <Label htmlFor="email" className="flex items-center gap-2">
+            <Label htmlFor="identifier" className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-primary" />
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="bg-muted/50"
-              />
-            </div>
+              Email or Roll Number
+            </Label>
+            <Input
+              id="identifier"
+              type="text"
+              placeholder="you@example.com or 12345"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              required
+              className="bg-muted/50"
+            />
+          </div>
 
             {/* Password Input */}
             <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.2s" }}>

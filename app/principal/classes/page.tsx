@@ -81,9 +81,10 @@ export default function ClassesPage() {
     try {
       const response = await fetch('/api/principal/teachers')
       const data = await response.json()
+      console.log('Principal fetched teachers:', data)
       
       if (data.success) {
-        setTeachers(data.users || [])
+        setTeachers(data.teachers || [])
       }
     } catch (error) {
       console.error('Failed to fetch teachers:', error)
@@ -99,6 +100,8 @@ export default function ClassesPage() {
         ...formData,
         classTeacherId: formData.classTeacherId || undefined
       }
+      console.log('Submitting class creation:', payload)
+      
       const res = await fetch('/api/principal/classes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -106,6 +109,7 @@ export default function ClassesPage() {
       })
 
       const data = await res.json()
+      console.log('Class creation response:', data)
 
       if (data.success) {
         toast({

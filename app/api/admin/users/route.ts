@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     await connectDB()
     
-    const { name, email, role, phone, sendEmail } = await req.json()
+    const { name, email, role, phone, sendEmail, assignedClasses } = await req.json()
     
     if (!name || !email || !role) {
       return NextResponse.json({ success: false, error: 'Name, email, and role are required' }, { status: 400 })
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     const hashed = await bcrypt.hash(generatedPassword, 10)
     
     // Create user for admin's school
-    const user = await User.create({ 
+    const userData: any = { 
       name, 
       email: email.toLowerCase(), 
       password: hashed, 
@@ -49,7 +49,14 @@ export async function POST(req: NextRequest) {
       schoolId: session.schoolId,
       phone: phone || undefined,
       mustChangePassword: true // Require password change on first login
-    })
+    }
+
+    // Add assignedClasses for teachers
+    if (role === 'teacher' && assignedClasses && Array.isArray(assignedClasses) && assignedClasses.length > 0) {
+      userData.assignedClasses = assignedClasses
+    }
+
+    const user = await User.create(userData)
     
     // Send email if requested
     if (sendEmail && email) {

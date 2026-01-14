@@ -68,7 +68,13 @@ export default function AdminClassesPage() {
       const response = await fetch('/api/principal/classes')
       const data = await response.json()
       
-      if (data.success) {
+      if (!response.ok && data.error?.includes('School information missing')) {
+        toast({
+          title: "School Assignment Required",
+          description: "Your admin account needs to be assigned to a school. Please contact the super admin.",
+          variant: "destructive"
+        })
+      } else if (data.success) {
         setClasses(data.classes || [])
       }
     } catch (error) {
@@ -82,6 +88,7 @@ export default function AdminClassesPage() {
     try {
       const response = await fetch('/api/admin/users?role=teacher')
       const data = await response.json()
+      console.log('Admin fetched teachers:', data)
       
       if (data.success) {
         setTeachers(data.users || [])
@@ -100,6 +107,8 @@ export default function AdminClassesPage() {
         ...formData,
         classTeacherId: formData.classTeacherId || undefined
       }
+      console.log('Submitting class creation:', payload)
+      
       const res = await fetch('/api/principal/classes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,6 +116,7 @@ export default function AdminClassesPage() {
       })
 
       const data = await res.json()
+      console.log('Class creation response:', data)
 
       if (data.success) {
         toast({
@@ -122,16 +132,22 @@ export default function AdminClassesPage() {
         })
         fetchClasses()
       } else {
+        console.error('Class creation error:', data.error)
+        let errorMsg = data.error || "Failed to create class"
+        if (data.error?.includes('School information')) {
+          errorMsg = "Your admin account is not assigned to a school. Please contact the super admin to assign your account to a school."
+        }
         toast({
           title: "Error",
-          description: data.error || "Failed to create class",
+          description: errorMsg,
           variant: "destructive"
         })
       }
     } catch (error) {
+      console.error('Network error:', error)
       toast({
         title: "Error",
-        description: "An error occurred",
+        description: "Network error occurred",
         variant: "destructive"
       })
     } finally {
