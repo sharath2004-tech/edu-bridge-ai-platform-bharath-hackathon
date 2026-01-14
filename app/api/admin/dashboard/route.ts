@@ -7,23 +7,29 @@ export async function GET() {
   try {
     const session = await getSession()
     
-    if (!session || session.role !== 'super-admin') {
+    if (!session || session.role !== 'admin') {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: 'Unauthorized - Admin access required' },
         { status: 401 }
+      )
+    }
+
+    if (!session.schoolId) {
+      return NextResponse.json(
+        { success: false, error: 'No school assigned to this admin' },
+        { status: 400 }
       )
     }
 
     await connectDB()
 
-    // Get counts
-    const [totalUsers, activeCourses, totalSchools, students, teachers, admins] = await Promise.all([
-      User.countDocuments(),
-      Course.countDocuments({ status: 'published' }),
-      School.countDocuments(),
-      User.countDocuments({ role: 'student' }),
-      User.countDocuments({ role: 'teacher' }),
-      User.countDocuments({ role: { $in: ['admin', 'super-admin', 'principal'] } })
+    // Get counts for admin's school only
+    const [totalUsers, activeCourses, students, teachers, principals] = await Promise.all([
+      User.countDocuments({ schoolId: session.schoolId }),
+      Course.countDocuments({ schoolId: session.schoolId, status: 'published' }),
+      User.countDocuments({ schoolId: session.schoolId, role: 'student' }),
+      User.countDocuments({ schoolId: session.schoolId, role: 'teacher' }),
+      User.countDocuments({ schoolId: session.schoolId, role: 'principal' })
     ])
 
     // Calculate engagement (simplified - could be based on recent activity)
@@ -33,16 +39,16 @@ export async function GET() {
       totalUsers,
       activeCourses,
       engagement: `${engagement}%`,
-      systemHealth: '99.8%', // Could be calculated from actual metrics
+      systemHealth: '100%',
       userActivity: {
-        students: { value: students, max: Math.ceil(students * 1.5) },
-        teachers: { value: teachers, max: Math.ceil(teachers * 1.5) },
-        admins: { value: admins, max: 100 }
+        students: { value: students, max: Math.ceil(students * 1.5) || 50 },
+        teachers: { value: teachers, max: Math.ceil(teachers * 1.5) || 20 },
+        principals: { value: principals, max: 10 }
       }
     }
 
-    // Get recent users
-    const recentUsers = await User.find()
+    // Get recent users from admin's school
+    const recentUsers = await User.find({ schoolId: session.schoolId })
       .sort({ createdAt: -1 })
       .limit(5)
       .select('name email role createdAt')
