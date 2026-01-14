@@ -44,29 +44,39 @@ export async function POST(req: NextRequest) {
     }
     
     // Find user by email or roll number within the school
-    const query: any = {
-      schoolId: school._id,
-      $or: [
-        { email: identifier.toLowerCase() },
-        { rollNo: isNaN(Number(identifier)) ? null : Number(identifier) }
-      ]
+    // Build query based on identifier type
+    const query: any = { schoolId: school._id }
+    
+    // Check if identifier is a number (roll number)
+    if (!isNaN(Number(identifier)) && Number(identifier) > 0) {
+      query.rollNo = Number(identifier)
+    } else {
+      // Otherwise treat as email
+      query.email = identifier.toLowerCase()
     }
+
+    console.log('Login query:', { schoolCode, identifier, query })
 
     const user = await User.findOne(query).select('+password')
     if (!user) {
+      console.log('User not found with query:', query)
       return NextResponse.json({ 
         success: false, 
-        error: 'Invalid credentials' 
+        error: 'Invalid credentials. Please check your email/roll number and password.' 
       }, { status: 401 })
     }
     
     const ok = await bcrypt.compare(password, user.password)
     if (!ok) {
-      return NextResponse.json({ success: false, error: 'Invalid email or password' }, { status: 401 })
+      console.log('Invalid password for user:', user.email)
+      return NextResponse.json({ success: false, error: 'Invalid password. Please try again.' }, { status: 401 })
     }
+
+    console.log('Login successful:', { userId: user._id, email: user.email, role: user.role })
 
     // Validate selected role matches user's actual role
     if (selectedRole && selectedRole !== user.role) {
+      console.log('Role mismatch:', { userRole: user.role, selectedRole })
       return NextResponse.json({ 
         success: false, 
         error: `This account is registered as ${user.role}, not ${selectedRole}. Please select the correct role.` 
