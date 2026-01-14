@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { BookOpen, GraduationCap, Mail, Phone, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { usePagination } from '@/hooks/use-pagination'
+import { PaginationControls } from '@/components/pagination-controls'
 
 export default function SuperAdminTeachersPage() {
   const [teachers, setTeachers] = useState<any[]>([])
@@ -24,6 +26,11 @@ export default function SuperAdminTeachersPage() {
       })
       .catch(() => setLoading(false))
   }, [schoolFilter])
+
+  const pagination = usePagination({
+    items: teachers,
+    itemsPerPage: 12
+  })
 
   if (loading) {
     return <div className="p-8">Loading teachers...</div>
@@ -49,7 +56,7 @@ export default function SuperAdminTeachersPage() {
       </div>
 
       <div className="grid gap-6">
-        {teachers.map((teacher) => (
+        {pagination.paginatedItems.map((teacher) => (
           <Card key={teacher._id}>
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -122,6 +129,17 @@ export default function SuperAdminTeachersPage() {
           </Card>
         ))}
       </div>
+
+      <PaginationControls
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        onPageChange={pagination.goToPage}
+        canGoPrevious={pagination.canGoPrevious}
+        canGoNext={pagination.canGoNext}
+        startIndex={pagination.startIndex}
+        endIndex={pagination.endIndex}
+        totalItems={pagination.totalItems}
+      />
     </div>
   )
 }

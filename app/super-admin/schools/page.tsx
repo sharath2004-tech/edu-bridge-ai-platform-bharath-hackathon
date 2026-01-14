@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Building2, Calendar, ExternalLink, Mail, MapPin, Phone, CheckCircle, XCircle, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { usePagination } from '@/hooks/use-pagination'
+import { PaginationControls } from '@/components/pagination-controls'
 
 export default function SuperAdminSchoolsPage() {
   const [schools, setSchools] = useState<any[]>([])
@@ -39,6 +41,11 @@ export default function SuperAdminSchoolsPage() {
       })
       .catch(() => setLoading(false))
   }
+
+  const pagination = usePagination({
+    items: schools,
+    itemsPerPage: 10
+  })
 
   const toggleSchoolStatus = async (schoolId: string, currentStatus: boolean) => {
     try {
@@ -157,7 +164,7 @@ export default function SuperAdminSchoolsPage() {
       </div>
 
       <div className="grid gap-6">
-        {schools.map((school) => (
+        {pagination.paginatedItems.map((school) => (
           <Card key={school._id}>
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -270,6 +277,17 @@ export default function SuperAdminSchoolsPage() {
           </Card>
         ))}
       </div>
+
+      <PaginationControls
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        onPageChange={pagination.goToPage}
+        canGoPrevious={pagination.canGoPrevious}
+        canGoNext={pagination.canGoNext}
+        startIndex={pagination.startIndex}
+        endIndex={pagination.endIndex}
+        totalItems={pagination.totalItems}
+      />
 
       {/* Create Admin Dialog */}
       <Dialog open={isCreateAdminOpen} onOpenChange={setIsCreateAdminOpen}>

@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Edit, Plus, Search, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { usePagination } from '@/hooks/use-pagination'
+import { PaginationControls } from '@/components/pagination-controls'
 
 interface Student {
   _id: string
@@ -72,6 +74,11 @@ export default function StudentsPage() {
     student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.rollNumber?.includes(searchQuery)
   )
+
+  const pagination = usePagination({
+    items: filteredStudents,
+    itemsPerPage: 20
+  })
 
   // Get unique classes
   const classes = Array.from(new Set(students.map(s => s.className).filter(Boolean)))
@@ -143,7 +150,7 @@ export default function StudentsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((student) => (
+                pagination.paginatedItems.map((student) => (
                   <tr key={student._id} className="border-b hover:bg-muted/50">
                     <td className="p-4">{student.rollNumber || '-'}</td>
                     <td className="p-4 font-medium">{student.name}</td>
@@ -173,6 +180,19 @@ export default function StudentsPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        <div className="p-4 border-t">
+          <PaginationControls
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.goToPage}
+            canGoPrevious={pagination.canGoPrevious}
+            canGoNext={pagination.canGoNext}
+            startIndex={pagination.startIndex}
+            endIndex={pagination.endIndex}
+            totalItems={pagination.totalItems}
+          />
         </div>
       </Card>
 

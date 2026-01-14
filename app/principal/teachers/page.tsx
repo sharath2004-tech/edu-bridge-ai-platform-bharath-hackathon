@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Edit, Plus, Search, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { usePagination } from '@/hooks/use-pagination'
+import { PaginationControls } from '@/components/pagination-controls'
 
 interface Teacher {
   _id: string
@@ -45,6 +47,11 @@ export default function TeachersPage() {
     teacher.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const pagination = usePagination({
+    items: filteredTeachers,
+    itemsPerPage: 15
+  })
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -82,7 +89,7 @@ export default function TeachersPage() {
             {searchQuery ? "No teachers found" : "No teachers yet. Add your first teacher!"}
           </p>
         ) : (
-          filteredTeachers.map((teacher) => (
+          pagination.paginatedItems.map((teacher) => (
             <Card key={teacher._id} className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -132,6 +139,19 @@ export default function TeachersPage() {
           ))
         )}
       </div>
+
+      {filteredTeachers.length > 0 && (
+        <PaginationControls
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.goToPage}
+          canGoPrevious={pagination.canGoPrevious}
+          canGoNext={pagination.canGoNext}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          totalItems={pagination.totalItems}
+        />
+      )}
 
       {/* Create Modal Placeholder */}
       {showCreateModal && (
