@@ -81,6 +81,11 @@ export async function POST(request: NextRequest) {
               status: att.status,
               classId: att.classId,
               markedBy: session.userId
+            },
+            $setOnInsert: {
+              studentId: att.studentId,
+              schoolId: session.schoolId,
+              date: date
             }
           },
           upsert: true
