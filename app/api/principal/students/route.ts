@@ -4,6 +4,7 @@ import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
 import { NextRequest, NextResponse } from 'next/server'
+import { generatePassword, sendAdminCredentials } from '@/lib/email'
 
 // GET - List all students (filtered by role and school)
 export async function GET(request: NextRequest) {
@@ -110,13 +111,14 @@ export async function POST(request: NextRequest) {
       className,
       section,
       rollNumber,
-      bio
+      bio,
+      sendEmail
     } = body
 
     // Validate required fields
-    if (!name || !email || !password || !className) {
+    if (!name || !email || !className) {
       return NextResponse.json(
-        { success: false, error: 'Name, email, password, and class are required' },
+        { success: false, error: 'Name, email, and class are required' },
         { status: 400 }
       )
     }
@@ -130,8 +132,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Generate password if not provided
+    const generatedPassword = password || generatePassword(12)
+
     // Validate password length
-    if (password.length < 6) {
+    if (generatedPassword.length < 6) {
       return NextResponse.json(
         { success: false, error: 'Password must be at least 6 characters' },
         { status: 400 }
@@ -211,7 +216,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10)
 
     // Create student account
     const student = await User.create({
@@ -224,8 +229,24 @@ export async function POST(request: NextRequest) {
       className,
       section,
       rollNumber,
-      bio: bio || `Student at ${school.name}`
+      bio: bio || `Student at ${school.name}`,
+      mustChangePassword: !password // If auto-generated, must change password
     })
+
+    // Send email if requested
+    if (sendEmail && !password) {
+      try {
+        await sendAdminCredentials(
+          email.toLowerCase(),
+          name,
+          school.name,
+          school.code,
+          generatedPassword
+        )
+      } catch (emailError) {
+        console.error('Error sending email:', emailError)
+      }
+    }
 
     // Update school stats
     await School.findByIdAndUpdate(schoolId, {
@@ -240,7 +261,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Student enrolled successfully',
-      student: studentData
+      student: studentData,
+      credentials: (sendEmail || password) ? undefined : {
+        email: email.toLowerCase(),
+        password: generatedPassword
+      }
     }, { status: 201 })
 
   } catch (error: any) {

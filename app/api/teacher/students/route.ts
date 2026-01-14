@@ -3,6 +3,8 @@ import { User } from '@/lib/models'
 import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
 import { NextRequest, NextResponse } from 'next/server'
+import { generatePassword, sendAdminCredentials } from '@/lib/email'
+import School from '@/lib/models/School'
 
 // Teacher: create student accounts
 export async function POST(req: NextRequest) {
@@ -14,22 +16,27 @@ export async function POST(req: NextRequest) {
     
     await connectDB()
     const body = await req.json()
-    const { name, email, rollNo, classId, parentName, parentPhone, phone, password } = body
+    const { name, email, rollNo, classId, parentName, parentPhone, phone, password, sendEmail } = body
 
     if (!name || !email || !classId) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
     }
 
-    const exists = await User.findOne({ email })
+    const exists = await User.findOne({ email: email.toLowerCase() })
     if (exists) {
       return NextResponse.json({ success: false, error: 'Email already exists' }, { status: 400 })
     }
 
-    const hashedPassword = await bcrypt.hash(password || 'student123', 10)
+    // Generate password if not provided
+    const generatedPassword = password || generatePassword(12)
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10)
+    
+    // Get school info for email
+    const school = await School.findById(session.schoolId)
     
     const user = await User.create({ 
       name, 
-      email, 
+      email: email.toLowerCase(), 
       password: hashedPassword, 
       role: 'student',
       schoolId: session.schoolId,
@@ -38,8 +45,24 @@ export async function POST(req: NextRequest) {
       parentName,
       parentPhone,
       phone,
-      isActive: true
+      isActive: true,
+      mustChangePassword: !password // If auto-generated, must change password
     })
+
+    // Send email if requested
+    if (sendEmail && !password && school) {
+      try {
+        await sendAdminCredentials(
+          email.toLowerCase(),
+          name,
+          school.name,
+          school.code,
+          generatedPassword
+        )
+      } catch (emailError) {
+        console.error('Error sending email:', emailError)
+      }
+    }
 
     return NextResponse.json({ 
       success: true, 
@@ -48,7 +71,11 @@ export async function POST(req: NextRequest) {
         name: user.name, 
         email: user.email,
         rollNo: user.rollNo
-      } 
+      },
+      credentials: (sendEmail || password) ? undefined : {
+        email: email.toLowerCase(),
+        password: generatedPassword
+      }
     }, { status: 201 })
   } catch (error: any) {
     console.error('Error creating student:', error)
