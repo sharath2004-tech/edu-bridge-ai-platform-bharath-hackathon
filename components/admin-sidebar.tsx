@@ -48,11 +48,11 @@ export function AdminSidebar() {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border transition-all duration-300 z-40",
+          "fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border transition-all duration-300 z-40 flex flex-col",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        <div className="p-6 border-b border-sidebar-border">
+        <div className="p-6 border-b border-sidebar-border flex-shrink-0">
           <Link href="/admin/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
               <span className="text-sidebar-primary-foreground font-bold text-sm">EB</span>
@@ -84,7 +84,7 @@ export function AdminSidebar() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-sidebar-border mt-auto flex-shrink-0">
           <button 
             onClick={async () => {
               await fetch('/api/auth/logout', { method: 'POST' })

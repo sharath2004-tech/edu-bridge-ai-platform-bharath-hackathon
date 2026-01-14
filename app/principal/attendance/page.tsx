@@ -15,17 +15,11 @@ import {
 import { AlertCircle, Calendar, CheckCircle, Clock, Save, Search, XCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 
-const CLASSES = [
-  '6th Grade',
-  '7th Grade',
-  '8th Grade',
-  '9th Grade',
-  '10th Grade',
-  '11th Science', '11th Commerce', '11th Arts',
-  '12th Science', '12th Commerce', '12th Arts',
-]
-
-const SECTIONS = ['A', 'B', 'C', 'D', 'E']
+interface Class {
+  _id: string
+  className: string
+  section: string
+}
 
 interface Student {
   _id: string
@@ -43,7 +37,9 @@ interface AttendanceRecord {
 }
 
 export default function AttendancePage() {
+  const [classes, setClasses] = useState<Class[]>([])
   const [students, setStudents] = useState<Student[]>([])
+  const [selectedClassId, setSelectedClassId] = useState('')
   const [selectedClass, setSelectedClass] = useState('')
   const [selectedSection, setSelectedSection] = useState('')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -54,11 +50,27 @@ export default function AttendancePage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    fetchClasses()
+  }, [])
+
+  useEffect(() => {
     if (selectedClass && selectedSection) {
       fetchStudents()
       fetchExistingAttendance()
     }
   }, [selectedClass, selectedSection, selectedDate])
+
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch('/api/principal/classes')
+      const data = await res.json()
+      if (data.success) {
+        setClasses(data.classes || [])
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error)
+    }
+  }
 
   const fetchStudents = async () => {
     try {
@@ -189,30 +201,30 @@ export default function AttendancePage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <Label>Class</Label>
-            <Select value={selectedClass} onValueChange={setSelectedClass}>
+            <Select value={selectedClassId} onValueChange={(value) => {
+              setSelectedClassId(value)
+              const cls = classes.find(c => c._id === value)
+              if (cls) {
+                setSelectedClass(cls.className)
+                setSelectedSection(cls.section)
+              }
+            }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select class" />
               </SelectTrigger>
               <SelectContent>
-                {CLASSES.map(cls => (
-                  <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                {classes.map(cls => (
+                  <SelectItem key={cls._id} value={cls._id}>
+                    {cls.className} - Section {cls.section}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label>Section</Label>
-            <Select value={selectedSection} onValueChange={setSelectedSection}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select section" />
-              </SelectTrigger>
-              <SelectContent>
-                {SECTIONS.map(sec => (
-                  <SelectItem key={sec} value={sec}>{sec}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Selected Section</Label>
+            <Input value={selectedSection} disabled className="bg-muted" />
           </div>
 
           <div>

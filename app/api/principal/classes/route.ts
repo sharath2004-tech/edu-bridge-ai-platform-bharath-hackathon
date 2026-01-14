@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const classes = await Class.find(query)
       .populate('schoolId', 'name code')
       .populate('classTeacherId', 'name email')
-      .sort({ grade: 1, section: 1 })
+      .sort({ className: 1, section: 1 })
 
     return NextResponse.json({
       success: true,
