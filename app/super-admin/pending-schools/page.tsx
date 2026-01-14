@@ -16,6 +16,8 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { usePagination } from '@/hooks/use-pagination'
+import { PaginationControls } from '@/components/pagination-controls'
 
 interface School {
   _id: string
@@ -47,6 +49,11 @@ export default function PendingSchoolsPage() {
   useEffect(() => {
     fetchPendingSchools()
   }, [])
+
+  const pagination = usePagination({
+    items: schools,
+    itemsPerPage: 10
+  })
 
   const fetchPendingSchools = async () => {
     try {
@@ -170,7 +177,7 @@ export default function PendingSchoolsPage() {
         </Card>
       ) : (
         <div className="grid gap-6">
-          {schools.map((school) => (
+          {pagination.paginatedItems.map((school) => (
             <Card key={school._id} className="overflow-hidden">
               <CardHeader className="bg-muted/30">
                 <div className="flex items-start justify-between">
@@ -279,6 +286,19 @@ export default function PendingSchoolsPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {schools.length > 0 && (
+        <PaginationControls
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.goToPage}
+          canGoPrevious={pagination.canGoPrevious}
+          canGoNext={pagination.canGoNext}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          totalItems={pagination.totalItems}
+        />
       )}
 
       {/* Info Box */}

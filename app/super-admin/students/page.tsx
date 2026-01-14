@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { User, Search, Download, Mail, Phone, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { usePagination } from '@/hooks/use-pagination'
+import { PaginationControls } from '@/components/pagination-controls'
 
 export default function SuperAdminStudentsPage() {
   const [students, setStudents] = useState<any[]>([])
@@ -30,6 +32,11 @@ export default function SuperAdminStudentsPage() {
       })
       .catch(() => setLoading(false))
   }, [schoolFilter, classFilter, searchQuery])
+
+  const pagination = usePagination({
+    items: students,
+    itemsPerPage: 20
+  })
 
   if (loading) {
     return <div className="p-8">Loading students...</div>
@@ -96,7 +103,7 @@ export default function SuperAdminStudentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {students.map((student) => (
+              {pagination.paginatedItems.map((student) => (
                 <TableRow key={student._id}>
                   <TableCell className="font-mono text-sm">
                     {student.rollNo || 'N/A'}
@@ -134,6 +141,17 @@ export default function SuperAdminStudentsPage() {
               ))}
             </TableBody>
           </Table>
+
+          <PaginationControls
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.goToPage}
+            canGoPrevious={pagination.canGoPrevious}
+            canGoNext={pagination.canGoNext}
+            startIndex={pagination.startIndex}
+            endIndex={pagination.endIndex}
+            totalItems={pagination.totalItems}
+          />
         </CardContent>
       </Card>
     </div>

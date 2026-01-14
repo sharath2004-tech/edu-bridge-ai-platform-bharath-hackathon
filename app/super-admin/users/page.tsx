@@ -12,6 +12,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Download, Search, Users, Trash2, Plus, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { usePagination } from '@/hooks/use-pagination'
+import { PaginationControls } from '@/components/pagination-controls'
 
 export default function SuperAdminUsersPage() {
   const [users, setUsers] = useState<any[]>([])
@@ -55,6 +57,11 @@ export default function SuperAdminUsersPage() {
       })
       .catch(() => setLoading(false))
   }
+
+  const pagination = usePagination({
+    items: users,
+    itemsPerPage: 15
+  })
 
   const fetchSchools = () => {
     fetch('/api/super-admin/schools')
@@ -352,7 +359,7 @@ export default function SuperAdminUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {pagination.paginatedItems.map((user) => (
                 <TableRow key={user._id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -393,6 +400,17 @@ export default function SuperAdminUsersPage() {
               ))}
             </TableBody>
           </Table>
+
+          <PaginationControls
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.goToPage}
+            canGoPrevious={pagination.canGoPrevious}
+            canGoNext={pagination.canGoNext}
+            startIndex={pagination.startIndex}
+            endIndex={pagination.endIndex}
+            totalItems={pagination.totalItems}
+          />
         </CardContent>
       </Card>
 
