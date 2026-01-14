@@ -1,6 +1,6 @@
 // Service Worker for Offline Video Playback
-const CACHE_NAME = 'edubridge-v1'
-const VIDEO_CACHE = 'video-cache'
+const CACHE_NAME = 'edubridge-v2'
+const VIDEO_CACHE = 'video-cache-v2'
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -63,8 +63,8 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // Cache successful responses
-        if (response && response.status === 200) {
+        // Only cache GET requests with successful responses
+        if (response && response.status === 200 && request.method === 'GET') {
           const responseClone = response.clone()
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, responseClone)
@@ -73,13 +73,20 @@ self.addEventListener('fetch', (event) => {
         return response
       })
       .catch(() => {
-        // Try to serve from cache
-        return caches.match(request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse
-          }
-          // Return offline page as fallback
-          return caches.match('/offline')
+        // Try to serve from cache (only for GET requests)
+        if (request.method === 'GET') {
+          return caches.match(request).then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse
+            }
+            // Return offline page as fallback
+            return caches.match('/offline')
+          })
+        }
+        // For non-GET requests, return a generic error response
+        return new Response('Network error', { 
+          status: 503, 
+          statusText: 'Service Unavailable' 
         })
       })
   )
