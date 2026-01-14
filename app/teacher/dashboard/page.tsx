@@ -1,11 +1,11 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { BookOpen, Users, MessageSquare, TrendingUp, Plus, ArrowRight, Eye, Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { ArrowRight, BookOpen, Eye, MessageSquare, Plus, TrendingUp, Users } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 
 interface DashboardData {
   stats: {
