@@ -1,8 +1,31 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight, BookOpen, GraduationCap, Users, Zap } from "lucide-react"
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { getSession } from "@/lib/auth"
 
-export default function Home() {
+export default async function Home() {
+  // Check if user is already logged in
+  const session = await getSession()
+  
+  // Redirect to appropriate dashboard if logged in
+  if (session) {
+    switch (session.role) {
+      case 'super-admin':
+        redirect('/super-admin/dashboard')
+      case 'admin':
+        redirect('/admin/dashboard')
+      case 'principal':
+        redirect('/principal/dashboard')
+      case 'teacher':
+        redirect('/teacher/dashboard')
+      case 'student':
+        redirect('/student/dashboard')
+      default:
+        redirect('/login')
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       {/* Navigation */}
