@@ -4,6 +4,7 @@ import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
 import { NextRequest, NextResponse } from 'next/server'
+import { generatePassword, sendAdminCredentials } from '@/lib/email'
 
 // GET - List all teachers in principal's school
 export async function GET(request: NextRequest) {
@@ -82,13 +83,14 @@ export async function POST(request: NextRequest) {
       phone,
       assignedClasses = [],
       assignedSubjects = [],
-      bio
+      bio,
+      sendEmail
     } = body
 
     // Validate required fields
-    if (!name || !email || !password) {
+    if (!name || !email) {
       return NextResponse.json(
-        { success: false, error: 'Name, email, and password are required' },
+        { success: false, error: 'Name and email are required' },
         { status: 400 }
       )
     }
@@ -102,8 +104,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Generate password if not provided
+    const generatedPassword = password || generatePassword(12)
+
     // Validate password length
-    if (password.length < 6) {
+    if (generatedPassword.length < 6) {
       return NextResponse.json(
         { success: false, error: 'Password must be at least 6 characters' },
         { status: 400 }
@@ -168,7 +173,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10)
 
     // Create teacher account
     const teacher = await User.create({
@@ -180,8 +185,24 @@ export async function POST(request: NextRequest) {
       schoolId,
       assignedClasses: Array.isArray(assignedClasses) ? assignedClasses : [],
       assignedSubjects: Array.isArray(assignedSubjects) ? assignedSubjects : [],
-      bio: bio || `Teacher at ${school.name}`
+      bio: bio || `Teacher at ${school.name}`,
+      mustChangePassword: !password // If auto-generated, must change password
     })
+
+    // Send email if requested
+    if (sendEmail && !password) {
+      try {
+        await sendAdminCredentials(
+          email.toLowerCase(),
+          name,
+          school.name,
+          school.code,
+          generatedPassword
+        )
+      } catch (emailError) {
+        console.error('Error sending email:', emailError)
+      }
+    }
 
     // Update school stats
     await School.findByIdAndUpdate(schoolId, {
@@ -196,7 +217,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Teacher account created successfully',
-      teacher: teacherData
+      teacher: teacherData,
+      credentials: (sendEmail || password) ? undefined : {
+        email: email.toLowerCase(),
+        password: generatedPassword
+      }
     }, { status: 201 })
 
   } catch (error: any) {
