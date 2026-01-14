@@ -1,12 +1,12 @@
 "use client"
 
+import { PaginationControls } from '@/components/pagination-controls'
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { usePagination } from '@/hooks/use-pagination'
 import { Edit, Plus, Search, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { usePagination } from '@/hooks/use-pagination'
-import { PaginationControls } from '@/components/pagination-controls'
 
 interface Teacher {
   _id: string

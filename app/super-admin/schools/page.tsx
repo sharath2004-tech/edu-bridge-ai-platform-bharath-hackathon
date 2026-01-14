@@ -1,16 +1,16 @@
 'use client'
 
+import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Building2, Calendar, ExternalLink, Mail, MapPin, Phone, CheckCircle, XCircle, UserPlus } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useToast } from '@/hooks/use-toast'
 import { usePagination } from '@/hooks/use-pagination'
-import { PaginationControls } from '@/components/pagination-controls'
+import { useToast } from '@/hooks/use-toast'
+import { Building2, Calendar, CheckCircle, ExternalLink, Mail, MapPin, Phone, UserPlus, XCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function SuperAdminSchoolsPage() {
   const [schools, setSchools] = useState<any[]>([])
