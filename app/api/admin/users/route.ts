@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
       password: hashed, 
       role,
       schoolId: session.schoolId,
-      phone: phone || undefined
+      phone: phone || undefined,
+      mustChangePassword: true // Require password change on first login
     })
     
     // Send email if requested

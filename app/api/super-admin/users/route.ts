@@ -147,7 +147,8 @@ export async function POST(request: NextRequest) {
       role,
       schoolId: schoolId || undefined,
       phone: phone || undefined,
-      isActive: true
+      isActive: true,
+      mustChangePassword: true // Require password change on first login
     })
 
     // Send email if requested
