@@ -23,6 +23,7 @@ const menuItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/schools", label: "Schools", icon: BookOpen },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/classes", label: "Classes", icon: BookOpen },
   { href: "/admin/courses", label: "Courses", icon: BookOpen },
   { href: "/admin/quizzes", label: "Quiz Responses", icon: ClipboardList },
   { href: "/admin/chat-history", label: "Chat History", icon: MessageCircle },
