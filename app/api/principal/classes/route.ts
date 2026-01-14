@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
       scope: 'school'
     })
 
+    
     if (authResult instanceof NextResponse) {
       return authResult
     }

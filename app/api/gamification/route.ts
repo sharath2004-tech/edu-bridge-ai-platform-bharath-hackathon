@@ -101,34 +101,41 @@ export async function POST(request: NextRequest) {
     gamification.lastActivityDate = new Date()
 
     // Award badges
-    const newBadges = []
+    interface Badge {
+      id: string
+      name: string
+      description: string
+      icon: string
+      earnedAt?: Date
+    }
+    const newBadges: Badge[] = []
     
-    if (action === 'complete_lesson' && !gamification.badges.find(b => b.id === BADGES.FIRST_LESSON.id)) {
+    if (action === 'complete_lesson' && !gamification.badges.find((b: Badge) => b.id === BADGES.FIRST_LESSON.id)) {
       gamification.badges.push({ ...BADGES.FIRST_LESSON, earnedAt: new Date() })
       newBadges.push(BADGES.FIRST_LESSON)
     }
     
-    if (action === 'perfect_quiz' && !gamification.badges.find(b => b.id === BADGES.QUIZ_MASTER.id)) {
+    if (action === 'perfect_quiz' && !gamification.badges.find((b: Badge) => b.id === BADGES.QUIZ_MASTER.id)) {
       gamification.badges.push({ ...BADGES.QUIZ_MASTER, earnedAt: new Date() })
       newBadges.push(BADGES.QUIZ_MASTER)
     }
     
-    if (gamification.streak >= 7 && !gamification.badges.find(b => b.id === BADGES.WEEK_STREAK.id)) {
+    if (gamification.streak >= 7 && !gamification.badges.find((b: Badge) => b.id === BADGES.WEEK_STREAK.id)) {
       gamification.badges.push({ ...BADGES.WEEK_STREAK, earnedAt: new Date() })
       newBadges.push(BADGES.WEEK_STREAK)
     }
     
-    if (gamification.streak >= 30 && !gamification.badges.find(b => b.id === BADGES.MONTH_STREAK.id)) {
+    if (gamification.streak >= 30 && !gamification.badges.find((b: Badge) => b.id === BADGES.MONTH_STREAK.id)) {
       gamification.badges.push({ ...BADGES.MONTH_STREAK, earnedAt: new Date() })
       newBadges.push(BADGES.MONTH_STREAK)
     }
     
-    if (gamification.level >= 5 && !gamification.badges.find(b => b.id === BADGES.LEVEL_5.id)) {
+    if (gamification.level >= 5 && !gamification.badges.find((b: Badge) => b.id === BADGES.LEVEL_5.id)) {
       gamification.badges.push({ ...BADGES.LEVEL_5, earnedAt: new Date() })
       newBadges.push(BADGES.LEVEL_5)
     }
     
-    if (gamification.level >= 10 && !gamification.badges.find(b => b.id === BADGES.LEVEL_10.id)) {
+    if (gamification.level >= 10 && !gamification.badges.find((b: Badge) => b.id === BADGES.LEVEL_10.id)) {
       gamification.badges.push({ ...BADGES.LEVEL_10, earnedAt: new Date() })
       newBadges.push(BADGES.LEVEL_10)
     }

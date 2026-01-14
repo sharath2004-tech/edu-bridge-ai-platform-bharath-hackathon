@@ -3,43 +3,93 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { ArrowLeft, CheckCircle, XCircle } from "lucide-react"
+import { ArrowLeft, CheckCircle, Loader2, XCircle } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
+
+interface Question {
+  q: string
+  options: string[]
+  correct: number
+}
+
+interface QuizData {
+  title: string
+  questions: Question[]
+}
 
 export default function QuizPage() {
+  const params = useParams()
+  const courseId = params.id as string
+  
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [score, setScore] = useState(0)
-  const [answers, setAnswers] = useState<Record<number, string>>({})
+  const [answers, setAnswers] = useState<Record<number, number>>({})
   const [showResults, setShowResults] = useState(false)
+  const [quizData, setQuizData] = useState<QuizData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const questions = [
-    {
-      q: "What does useState do in React?",
-      options: ["Manages component state", "Handles API calls", "Styles components", "Routes between pages"],
-      correct: 0,
-    },
-    {
-      q: "How do you prevent unnecessary re-renders?",
-      options: [
-        "Using useCallback and useMemo",
-        "Using useState only once",
-        "Avoiding JSX entirely",
-        "Using more state variables",
-      ],
-      correct: 0,
-    },
-    {
-      q: "What is Context API used for?",
-      options: ["Managing global state", "Creating animations", "Making API requests", "Styling components"],
-      correct: 0,
-    },
-  ]
+  useEffect(() => {
+    async function fetchQuiz() {
+      try {
+        const res = await fetch(`/api/courses/${courseId}`)
+        if (!res.ok) {
+          throw new Error('Failed to fetch quiz')
+        }
+        const data = await res.json()
+        
+        if (data.success && data.data?.quizzes?.length > 0) {
+          const quiz = data.data.quizzes[0]
+          setQuizData({
+            title: quiz.title || 'Course Quiz',
+            questions: quiz.questions?.map((q: any) => ({
+              q: q.question,
+              options: q.options,
+              correct: q.correctAnswer,
+            })) || []
+          })
+        } else {
+          // Fallback to default quiz if no quiz exists for course
+          setQuizData({
+            title: 'Course Quiz',
+            questions: [
+              {
+                q: "What does useState do in React?",
+                options: ["Manages component state", "Handles API calls", "Styles components", "Routes between pages"],
+                correct: 0,
+              },
+              {
+                q: "How do you prevent unnecessary re-renders?",
+                options: ["Using useCallback and useMemo", "Using useState only once", "Avoiding JSX entirely", "Using more state variables"],
+                correct: 0,
+              },
+              {
+                q: "What is Context API used for?",
+                options: ["Managing global state", "Creating animations", "Making API requests", "Styling components"],
+                correct: 0,
+              },
+            ]
+          })
+        }
+      } catch (err) {
+        console.error('Quiz fetch error:', err)
+        setError('Failed to load quiz. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchQuiz()
+  }, [courseId])
+
+  const questions = quizData?.questions || []
 
   const handleAnswer = (index: number) => {
     const newAnswers = { ...answers, [currentQuestion]: index }
     setAnswers(newAnswers)
-    if (index === questions[currentQuestion].correct) {
+    if (index === questions[currentQuestion]?.correct) {
       setScore(score + 1)
     }
   }
@@ -50,6 +100,46 @@ export default function QuizPage() {
     } else {
       setShowResults(true)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <Link href="/student/courses" className="flex items-center gap-2 text-primary hover:underline w-fit">
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Link>
+        <Card className="p-8 text-center border-destructive/50">
+          <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Error Loading Quiz</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </Card>
+      </div>
+    )
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        <Link href="/student/courses" className="flex items-center gap-2 text-primary hover:underline w-fit">
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Link>
+        <Card className="p-8 text-center">
+          <h2 className="text-xl font-semibold mb-2">No Quiz Available</h2>
+          <p className="text-muted-foreground">This course doesn&apos;t have a quiz yet.</p>
+        </Card>
+      </div>
+    )
   }
 
   if (showResults) {

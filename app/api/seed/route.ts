@@ -54,6 +54,18 @@ export async function POST() {
       isActive: true,
     })
 
+    // ==================== ADMIN ====================
+    const adminPassword = await bcrypt.hash('admin123', 10)
+    await User.create({
+      name: 'Admin User',
+      email: 'admin@edubridge.com',
+      password: adminPassword,
+      role: 'admin',
+      phone: '+1-555-0101',
+      bio: 'Platform administrator with school management access',
+      isActive: true,
+    })
+
     // ==================== SCHOOLS ====================
     const school1 = await School.create({
       name: 'Green Valley High School',

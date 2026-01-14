@@ -6,16 +6,27 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Lock, Mail } from "lucide-react"
+import { AlertTriangle, ArrowLeft, Lock, Mail } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { Suspense, useEffect, useState } from "react"
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get('redirect')
+  const errorParam = searchParams.get('error')
+  
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    if (errorParam === 'unauthorized') {
+      setError('You do not have permission to access that page.')
+    }
+  }, [errorParam])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,8 +51,14 @@ export default function LoginPage() {
       
       if (data.success) {
         const role = data?.data?.role ?? "student"
-        // Redirect based on role
-        window.location.href = `/${role}/dashboard`
+        // Redirect to original destination or dashboard
+        if (redirectUrl && !redirectUrl.includes('/login')) {
+          window.location.href = redirectUrl
+        } else if (role === 'super-admin') {
+          window.location.href = '/admin/dashboard'
+        } else {
+          window.location.href = `/${role}/dashboard`
+        }
       } else {
         setError(data?.error || 'Login failed')
         setIsLoading(false)
@@ -54,30 +71,28 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex items-center justify-center p-4 animate-fadeIn">
-      <Link
-        href="/"
-        className="absolute top-6 left-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="text-sm">Back</span>
-      </Link>
-
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-            <span className="text-primary-foreground font-bold text-xl">EB</span>
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Welcome Back</h1>
-          <p className="text-muted-foreground">Sign in to continue learning with EduBridge AI</p>
+    <div className="w-full max-w-md">
+      <div className="text-center mb-8">
+        <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
+          <span className="text-primary-foreground font-bold text-xl">EB</span>
         </div>
+        <h1 className="text-2xl font-bold mb-2">Welcome Back</h1>
+        <p className="text-muted-foreground">Sign in to continue learning with EduBridge AI</p>
+      </div>
 
-        <Card className="p-6 border border-border shadow-lg">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Input */}
-            <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.1s" }}>
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-primary" />
+      {errorParam === 'unauthorized' && (
+        <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center gap-2 text-amber-600 text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>You need to sign in with the correct account to access that page.</span>
+        </div>
+      )}
+
+      <Card className="p-6 border border-border shadow-lg">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email Input */}
+          <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.1s" }}>
+            <Label htmlFor="email" className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-primary" />
                 Email
               </Label>
               <Input
@@ -175,12 +190,29 @@ export default function LoginPage() {
           className="text-center text-sm text-muted-foreground mt-6 animate-slideInLeft"
           style={{ animationDelay: "0.6s" }}
         >
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-primary hover:underline font-medium">
             Sign up
           </Link>
         </p>
       </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex items-center justify-center p-4 animate-fadeIn">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span className="text-sm">Back</span>
+      </Link>
+      
+      <Suspense fallback={<div className="w-full max-w-md animate-pulse"><Card className="h-96" /></div>}>
+        <LoginForm />
+      </Suspense>
     </main>
   )
 }

@@ -66,10 +66,10 @@ async function generateAIResponse(
   history?: any[]
 ): Promise<string> {
   try {
-    // Build chat history for context
-    const chatHistory = history?.slice(-10).map((msg: any) => ({
-      role: msg.role === 'user' ? 'USER' : 'CHATBOT',
-      message: msg.content,
+    // Build chat history for context with proper typing
+    const chatHistory: { role: 'USER' | 'CHATBOT'; message: string }[] = history?.slice(-10).map((msg: any) => ({
+      role: (msg.role === 'user' ? 'USER' : 'CHATBOT') as 'USER' | 'CHATBOT',
+      message: msg.content as string,
     })) || [];
 
     // System preamble with educational context

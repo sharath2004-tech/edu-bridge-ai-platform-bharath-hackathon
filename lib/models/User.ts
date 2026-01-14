@@ -5,7 +5,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: 'super-admin' | 'principal' | 'teacher' | 'student';
+  role: 'super-admin' | 'admin' | 'principal' | 'teacher' | 'student';
   schoolId?: mongoose.Types.ObjectId;
   avatar?: string;
   bio?: string;
@@ -65,7 +65,7 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['super-admin', 'principal', 'teacher', 'student'],
+      enum: ['super-admin', 'admin', 'principal', 'teacher', 'student'],
       default: 'student',
       required: true,
     },

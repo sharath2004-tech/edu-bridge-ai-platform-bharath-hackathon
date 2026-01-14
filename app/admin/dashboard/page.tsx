@@ -3,9 +3,59 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Users, BookOpen, TrendingUp, AlertCircle, Activity, ArrowUp, ArrowDown } from "lucide-react"
+import { Users, BookOpen, TrendingUp, AlertCircle, Activity, ArrowUp, ArrowDown, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
+
+interface DashboardData {
+  stats: {
+    totalUsers: number
+    activeCourses: number
+    engagement: string
+    systemHealth: string
+    userActivity: {
+      students: { value: number; max: number }
+      teachers: { value: number; max: number }
+      admins: { value: number; max: number }
+    }
+  }
+  recentUsers: {
+    name: string
+    email: string
+    role: string
+    time: string
+  }[]
+}
 
 export default function AdminDashboard() {
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchDashboard() {
+      try {
+        const res = await fetch('/api/admin/dashboard')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success) {
+            setData(json.data)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchDashboard()
+  }, [])
+
+  const displayStats = data?.stats || {
+    totalUsers: 0,
+    activeCourses: 0,
+    engagement: '0%',
+    systemHealth: '99.8%'
+  }
+
   return (
     <div className="space-y-8 animate-fadeIn">
       <div>
@@ -14,25 +64,37 @@ export default function AdminDashboard() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { label: "Total Users", value: "5,240", icon: Users, change: "+12%", color: "from-primary/20 to-primary/5" },
-          { label: "Active Courses", value: "128", icon: BookOpen, change: "+8%", color: "from-accent/20 to-accent/5" },
-          {
-            label: "Engagement",
-            value: "74.2%",
-            icon: Activity,
-            change: "+3%",
-            color: "from-secondary/20 to-secondary/5",
-          },
-          {
-            label: "System Health",
-            value: "99.8%",
-            icon: TrendingUp,
-            change: "+0.2%",
-            color: "from-emerald-500/20 to-emerald-500/5",
-          },
-        ].map((metric, i) => {
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="p-4">
+              <div className="animate-pulse space-y-3">
+                <div className="h-4 bg-muted rounded w-1/2" />
+                <div className="h-8 bg-muted rounded w-3/4" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[
+            { label: "Total Users", value: displayStats.totalUsers.toString(), icon: Users, change: "+12%", color: "from-primary/20 to-primary/5" },
+            { label: "Active Courses", value: displayStats.activeCourses.toString(), icon: BookOpen, change: "+8%", color: "from-accent/20 to-accent/5" },
+            {
+              label: "Engagement",
+              value: displayStats.engagement,
+              icon: Activity,
+              change: "+3%",
+              color: "from-secondary/20 to-secondary/5",
+            },
+            {
+              label: "System Health",
+              value: displayStats.systemHealth,
+              icon: TrendingUp,
+              change: "+0.2%",
+              color: "from-emerald-500/20 to-emerald-500/5",
+            },
+          ].map((metric, i) => {
           const Icon = metric.icon
           const isPositive = metric.change.startsWith("+")
           return (
@@ -63,7 +125,8 @@ export default function AdminDashboard() {
             </Card>
           )
         })}
-      </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="grid lg:grid-cols-3 gap-6">
@@ -71,23 +134,34 @@ export default function AdminDashboard() {
         <div className="lg:col-span-2">
           <Card className="p-6 border border-border animate-slideInLeft" style={{ animationDelay: "0.4s" }}>
             <h2 className="text-xl font-bold mb-4">User Activity</h2>
-            <div className="space-y-4">
-              {[
-                { label: "Students", value: 3200, max: 5000, color: "from-primary/60 to-primary/40" },
-                { label: "Teachers", value: 680, max: 1000, color: "from-accent/60 to-accent/40" },
-                { label: "Admins", value: 24, max: 100, color: "from-secondary/60 to-secondary/40" },
-              ].map((item, i) => (
-                <div key={i}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{item.label}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {item.value} / {item.max}
-                    </span>
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-4 bg-muted rounded mb-2" />
+                    <div className="h-2 bg-muted rounded" />
                   </div>
-                  <Progress value={(item.value / item.max) * 100} className="h-2" />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {[
+                  { label: "Students", value: data?.stats.userActivity.students.value || 0, max: data?.stats.userActivity.students.max || 100, color: "from-primary/60 to-primary/40" },
+                  { label: "Teachers", value: data?.stats.userActivity.teachers.value || 0, max: data?.stats.userActivity.teachers.max || 100, color: "from-accent/60 to-accent/40" },
+                  { label: "Admins", value: data?.stats.userActivity.admins.value || 0, max: data?.stats.userActivity.admins.max || 100, color: "from-secondary/60 to-secondary/40" },
+                ].map((item, i) => (
+                  <div key={i}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">{item.label}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {item.value} / {item.max}
+                      </span>
+                    </div>
+                    <Progress value={(item.value / item.max) * 100} className="h-2" />
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           {/* Recent Alerts */}

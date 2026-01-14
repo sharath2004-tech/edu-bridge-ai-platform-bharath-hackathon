@@ -25,21 +25,18 @@ export async function GET(request: NextRequest) {
     const endDate = new Date(date)
     endDate.setHours(23, 59, 59, 999)
 
+    // Query directly with classId for better performance
     const attendance = await Attendance.find({
+      classId: classId,
       date: { $gte: startDate, $lte: endDate },
       schoolId: session.schoolId
     })
-      .populate('studentId', 'name rollNo email classId')
+      .populate('studentId', 'name rollNo email')
       .lean()
-
-    // Filter by classId in populated data
-    const filteredAttendance = attendance.filter((att: any) => 
-      att.studentId?.classId?.toString() === classId
-    )
 
     return NextResponse.json({
       success: true,
-      attendance: filteredAttendance
+      attendance: attendance
     })
   } catch (error: any) {
     console.error('Error fetching attendance:', error)
@@ -75,12 +72,14 @@ export async function POST(request: NextRequest) {
         updateOne: {
           filter: {
             studentId: att.studentId,
+            classId: att.classId,
             date: date,
             schoolId: session.schoolId
           },
           update: {
             $set: {
               status: att.status,
+              classId: att.classId,
               markedBy: session.userId
             }
           },
