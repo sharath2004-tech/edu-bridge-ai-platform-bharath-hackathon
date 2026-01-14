@@ -27,6 +27,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Email already exists' }, { status: 400 })
     }
 
+    // Get class details to extract className and section
+    const Class = (await import('@/lib/models/Class')).default
+    const classData = await Class.findById(classId)
+    if (!classData || String(classData.schoolId) !== session.schoolId) {
+      return NextResponse.json({ success: false, error: 'Invalid class or class not found in your school' }, { status: 400 })
+    }
+
     // Generate password if not provided
     const generatedPassword = password || generatePassword(12)
     const hashedPassword = await bcrypt.hash(generatedPassword, 10)
@@ -41,6 +48,8 @@ export async function POST(req: NextRequest) {
       role: 'student',
       schoolId: session.schoolId,
       classId,
+      className: classData.className,
+      section: classData.section,
       rollNo,
       parentName,
       parentPhone,
