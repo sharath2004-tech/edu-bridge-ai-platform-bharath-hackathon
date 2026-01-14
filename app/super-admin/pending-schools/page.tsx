@@ -1,23 +1,23 @@
 "use client"
 
+import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  Building2, 
-  CheckCircle, 
-  Clock, 
-  Mail, 
-  MapPin, 
-  Phone, 
-  User, 
-  XCircle,
-  AlertCircle
+import { usePagination } from '@/hooks/use-pagination'
+import {
+    AlertCircle,
+    Building2,
+    CheckCircle,
+    Clock,
+    Mail,
+    MapPin,
+    Phone,
+    User,
+    XCircle
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { usePagination } from '@/hooks/use-pagination'
-import { PaginationControls } from '@/components/pagination-controls'
 
 interface School {
   _id: string

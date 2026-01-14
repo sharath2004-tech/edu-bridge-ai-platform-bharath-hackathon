@@ -1,19 +1,19 @@
 'use client'
 
+import { PaginationControls } from '@/components/pagination-controls'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
-import { Download, Search, Users, Trash2, Plus, Mail } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useToast } from '@/hooks/use-toast'
 import { usePagination } from '@/hooks/use-pagination'
-import { PaginationControls } from '@/components/pagination-controls'
+import { useToast } from '@/hooks/use-toast'
+import { Download, Mail, Plus, Search, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function SuperAdminUsersPage() {
   const [users, setUsers] = useState<any[]>([])

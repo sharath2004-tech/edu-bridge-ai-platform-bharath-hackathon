@@ -1,13 +1,13 @@
 'use client'
 
+import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { usePagination } from '@/hooks/use-pagination'
 import { BookOpen, GraduationCap, Mail, Phone, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { usePagination } from '@/hooks/use-pagination'
-import { PaginationControls } from '@/components/pagination-controls'
 
 export default function SuperAdminTeachersPage() {
   const [teachers, setTeachers] = useState<any[]>([])
