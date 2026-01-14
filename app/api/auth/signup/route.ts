@@ -15,11 +15,36 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
 
-    // Validate school is provided for students, teachers, and principals
-    if ((role === 'student' || role === 'teacher' || role === 'principal') && !schoolId) {
+    // SECURITY: Only allow students to self-register
+    // Teachers and principals must be created by school admins
+    if (role && role !== 'student') {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Only students can self-register. Teachers and principals must be added by school administrators.' 
+      }, { status: 403 })
+    }
+
+    // Validate school is provided for students
+    if (!schoolId) {
       return NextResponse.json({ 
         success: false, 
         error: 'Please select a school from the list or enter a valid school code' 
+      }, { status: 400 })
+    }
+
+    // Verify the school exists and is active
+    const School = (await import('@/lib/models/School')).default
+    const school = await School.findById(schoolId)
+    if (!school) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Invalid school selected. Please choose a valid school.' 
+      }, { status: 400 })
+    }
+    if (!school.isActive) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'This school is not yet activated. Please contact your school administrator or wait for approval.' 
       }, { status: 400 })
     }
 
@@ -36,11 +61,8 @@ export async function POST(req: NextRequest) {
       name, 
       email, 
       password: hashed, 
-      role: role || 'student'
-    }
-    
-    if (schoolId) {
-      userData.schoolId = schoolId
+      role: 'student', // Always student for self-registration
+      schoolId: schoolId
     }
 
     const newUser = await User.create(userData)

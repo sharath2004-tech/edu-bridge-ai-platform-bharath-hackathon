@@ -5,11 +5,28 @@ import Link from 'next/link'
 export default function SuperAdminDashboard() {
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Super Admin Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage all schools and platform-wide settings
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Super Admin Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage all schools and platform-wide settings
+          </p>
+        </div>
+        <Link href="/super-admin/pending-schools">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-orange-200 bg-orange-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-orange-600 font-medium">PENDING APPROVALS</p>
+                  <p className="text-2xl font-bold text-orange-700">View All</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Stats Grid */}
