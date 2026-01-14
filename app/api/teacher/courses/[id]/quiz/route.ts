@@ -27,6 +27,14 @@ export async function POST(
       )
     }
 
+    // Verify course belongs to teacher's school
+    if (course.schoolId && String(course.schoolId) !== session.schoolId) {
+      return NextResponse.json(
+        { success: false, error: 'Course not found' },
+        { status: 404 }
+      )
+    }
+
     if (String(course.instructor) !== session.id) {
       return NextResponse.json(
         { success: false, error: 'Not authorized to modify this course' },

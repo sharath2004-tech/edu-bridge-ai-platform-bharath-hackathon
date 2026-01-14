@@ -1,3 +1,4 @@
+import { getSession } from '@/lib/auth';
 import { Course } from '@/lib/models';
 import connectDB from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
@@ -7,6 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
+    const session = await getSession();
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const level = searchParams.get('level');
@@ -14,6 +16,11 @@ export async function GET(request: NextRequest) {
     const instructor = searchParams.get('instructor');
 
     const query: any = {};
+    
+    // Filter by school for non-super-admin users
+    if (session && session.schoolId && session.role !== 'super-admin') {
+      query.schoolId = session.schoolId;
+    }
     
     // Default to published for students, unless status is specified
     if (status) {

@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       subject,
       description,
       instructor: session.id,
+      schoolId: session.schoolId,
       questions,
       passingScore: passingScore || 70,
       status: status || 'draft'
