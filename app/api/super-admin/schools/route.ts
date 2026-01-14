@@ -104,3 +104,53 @@ export async function PUT(request: NextRequest) {
     )
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session || session.role !== 'super-admin') {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Super Admin access required' },
+        { status: 401 }
+      )
+    }
+
+    await connectDB()
+
+    const data = await request.json()
+    const { schoolId } = data
+
+    if (!schoolId) {
+      return NextResponse.json(
+        { success: false, error: 'School ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Find the school first
+    const school = await School.findById(schoolId)
+    if (!school) {
+      return NextResponse.json(
+        { success: false, error: 'School not found' },
+        { status: 404 }
+      )
+    }
+
+    // Delete all users associated with this school
+    await User.deleteMany({ schoolId: schoolId })
+
+    // Delete the school
+    await School.findByIdAndDelete(schoolId)
+
+    return NextResponse.json({
+      success: true,
+      message: 'School and associated users deleted successfully'
+    })
+  } catch (error: any) {
+    console.error('Error deleting school:', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete school', message: error.message },
+      { status: 500 }
+    )
+  }
+}
