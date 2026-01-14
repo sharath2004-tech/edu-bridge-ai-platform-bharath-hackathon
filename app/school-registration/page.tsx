@@ -43,9 +43,7 @@ export default function SchoolRegistrationPage() {
     adminName: "",
     adminEmail: "",
     adminMobile: "",
-    designation: "principal",
-    password: "",
-    confirmPassword: ""
+    designation: "principal"
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -152,16 +150,6 @@ export default function SchoolRegistrationPage() {
       newErrors.adminMobile = "Mobile number must be 10 digits"
     }
     
-    if (!formData.password) {
-      newErrors.password = "Password is required"
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
-    }
-    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -222,7 +210,6 @@ export default function SchoolRegistrationPage() {
       submitData.append('adminEmail', formData.adminEmail)
       submitData.append('adminMobile', formData.adminMobile)
       submitData.append('designation', formData.designation)
-      submitData.append('password', formData.password)
 
       const res = await fetch('/api/school-registration', {
         method: 'POST',
@@ -703,54 +690,18 @@ export default function SchoolRegistrationPage() {
                     </select>
                   </div>
 
-                  {/* Password Fields */}
-                  <div className="grid md:grid-cols-2 gap-5">
-                    <div>
-                      <Label htmlFor="password" className="text-base">
-                        Create Password <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative mt-2">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="password"
-                          name="password"
-                          type="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          placeholder="Min. 6 characters"
-                          className="pl-10"
-                        />
+                  {/* Password Info - Auto-generated */}
+                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-purple-100 rounded-full p-2">
+                        <Lock className="w-5 h-5 text-purple-600" />
                       </div>
-                      {errors.password && (
-                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          {errors.password}
+                      <div>
+                        <h4 className="font-semibold text-purple-900 mb-1">🔐 Secure Auto-Generated Password</h4>
+                        <p className="text-sm text-purple-800">
+                          A secure password will be automatically generated and sent to your registered email address. You can change it anytime after your first login.
                         </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="confirmPassword" className="text-base">
-                        Confirm Password <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative mt-2">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          type="password"
-                          value={formData.confirmPassword}
-                          onChange={handleInputChange}
-                          placeholder="Re-enter password"
-                          className="pl-10"
-                        />
                       </div>
-                      {errors.confirmPassword && (
-                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          {errors.confirmPassword}
-                        </p>
-                      )}
                     </div>
                   </div>
 
