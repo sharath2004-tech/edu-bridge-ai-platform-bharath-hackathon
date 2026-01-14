@@ -7,13 +7,7 @@ import { Label } from "@/components/ui/label"
 import { AlertCircle, ArrowLeft, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-
-const CLASS_OPTIONS = [
-  "6th Grade", "7th Grade", "8th Grade", "9th Grade", "10th Grade",
-  "11th Science", "11th Commerce", "11th Arts",
-  "12th Science", "12th Commerce", "12th Arts"
-]
+import { useState, useEffect } from "react"
 
 export default function CreateTeacherPage() {
   const router = useRouter()
@@ -27,10 +21,27 @@ export default function CreateTeacherPage() {
     assignedSubjects: "",
     bio: ""
   })
+  const [classes, setClasses] = useState<any[]>([])
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    fetchClasses()
+  }, [])
+
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch('/api/principal/classes')
+      const data = await res.json()
+      if (data.success) {
+        setClasses(data.classes || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch classes:', error)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setError(null)
@@ -203,26 +214,44 @@ export default function CreateTeacherPage() {
           </div>
 
           <div className="space-y-2">
-            <Label>Assigned Classes *</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-3 border rounded-lg">
-              {CLASS_OPTIONS.map((cls) => (
-                <label key={cls} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedClasses.includes(cls)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedClasses([...selectedClasses, cls])
-                      } else {
-                        setSelectedClasses(selectedClasses.filter(c => c !== cls))
-                      }
-                    }}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                  <span className="text-sm">{cls}</span>
-                </label>
-              ))}
-            </div>
+            <Label>Assigned Classes {classes.length > 0 && '*'}</Label>
+            {classes.length === 0 ? (
+              <p className="text-sm text-muted-foreground p-3 border rounded-lg">
+                No classes available. Please create classes first.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-3 border rounded-lg max-h-60 overflow-y-auto">
+                {classes.map((cls) => {
+                  const classLabel = `${cls.className} - ${cls.section}`
+                  return (
+                    <label key={cls._id} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedClasses.includes(cls.className)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            // Add the className if not already present
+                            if (!selectedClasses.includes(cls.className)) {
+                              setSelectedClasses([...selectedClasses, cls.className])
+                            }
+                          } else {
+                            // Remove className only if no other section uses it
+                            const hasOtherSections = classes.some(
+                              c => c.className === cls.className && c._id !== cls._id && selectedClasses.includes(c.className)
+                            )
+                            if (!hasOtherSections) {
+                              setSelectedClasses(selectedClasses.filter(c => c !== cls.className))
+                            }
+                          }
+                        }}
+                            className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span className="text-sm">{classLabel}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            )}
             <p className="text-xs text-muted-foreground">
               Select one or more classes
             </p>
