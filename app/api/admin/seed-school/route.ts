@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       
       // Assign 2-4 random classes to each teacher
       const numClasses = Math.floor(Math.random() * 3) + 2;
-      const assignedClasses = [];
+      const assignedClasses: string[] = [];
       for (let j = 0; j < numClasses; j++) {
         const randomClass = CLASSES[Math.floor(Math.random() * CLASSES.length)];
         if (!assignedClasses.includes(randomClass)) {
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
 
       // Assign 2-3 random subjects
       const numSubjects = Math.floor(Math.random() * 2) + 2;
-      const assignedSubjects = [];
+      const assignedSubjects: string[] = [];
       for (let j = 0; j < numSubjects; j++) {
         const randomSubject = SUBJECTS[Math.floor(Math.random() * SUBJECTS.length)];
         if (!assignedSubjects.includes(randomSubject)) {

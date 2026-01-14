@@ -10,11 +10,11 @@ import { revalidatePath } from "next/cache"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
-type User = {
+type UserType = {
   _id: string
   name: string
   email: string
-  role: "student" | "teacher" | "admin"
+  role: "student" | "teacher" | "admin" | "super-admin" | "principal"
   sectionName?: string
   createdAt?: string
 }
@@ -100,7 +100,7 @@ export default async function UsersPage() {
     })
   })
   
-  const users: User[] = usersData.map(u => ({
+  const users: UserType[] = usersData.map(u => ({
     _id: String(u._id),
     name: u.name,
     email: u.email,

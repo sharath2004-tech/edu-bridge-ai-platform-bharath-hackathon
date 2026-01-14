@@ -5,13 +5,80 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { ArrowRight, BookOpen, Clock, Play, Target, TrendingUp } from "lucide-react"
+import { useEffect, useState } from "react"
+
+interface DashboardData {
+  name: string
+  stats: {
+    streak: number
+    activeCourses: number
+    hoursLearned: number
+    goalsCompleted: number
+    totalGoals: number
+  }
+  courses: {
+    title: string
+    progress: number
+    lessons: string
+    instructor: string
+  }[]
+  nextLesson?: {
+    title: string
+    course: string
+    duration: number
+  }
+  deadlines: {
+    title: string
+    date: string
+  }[]
+}
 
 export default function StudentDashboard() {
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchDashboard() {
+      try {
+        const res = await fetch('/api/student/dashboard')
+        if (res.ok) {
+          const json = await res.json()
+          setData(json.data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchDashboard()
+  }, [])
+
+  // Fallback data while loading or if fetch fails
+  const displayData: DashboardData = data || {
+    name: 'Student',
+    stats: {
+      streak: 0,
+      activeCourses: 0,
+      hoursLearned: 0,
+      goalsCompleted: 0,
+      totalGoals: 0,
+    },
+    courses: [],
+    deadlines: [],
+  }
+
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold mb-2">Welcome back, Alex!</h1>
+        <h1 className="text-3xl font-bold mb-2">
+          {loading ? (
+            <span className="inline-block w-48 h-8 bg-muted animate-pulse rounded" />
+          ) : (
+            `Welcome back, ${displayData.name}!`
+          )}
+        </h1>
         <p className="text-muted-foreground">Continue your learning journey with EduBridge AI</p>
       </div>
 
@@ -21,10 +88,10 @@ export default function StudentDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Learning Streak", value: "12 days", icon: TrendingUp, color: "from-primary/20 to-primary/5" },
-          { label: "Courses Active", value: "5 courses", icon: BookOpen, color: "from-accent/20 to-accent/5" },
-          { label: "Hours Learned", value: "24.5 hrs", icon: Clock, color: "from-secondary/20 to-secondary/5" },
-          { label: "Goals Completed", value: "8 of 12", icon: Target, color: "from-emerald-500/20 to-emerald-500/5" },
+          { label: "Learning Streak", value: `${displayData.stats.streak} days`, icon: TrendingUp, color: "from-primary/20 to-primary/5" },
+          { label: "Courses Active", value: `${displayData.stats.activeCourses} courses`, icon: BookOpen, color: "from-accent/20 to-accent/5" },
+          { label: "Hours Learned", value: `${displayData.stats.hoursLearned} hrs`, icon: Clock, color: "from-secondary/20 to-secondary/5" },
+          { label: "Goals Completed", value: `${displayData.stats.goalsCompleted} of ${displayData.stats.totalGoals}`, icon: Target, color: "from-emerald-500/20 to-emerald-500/5" },
         ].map((stat, i) => {
           const Icon = stat.icon
           return (
@@ -59,33 +126,36 @@ export default function StudentDashboard() {
           </div>
 
           <div className="space-y-4">
-            {[
-              { title: "Web Development Basics", progress: 65, lessons: "12/18 lessons", instructor: "Sarah Chen" },
-              { title: "Advanced React Patterns", progress: 45, lessons: "9/20 lessons", instructor: "Mike Johnson" },
-              { title: "Data Science 101", progress: 80, lessons: "16/20 lessons", instructor: "Dr. Priya Kumar" },
-            ].map((course, i) => (
-              <Card
-                key={i}
-                className="p-4 border border-border hover:border-primary/50 transition-all group animate-slideInLeft"
-                style={{ animationDelay: `${0.3 + i * 0.1}s` }}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-1">{course.title}</h3>
-                    <p className="text-sm text-muted-foreground">by {course.instructor}</p>
+            {displayData.courses.length > 0 ? (
+              displayData.courses.map((course, i) => (
+                <Card
+                  key={i}
+                  className="p-4 border border-border hover:border-primary/50 transition-all group animate-slideInLeft"
+                  style={{ animationDelay: `${0.3 + i * 0.1}s` }}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold mb-1">{course.title}</h3>
+                      <p className="text-sm text-muted-foreground">by {course.instructor}</p>
+                    </div>
+                    <Button size="icon" variant="ghost" className="group-hover:bg-primary/10">
+                      <Play className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button size="icon" variant="ghost" className="group-hover:bg-primary/10">
-                    <Play className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  <Progress value={course.progress} className="h-2" />
-                  <p className="text-xs text-muted-foreground">
-                    {course.lessons} • {course.progress}% complete
-                  </p>
-                </div>
+                  <div className="space-y-2">
+                    <Progress value={course.progress} className="h-2" />
+                    <p className="text-xs text-muted-foreground">
+                      {course.lessons} • {course.progress}% complete
+                    </p>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <Card className="p-6 text-center text-muted-foreground">
+                <p>No active courses yet. Start learning today!</p>
+                <Button className="mt-4" size="sm">Browse Courses</Button>
               </Card>
-            ))}
+            )}
           </div>
         </div>
 
@@ -94,32 +164,36 @@ export default function StudentDashboard() {
           {/* Next Lesson */}
           <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <h3 className="font-semibold mb-3">Next Lesson</h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm font-medium mb-1">React Hooks Deep Dive</p>
-                <p className="text-xs text-muted-foreground">Advanced React Patterns • 45 mins</p>
+            {displayData.nextLesson ? (
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium mb-1">{displayData.nextLesson.title}</p>
+                  <p className="text-xs text-muted-foreground">{displayData.nextLesson.course} • {displayData.nextLesson.duration} mins</p>
+                </div>
+                <Button className="w-full gap-2" size="sm">
+                  <Play className="w-4 h-4" />
+                  Start Now
+                </Button>
               </div>
-              <Button className="w-full gap-2" size="sm">
-                <Play className="w-4 h-4" />
-                Start Now
-              </Button>
-            </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No upcoming lessons scheduled</p>
+            )}
           </Card>
 
           {/* Upcoming Deadlines */}
           <Card className="p-4 border border-border">
             <h3 className="font-semibold mb-3">Deadlines</h3>
             <div className="space-y-3">
-              {[
-                { title: "Quiz: Arrays & Objects", date: "Today" },
-                { title: "Assignment: Build a Form", date: "Tomorrow" },
-                { title: "Project: Todo App", date: "3 days" },
-              ].map((item, i) => (
-                <div key={i} className="pb-3 border-b border-border last:border-0">
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">{item.date}</p>
-                </div>
-              ))}
+              {displayData.deadlines.length > 0 ? (
+                displayData.deadlines.map((item, i) => (
+                  <div key={i} className="pb-3 border-b border-border last:border-0">
+                    <p className="text-sm font-medium">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{item.date}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No upcoming deadlines</p>
+              )}
             </div>
           </Card>
 

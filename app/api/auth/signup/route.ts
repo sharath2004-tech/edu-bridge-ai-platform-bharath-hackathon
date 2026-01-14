@@ -43,7 +43,9 @@ export async function POST(req: NextRequest) {
       userData.schoolId = schoolId
     }
 
-    const user = await User.create(userData)
+    const newUser = await User.create(userData)
+    // Handle both array and single document returns
+    const user = Array.isArray(newUser) ? newUser[0] : newUser
 
     const payload = { 
       id: String(user._id), 

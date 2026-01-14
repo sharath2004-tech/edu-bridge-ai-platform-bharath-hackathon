@@ -3,14 +3,20 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, Calendar, ExternalLink, Mail, MapPin, Phone } from 'lucide-react'
+import { Building2, Calendar, ExternalLink, Mail, MapPin, Phone, CheckCircle, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 export default function SuperAdminSchoolsPage() {
   const [schools, setSchools] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    fetchSchools()
+  }, [])
+
+  const fetchSchools = () => {
+    setLoading(true)
     fetch('/api/super-admin/schools')
       .then(res => res.json())
       .then(data => {
@@ -18,7 +24,31 @@ export default function SuperAdminSchoolsPage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+  }
+
+  const toggleSchoolStatus = async (schoolId: string, currentStatus: boolean) => {
+    try {
+      const res = await fetch('/api/super-admin/schools', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          schoolId,
+          isActive: !currentStatus
+        })
+      })
+
+      if (res.ok) {
+        fetchSchools()
+        alert(`School ${!currentStatus ? 'activated' : 'deactivated'} successfully`)
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to update school status')
+      }
+    } catch (error) {
+      console.error('Error updating school status:', error)
+      alert('Failed to update school status')
+    }
+  }
 
   if (loading) {
     return <div className="p-8">Loading schools...</div>
@@ -109,14 +139,46 @@ export default function SuperAdminSchoolsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-6 pt-6 border-t">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>Established: {new Date(school.established).getFullYear()}</span>
+              <div className="mt-6 pt-6 border-t">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>Established: {new Date(school.established).getFullYear()}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="text-muted-foreground">Students: <strong>{school.stats?.totalStudents || 0}</strong></span>
+                    <span className="text-muted-foreground">Teachers: <strong>{school.stats?.totalTeachers || 0}</strong></span>
+                    <span className="text-muted-foreground">Courses: <strong>{school.stats?.totalCourses || 0}</strong></span>
+                  </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">View Details</Button>
-                  <Button variant="outline" size="sm">Edit</Button>
+                  <Button 
+                    variant={school.isActive ? "outline" : "default"} 
+                    size="sm"
+                    onClick={() => toggleSchoolStatus(school._id, school.isActive)}
+                  >
+                    {school.isActive ? (
+                      <>
+                        <XCircle className="mr-2 h-4 w-4" />
+                        Deactivate
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Activate
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/super-admin/schools/${school._id}`}>
+                      View Details
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/super-admin/schools/${school._id}/edit`}>
+                      Edit
+                    </Link>
+                  </Button>
                 </div>
               </div>
             </CardContent>

@@ -5,9 +5,10 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getSession()
     if (!session || (session.role !== 'teacher' && session.role !== 'principal')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -16,7 +17,7 @@ export async function DELETE(
     await connectDB()
 
     const student = await User.findOneAndDelete({
-      _id: params.id,
+      _id: id,
       role: 'student',
       schoolId: session.schoolId
     })
