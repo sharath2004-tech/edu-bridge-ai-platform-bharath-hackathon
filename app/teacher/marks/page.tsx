@@ -59,7 +59,11 @@ export default function TeacherMarksPage() {
   const fetchStudents = async () => {
     const res = await fetch(`/api/teacher/students?classId=${selectedClass}`)
     const data = await res.json()
-    if (data.success) setStudents(data.students)
+    console.log('Students API response:', data)
+    if (data.success) {
+      console.log('Students data:', data.students)
+      setStudents(data.students || [])
+    }
   }
 
   const fetchMarks = async () => {
@@ -185,32 +189,40 @@ export default function TeacherMarksPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.map(student => {
-                  const score = marks[student._id] || 0
-                  const grade = score >= 90 ? 'A+' : score >= 80 ? 'A' : score >= 70 ? 'B' : score >= 60 ? 'C' : score >= 50 ? 'D' : 'F'
-                  return (
-                    <TableRow key={student._id}>
-                      <TableCell>{student.rollNo}</TableCell>
-                      <TableCell className="font-medium">{student.name}</TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={marks[student._id] || ''}
-                          onChange={(e) => handleMarkChange(student._id, e.target.value)}
-                          className="w-24"
-                          placeholder="0"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={score >= 60 ? 'default' : 'destructive'}>
-                          {grade}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
+                {students.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      No students found in this class
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  students.map(student => {
+                    const score = marks[student._id] || 0
+                    const grade = score >= 90 ? 'A+' : score >= 80 ? 'A' : score >= 70 ? 'B' : score >= 60 ? 'C' : score >= 50 ? 'D' : 'F'
+                    return (
+                      <TableRow key={student._id}>
+                        <TableCell>{student.rollNo}</TableCell>
+                        <TableCell className="font-medium">{student.name}</TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={marks[student._id] || ''}
+                            onChange={(e) => handleMarkChange(student._id, e.target.value)}
+                            className="w-24"
+                            placeholder="0"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={score >= 60 ? 'default' : 'destructive'}>
+                            {grade}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
               </TableBody>
             </Table>
           </CardContent>

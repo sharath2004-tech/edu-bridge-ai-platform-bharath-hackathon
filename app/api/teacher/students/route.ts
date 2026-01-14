@@ -105,7 +105,11 @@ export async function GET(req: NextRequest) {
     }
 
     if (classId) {
-      query.classId = classId
+      // Support both classId (ObjectId) and className (string)
+      query.$or = [
+        { classId: classId },
+        { className: classId }
+      ]
     }
 
     if (search) {
@@ -121,8 +125,8 @@ export async function GET(req: NextRequest) {
     
     const students = await User.find(query)
       .populate('classId', 'className section')
-      .select('-password -__v')
-      .sort({ rollNo: 1 })
+      .select('name email rollNo className section classId')
+      .sort({ rollNo: 1, name: 1 })
       .skip(skip)
       .limit(limit)
       .lean()
