@@ -1,9 +1,9 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { Users, TrendingUp, BookOpen, Award } from "lucide-react"
+import { Award, BookOpen, TrendingUp, Users } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 export default function TeacherAnalyticsPage() {
   const [stats, setStats] = useState({
