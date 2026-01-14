@@ -1,10 +1,10 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { User, Lock, Bell, Eye } from "lucide-react"
+import { Bell, Eye, Lock, User } from "lucide-react"
 import { useState } from "react"
 
 export default function SettingsPage() {
