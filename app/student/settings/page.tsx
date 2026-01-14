@@ -48,16 +48,74 @@ export default function SettingsPage() {
       <Card className="p-6 border border-border animate-slideInLeft" style={{ animationDelay: "0.1s" }}>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
           <Lock className="w-5 h-5" />
-          Security
+          Change Password
         </h2>
-        <div className="space-y-4">
-          <Button variant="outline" className="w-full justify-start bg-transparent">
-            Change Password
-          </Button>
-          <Button variant="outline" className="w-full justify-start bg-transparent">
-            Two-Factor Authentication
-          </Button>
-        </div>
+        <form onSubmit={async (e) => {
+          e.preventDefault()
+          const formData = new FormData(e.currentTarget)
+          const currentPassword = formData.get('currentPassword') as string
+          const newPassword = formData.get('newPassword') as string
+          const confirmPassword = formData.get('confirmPassword') as string
+
+          if (newPassword !== confirmPassword) {
+            alert('New passwords do not match')
+            return
+          }
+
+          try {
+            const res = await fetch('/api/auth/change-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ currentPassword, newPassword })
+            })
+            const data = await res.json()
+            if (data.success) {
+              alert('Password changed successfully!')
+              e.currentTarget.reset()
+            } else {
+              alert(data.error || 'Failed to change password')
+            }
+          } catch (error) {
+            alert('An error occurred')
+          }
+        }} className="space-y-4">
+          <div>
+            <Label htmlFor="currentPassword">Current Password</Label>
+            <Input 
+              id="currentPassword" 
+              name="currentPassword"
+              type="password" 
+              placeholder="Enter current password" 
+              className="mt-1"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="newPassword">New Password</Label>
+            <Input 
+              id="newPassword" 
+              name="newPassword"
+              type="password" 
+              placeholder="Enter new password (min 6 characters)" 
+              className="mt-1"
+              minLength={6}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+            <Input 
+              id="confirmPassword" 
+              name="confirmPassword"
+              type="password" 
+              placeholder="Confirm new password" 
+              className="mt-1"
+              minLength={6}
+              required
+            />
+          </div>
+          <Button type="submit">Change Password</Button>
+        </form>
       </Card>
 
       {/* Notifications Section */}
