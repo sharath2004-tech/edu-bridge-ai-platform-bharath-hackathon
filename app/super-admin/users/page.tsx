@@ -4,19 +4,44 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Download, Search, Users } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Download, Search, Users, Trash2, Plus, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
 
 export default function SuperAdminUsersPage() {
   const [users, setUsers] = useState<any[]>([])
+  const [schools, setSchools] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [roleFilter, setRoleFilter] = useState('all')
   const [schoolFilter, setSchoolFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<any>(null)
+  const [creating, setCreating] = useState(false)
+  const [credentials, setCredentials] = useState<any>(null)
+  const { toast } = useToast()
+
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    role: 'student',
+    schoolId: '',
+    phone: '',
+    sendEmail: true
+  })
 
   useEffect(() => {
+    fetchUsers()
+    fetchSchools()
+  }, [roleFilter, schoolFilter, searchQuery])
+
+  const fetchUsers = () => {
     const params = new URLSearchParams()
     if (roleFilter !== 'all') params.set('role', roleFilter)
     if (schoolFilter !== 'all') params.set('schoolId', schoolFilter)
@@ -29,7 +54,105 @@ export default function SuperAdminUsersPage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [roleFilter, schoolFilter, searchQuery])
+  }
+
+  const fetchSchools = () => {
+    fetch('/api/super-admin/schools')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setSchools(data.schools.filter((s: any) => s.isActive))
+      })
+  }
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCreating(true)
+
+    try {
+      const res = await fetch('/api/super-admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        toast({
+          title: 'Success',
+          description: 'User created successfully'
+        })
+        
+        if (data.credentials) {
+          setCredentials(data.credentials)
+        }
+        
+        setIsCreateDialogOpen(false)
+        setNewUser({
+          name: '',
+          email: '',
+          role: 'student',
+          schoolId: '',
+          phone: '',
+          sendEmail: true
+        })
+        fetchUsers()
+      } else {
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to create user',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create user',
+        variant: 'destructive'
+      })
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return
+
+    try {
+      const res = await fetch(`/api/super-admin/users?userId=${userToDelete._id}`, {
+        method: 'DELETE'
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        toast({
+          title: 'Success',
+          description: 'User deleted successfully'
+        })
+        setIsDeleteDialogOpen(false)
+        setUserToDelete(null)
+        fetchUsers()
+      } else {
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to delete user',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete user',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const openDeleteDialog = (user: any) => {
+    setUserToDelete(user)
+    setIsDeleteDialogOpen(true)
+  }
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -59,10 +182,120 @@ export default function SuperAdminUsersPage() {
             <Download className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
-          <Button>
-            <Users className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add User
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New User</DialogTitle>
+                <DialogDescription>
+                  Add a new user to the system. A secure password will be generated automatically.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateUser}>
+                <div className="space-y-4 py-4">
+                  <div>
+                    <Label htmlFor="name">Name *</Label>
+                    <Input
+                      id="name"
+                      value={newUser.name}
+                      onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                      placeholder="Full name"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newUser.email}
+                      onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                      placeholder="email@example.com"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="role">Role *</Label>
+                    <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="super-admin">Super Admin</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="principal">Principal</SelectItem>
+                        <SelectItem value="teacher">Teacher</SelectItem>
+                        <SelectItem value="student">Student</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {newUser.role !== 'super-admin' && (
+                    <div>
+                      <Label htmlFor="schoolId">School *</Label>
+                      <Select value={newUser.schoolId} onValueChange={(value) => setNewUser({ ...newUser, schoolId: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select school" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {schools.map((school) => (
+                            <SelectItem key={school._id} value={school._id}>
+                              {school.name} ({school.code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={newUser.phone}
+                      onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                      placeholder="10-digit mobile number"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="sendEmail"
+                      checked={newUser.sendEmail}
+                      onChange={(e) => setNewUser({ ...newUser, sendEmail: e.target.checked })}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="sendEmail" className="text-sm font-normal cursor-pointer">
+                      <Mail className="inline w-3 h-3 mr-1" />
+                      Send credentials via email
+                    </Label>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                    <p className="text-blue-800">
+                      A secure password will be auto-generated. {newUser.sendEmail ? 'Credentials will be sent to the email address.' : 'Credentials will be displayed after creation.'}
+                    </p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={creating}>
+                    {creating ? 'Creating...' : 'Create User'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -96,7 +329,11 @@ export default function SuperAdminUsersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Schools</SelectItem>
-                {/* Dynamic school options would go here */}
+                {schools.map((school) => (
+                  <SelectItem key={school._id} value={school._id}>
+                    {school.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -142,8 +379,14 @@ export default function SuperAdminUsersPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm">View</Button>
-                      <Button variant="ghost" size="sm">Edit</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => openDeleteDialog(user)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -152,6 +395,77 @@ export default function SuperAdminUsersPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the user <strong>{userToDelete?.name}</strong> ({userToDelete?.email}).
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete User
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Credentials Display Dialog */}
+      {credentials && (
+        <Dialog open={!!credentials} onOpenChange={() => setCredentials(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>User Created Successfully</DialogTitle>
+              <DialogDescription>
+                Save these credentials - they will only be shown once!
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 mb-2">
+                  ⚠️ <strong>Important:</strong> Save these credentials now. They won't be shown again.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-muted-foreground">Email</Label>
+                  <div className="font-mono bg-gray-50 p-2 rounded border">
+                    {credentials.email}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Password</Label>
+                  <div className="font-mono bg-gray-50 p-2 rounded border">
+                    {credentials.password}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => {
+                navigator.clipboard.writeText(`Email: ${credentials.email}\nPassword: ${credentials.password}`)
+                toast({
+                  title: 'Copied',
+                  description: 'Credentials copied to clipboard'
+                })
+              }}>
+                Copy to Clipboard
+              </Button>
+              <Button variant="outline" onClick={() => setCredentials(null)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

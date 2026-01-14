@@ -3,13 +3,27 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, Calendar, ExternalLink, Mail, MapPin, Phone, CheckCircle, XCircle } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Building2, Calendar, ExternalLink, Mail, MapPin, Phone, CheckCircle, XCircle, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useToast } from '@/hooks/use-toast'
 
 export default function SuperAdminSchoolsPage() {
   const [schools, setSchools] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [isCreateAdminOpen, setIsCreateAdminOpen] = useState(false)
+  const [selectedSchool, setSelectedSchool] = useState<any>(null)
+  const [creatingAdmin, setCreatingAdmin] = useState(false)
+  const [adminCredentials, setAdminCredentials] = useState<any>(null)
+  const { toast } = useToast()
+  const [adminForm, setAdminForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    sendEmail: true
+  })
 
   useEffect(() => {
     fetchSchools()
@@ -39,14 +53,87 @@ export default function SuperAdminSchoolsPage() {
 
       if (res.ok) {
         fetchSchools()
-        alert(`School ${!currentStatus ? 'activated' : 'deactivated'} successfully`)
+        toast({
+          title: 'Success',
+          description: `School ${!currentStatus ? 'activated' : 'deactivated'} successfully`
+        })
       } else {
         const data = await res.json()
-        alert(data.error || 'Failed to update school status')
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to update school status',
+          variant: 'destructive'
+        })
       }
     } catch (error) {
       console.error('Error updating school status:', error)
-      alert('Failed to update school status')
+      toast({
+        title: 'Error',
+        description: 'Failed to update school status',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const openCreateAdminDialog = (school: any) => {
+    setSelectedSchool(school)
+    setAdminForm({
+      name: school.principal?.name || '',
+      email: school.principal?.email || '',
+      phone: school.principal?.phone || '',
+      sendEmail: true
+    })
+    setIsCreateAdminOpen(true)
+  }
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCreatingAdmin(true)
+
+    try {
+      const res = await fetch('/api/super-admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: adminForm.name,
+          email: adminForm.email,
+          phone: adminForm.phone,
+          role: 'admin',
+          schoolId: selectedSchool._id,
+          sendEmail: adminForm.sendEmail
+        })
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        toast({
+          title: 'Success',
+          description: 'Admin created successfully'
+        })
+        
+        if (data.credentials) {
+          setAdminCredentials(data.credentials)
+        }
+        
+        setIsCreateAdminOpen(false)
+        setAdminForm({ name: '', email: '', phone: '', sendEmail: true })
+        fetchSchools()
+      } else {
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to create admin',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create admin',
+        variant: 'destructive'
+      })
+    } finally {
+      setCreatingAdmin(false)
     }
   }
 
@@ -169,15 +256,13 @@ export default function SuperAdminSchoolsPage() {
                       </>
                     )}
                   </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/super-admin/schools/${school._id}`}>
-                      View Details
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/super-admin/schools/${school._id}/edit`}>
-                      Edit
-                    </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => openCreateAdminDialog(school)}
+                  >
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Create Admin
                   </Button>
                 </div>
               </div>
@@ -185,6 +270,137 @@ export default function SuperAdminSchoolsPage() {
           </Card>
         ))}
       </div>
+
+      {/* Create Admin Dialog */}
+      <Dialog open={isCreateAdminOpen} onOpenChange={setIsCreateAdminOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create Admin for {selectedSchool?.name}</DialogTitle>
+            <DialogDescription>
+              Create an admin account for this school. Login credentials will be generated automatically.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateAdmin}>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="admin-name">Admin Name *</Label>
+                <Input
+                  id="admin-name"
+                  value={adminForm.name}
+                  onChange={(e) => setAdminForm({ ...adminForm, name: e.target.value })}
+                  placeholder="Full name"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="admin-email">Email *</Label>
+                <Input
+                  id="admin-email"
+                  type="email"
+                  value={adminForm.email}
+                  onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
+                  placeholder="admin@school.com"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="admin-phone">Phone</Label>
+                <Input
+                  id="admin-phone"
+                  value={adminForm.phone}
+                  onChange={(e) => setAdminForm({ ...adminForm, phone: e.target.value })}
+                  placeholder="10-digit mobile number"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="send-admin-email"
+                  checked={adminForm.sendEmail}
+                  onChange={(e) => setAdminForm({ ...adminForm, sendEmail: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="send-admin-email" className="text-sm font-normal cursor-pointer">
+                  <Mail className="inline w-3 h-3 mr-1" />
+                  Send credentials via email
+                </Label>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                <p className="text-blue-800">
+                  A secure password will be auto-generated. {adminForm.sendEmail ? 'Credentials will be sent via email.' : 'Credentials will be displayed after creation.'}
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsCreateAdminOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={creatingAdmin}>
+                {creatingAdmin ? 'Creating...' : 'Create Admin'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Credentials Display Dialog */}
+      {adminCredentials && (
+        <Dialog open={!!adminCredentials} onOpenChange={() => setAdminCredentials(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Admin Created Successfully</DialogTitle>
+              <DialogDescription>
+                Save these credentials - they will only be shown once!
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 mb-2">
+                  ⚠️ <strong>Important:</strong> Save these credentials now. They won't be shown again.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-muted-foreground">School</Label>
+                  <div className="font-medium bg-gray-50 p-2 rounded border">
+                    {selectedSchool?.name} ({selectedSchool?.code})
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Admin Email</Label>
+                  <div className="font-mono bg-gray-50 p-2 rounded border">
+                    {adminCredentials.email}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Temporary Password</Label>
+                  <div className="font-mono bg-gray-50 p-2 rounded border">
+                    {adminCredentials.password}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => {
+                navigator.clipboard.writeText(`School: ${selectedSchool?.name}\nEmail: ${adminCredentials.email}\nPassword: ${adminCredentials.password}`)
+                toast({
+                  title: 'Copied',
+                  description: 'Credentials copied to clipboard'
+                })
+              }}>
+                Copy to Clipboard
+              </Button>
+              <Button variant="outline" onClick={() => setAdminCredentials(null)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }
