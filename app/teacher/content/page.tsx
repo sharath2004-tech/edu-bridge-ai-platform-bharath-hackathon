@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth"
 import { Content, Section } from "@/lib/models"
 import connectDB from "@/lib/mongodb"
 import { mkdir, writeFile } from "fs/promises"
-import { FileText, MoreVertical, Plus, Upload } from "lucide-react"
+import { FileText, MoreVertical, Upload } from "lucide-react"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { join } from "path"
@@ -111,10 +111,6 @@ export default async function ContentPage() {
           <h1 className="text-3xl font-bold mb-2">Content Library</h1>
           <p className="text-muted-foreground">Manage and organize all your course materials</p>
         </div>
-        <Button className="gap-2" form="upload-form" type="submit">
-          <Plus className="w-4 h-4" />
-          Upload Content
-        </Button>
       </div>
 
       <Separator />
@@ -131,50 +127,92 @@ export default async function ContentPage() {
       <Separator />
 
       {/* Upload Content with File Support */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold flex items-center gap-2">
-          <Upload className="w-4 h-4" />
-          Upload Content to Section
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+          <Upload className="w-5 h-5 text-primary" />
+          Upload Multimedia Content
         </h3>
-        <form id="upload-form" action={uploadContent} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Input name="title" placeholder="Content title" required />
-          <Input name="description" placeholder="Description (optional)" />
+        <p className="text-sm text-muted-foreground mb-4">
+          Upload videos, audio files, PDFs, or add text content to your sections
+        </p>
+        
+        <form id="upload-form" action={uploadContent} className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Content Title *</label>
+              <Input name="title" placeholder="e.g., Introduction to Mathematics" required />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Content Type *</label>
+              <select name="type" className="w-full px-4 py-2 border border-border rounded-lg bg-background" required>
+                <option value="video">📹 Video</option>
+                <option value="audio">🎵 Audio</option>
+                <option value="pdf">📄 PDF Document</option>
+                <option value="text">📝 Text</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Description</label>
+            <Input name="description" placeholder="Brief description of the content" />
+          </div>
           
-          <select name="type" className="px-4 py-2 border border-border rounded-lg bg-background">
-            <option value="text">Text</option>
-            <option value="pdf">PDF</option>
-            <option value="video">Video</option>
-            <option value="audio">Audio</option>
-          </select>
-          
-          <select name="section" className="px-4 py-2 border border-border rounded-lg bg-background" required>
-            {sections.length === 0 ? (
-              <option value="">No sections available</option>
-            ) : (
-              sections.map(s => <option key={s._id} value={s._id}>{s.name}</option>)
-            )}
-          </select>
-          
-          <div className="md:col-span-2 lg:col-span-3 space-y-2">
-            <label className="text-sm text-muted-foreground">Upload file (video, audio, pdf):</label>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Assign to Section *</label>
+            <select name="section" className="w-full px-4 py-2 border border-border rounded-lg bg-background" required>
+              {sections.length === 0 ? (
+                <option value="">⚠️ No sections available - Create one first</option>
+              ) : (
+                <>
+                  <option value="">-- Select a section --</option>
+                  {sections.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                </>
+              )}
+            </select>
+          </div>
+
+          <div className="border-2 border-dashed border-border rounded-lg p-6 space-y-3 bg-muted/30">
+            <div className="flex items-center gap-3">
+              <Upload className="w-8 h-8 text-primary" />
+              <div>
+                <label className="text-sm font-semibold block">Upload File (Video, Audio, or PDF)</label>
+                <p className="text-xs text-muted-foreground">Maximum file size: 100MB</p>
+              </div>
+            </div>
             <Input 
               name="file" 
               type="file" 
               accept="video/*,audio/*,application/pdf"
-              className="cursor-pointer"
+              className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
             />
-            <p className="text-xs text-muted-foreground">Or enter URL below if file is hosted elsewhere</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-2">
+              💡 Supported formats: MP4, WebM (video) • MP3, WAV (audio) • PDF (documents)
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Or Enter File URL</label>
+            <Input name="url" placeholder="https://example.com/video.mp4" />
+            <p className="text-xs text-muted-foreground">If file is already hosted, paste URL here instead of uploading</p>
           </div>
           
-          <Input name="url" placeholder="Or paste file URL" className="md:col-span-2" />
-          <Input name="text" placeholder="Text content (for type=text only)" className="md:col-span-2 lg:col-span-3" />
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Text Content (for Text type only)</label>
+            <textarea 
+              name="text" 
+              placeholder="Enter your text content here..."
+              className="w-full min-h-[100px] px-3 py-2 border border-border rounded-lg bg-background"
+            />
+          </div>
           
-          <Button type="submit" className="md:col-span-2 lg:col-span-3">
+          <Button type="submit" className="w-full" size="lg">
             <Upload className="w-4 h-4 mr-2" />
-            Save Content
+            Upload and Save Content
           </Button>
         </form>
-      </div>
+      </Card>
 
       <Separator />
 
