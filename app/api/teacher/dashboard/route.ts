@@ -43,10 +43,20 @@ export async function GET() {
       status: { $ne: 'archived' }
     }).select('title enrolledStudents rating').lean()
 
-    // Count total students from teacher's school only (unique across all courses)
+    // Count total students from assigned classes
+    const classIds = teacher?.assignedClasses?.map((cls: any) => 
+      typeof cls === 'string' ? cls : cls.toString()
+    ) || []
+    
+    const totalStudentsInClasses = await User.countDocuments({
+      schoolId: session.schoolId,
+      role: 'student',
+      classId: { $in: classIds }
+    })
+
+    // Count total students from courses (unique)
     const allStudentIds = new Set()
     if (courses.length > 0) {
-      // Get actual students from the school to verify
       const studentIds = courses.flatMap(c => c.enrolledStudents || [])
       const schoolStudents = await User.find({
         _id: { $in: studentIds },
@@ -58,7 +68,8 @@ export async function GET() {
 
     const stats = {
       activeCourses: courses.length,
-      totalStudents: allStudentIds.size,
+      totalStudents: Math.max(totalStudentsInClasses, allStudentIds.size), // Use the larger count
+      totalClasses: classes.length,
       messages: 0, // Implement message count if you have messaging
       avgRating: courses.length > 0 
         ? (courses.reduce((sum, c) => sum + (c.rating || 0), 0) / courses.length).toFixed(1)
@@ -84,11 +95,32 @@ export async function GET() {
       views: 0 // Implement view tracking if needed
     }))
 
+    // If no courses but has classes, create class-based data for display
+    let displayData = coursesData
+    if (coursesData.length === 0 && classes.length > 0) {
+      // Get student counts per class for visualization
+      for (const cls of classes) {
+        const studentCount = await User.countDocuments({
+          schoolId: session.schoolId,
+          role: 'student',
+          classId: cls._id
+        })
+        displayData.push({
+          id: String(cls._id),
+          title: `${cls.className} - ${cls.section}`,
+          students: studentCount,
+          content: `${studentCount} students`,
+          rating: 0,
+          views: 0
+        })
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: {
         stats,
-        courses: coursesData,
+        courses: displayData,
         classes: classes.map(c => ({
           id: String(c._id),
           className: c.className,
