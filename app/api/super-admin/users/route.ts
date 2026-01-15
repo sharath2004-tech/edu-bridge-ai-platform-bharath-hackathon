@@ -1,10 +1,10 @@
-import User from '@/lib/models/User'
-import School from '@/lib/models/School'
-import connectDB from '@/lib/mongodb'
-import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
+import { generatePassword, sendAdminCredentials, sendStudentCredentials, sendTeacherCredentials } from '@/lib/email'
+import School from '@/lib/models/School'
+import User from '@/lib/models/User'
+import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
-import { generatePassword, sendAdminCredentials, sendTeacherCredentials, sendStudentCredentials } from '@/lib/email'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
