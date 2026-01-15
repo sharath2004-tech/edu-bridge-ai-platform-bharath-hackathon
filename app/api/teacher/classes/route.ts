@@ -4,8 +4,9 @@ import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
+  let session = null
   try {
-    const session = await getSession()
+    session = await getSession()
     if (!session || (session.role !== 'teacher' && session.role !== 'principal')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
@@ -18,9 +19,18 @@ export async function GET(request: NextRequest) {
       
       // Filter by teacher's assigned classes
       const User = (await import('@/lib/models/User')).default
-      const teacher = await User.findById(session.userId).select('assignedClasses')
+      const teacherId = session.userId || session.id
       
-      console.log('Teacher data:', { userId: session.userId, assignedClasses: teacher?.assignedClasses })
+      console.log('Fetching teacher data:', { teacherId, sessionUserId: session.userId, sessionId: session.id })
+      
+      const teacher = await User.findById(teacherId).select('assignedClasses')
+      
+      console.log('Teacher data:', { 
+        userId: teacherId, 
+        found: !!teacher,
+        assignedClasses: teacher?.assignedClasses,
+        assignedClassesLength: teacher?.assignedClasses?.length || 0
+      })
       
       if (teacher && teacher.assignedClasses && teacher.assignedClasses.length > 0) {
         // Convert assignedClasses to proper format
@@ -35,11 +45,16 @@ export async function GET(request: NextRequest) {
         query._id = { $in: classIds }
       } else {
         // Teacher has no assigned classes
-        console.log('Teacher has no assigned classes')
+        console.log('Teacher has no assigned classes or teacher not found')
         return NextResponse.json({
           success: true,
           classes: [],
-          message: 'No classes assigned to this teacher'
+          message: 'No classes assigned to this teacher',
+          debug: {
+            teacherId,
+            teacherFound: !!teacher,
+            assignedClasses: teacher?.assignedClasses
+          }
         })
       }
     } else if (session.role === 'principal') {
@@ -59,8 +74,15 @@ export async function GET(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Error fetching classes:', error)
+    console.error('Error stack:', error.stack)
+    console.error('Session info:', { 
+      hasSession: !!session, 
+      userId: session?.userId, 
+      id: session?.id,
+      role: session?.role 
+    })
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error.message, details: 'Check server logs for more information' },
       { status: 500 }
     )
   }

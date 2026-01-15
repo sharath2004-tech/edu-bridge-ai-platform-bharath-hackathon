@@ -54,9 +54,11 @@ export async function POST(req: NextRequest) {
     // Add assignedClasses for teachers
     if (role === 'teacher' && assignedClasses && Array.isArray(assignedClasses) && assignedClasses.length > 0) {
       userData.assignedClasses = assignedClasses
+      console.log('Creating teacher with assigned classes:', assignedClasses)
     }
 
     const user = await User.create(userData)
+    console.log('User created:', { id: user._id, role: user.role, assignedClasses: user.assignedClasses })
     
     // Send email if requested
     if (sendEmail && email) {

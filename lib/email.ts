@@ -48,7 +48,7 @@ export async function sendAdminCredentials(
         address: process.env.SMTP_EMAIL || '',
       },
       to: email,
-      subject: 'Welcome to EduBridge - Admin Credentials',
+      subject: 'Welcome to EduBridge - Administrator Account',
       html: `
         <!DOCTYPE html>
         <html>
@@ -125,7 +125,8 @@ export async function sendAdminCredentials(
         </head>
         <body>
           <div class="header">
-            <h1>🎓 Welcome to EduBridge AI Platform</h1>
+            <h1>🎓 Welcome to EduBridge!</h1>
+            <h2>Administrator Account</h2>
           </div>
           
           <div class="content">
@@ -136,7 +137,7 @@ export async function sendAdminCredentials(
             <p>Your school registration is currently <strong>pending approval</strong> from our super admin team. Once approved, you will be able to access all features of the platform.</p>
             
             <div class="credentials">
-              <h3>📧 Your Admin Login Credentials</h3>
+              <h3>📧 Your Administrator Login Credentials</h3>
               
               <div class="credential-item">
                 <span class="label">School Code:</span>
