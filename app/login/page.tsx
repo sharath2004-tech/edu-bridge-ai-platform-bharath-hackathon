@@ -51,15 +51,22 @@ function LoginForm() {
     setError("")
     
     try {
+      // Build request body - don't send schoolCode for super admin
+      const requestBody: any = {
+        identifier, 
+        password, 
+        selectedRole: selectedRole || undefined 
+      }
+      
+      // Only include schoolCode for non-super-admin users
+      if (selectedRole !== 'super-admin') {
+        requestBody.schoolCode = schoolCode.toUpperCase()
+      }
+      
       const res = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          schoolCode: schoolCode.toUpperCase(), 
-          identifier, 
-          password, 
-          selectedRole: selectedRole || undefined 
-        }),
+        body: JSON.stringify(requestBody),
         credentials: 'include', // Important for cookies
       })
 
