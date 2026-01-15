@@ -8,8 +8,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env.local') })
 
 import bcrypt from 'bcrypt'
 import { Attendance, Class, Content, Course, Exam, Mark, School, Section, Subject, User } from '../lib/models'
-import Timetable from '../lib/models/Timetable'
 import Notification from '../lib/models/Notification'
+import Timetable from '../lib/models/Timetable'
 import connectDB from '../lib/mongodb'
 
 async function seedCompleteDatabase() {

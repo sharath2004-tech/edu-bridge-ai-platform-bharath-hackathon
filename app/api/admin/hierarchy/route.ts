@@ -5,11 +5,11 @@
  * with proper population of relationships
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
+import Class from '@/lib/models/Class';
 import School from '@/lib/models/School';
 import User from '@/lib/models/User';
-import Class from '@/lib/models/Class';
+import dbConnect from '@/lib/mongodb';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
