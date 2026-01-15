@@ -181,9 +181,14 @@ export default async function TeacherQuizzesPage() {
                         </div>
                       </div>
 
-                      <Link href={`/teacher/quizzes/${quiz._id}/responses`}>
-                        <Button className="w-full" variant="outline">View Responses</Button>
-                      </Link>
+                      <div className="flex gap-2">
+                        <Link href={`/teacher/quizzes/${quiz._id}/edit`} className="flex-1">
+                          <Button className="w-full" variant="secondary">Edit</Button>
+                        </Link>
+                        <Link href={`/teacher/quizzes/${quiz._id}/responses`} className="flex-1">
+                          <Button className="w-full" variant="outline">Responses</Button>
+                        </Link>
+                      </div>
                     </div>
                   </Card>
                 ))}
