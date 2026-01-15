@@ -31,6 +31,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('Creating quiz with class assignment:', {
+      teacherId: session.id,
+      classId,
+      className,
+      section,
+      title,
+      status: status || 'draft'
+    })
+
     const quiz = await StandaloneQuiz.create({
       title,
       subject,
@@ -43,6 +52,13 @@ export async function POST(request: NextRequest) {
       questions,
       passingScore: passingScore || 70,
       status: status || 'draft'
+    })
+
+    console.log('Quiz created successfully:', {
+      quizId: String(quiz._id),
+      classId: String(quiz.classId),
+      className: quiz.className,
+      section: quiz.section
     })
 
     return NextResponse.json(

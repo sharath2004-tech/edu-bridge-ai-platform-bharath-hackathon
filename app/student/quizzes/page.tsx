@@ -38,8 +38,34 @@ export default async function StudentQuizzesPage() {
 
   await connectDB()
 
-  // Get all published standalone quizzes
-  const publishedQuizzes = await StandaloneQuiz.find({ status: 'published' }).populate('instructor', 'name').lean()
+  // Get student's class information
+  const User = mongoose.models.User || mongoose.model('User', new mongoose.Schema({}))
+  const student = await User.findById(session.id).select('classId').lean()
+  const studentClassId = student?.classId
+
+  console.log('Student quiz access:', {
+    studentId: session.id,
+    studentClassId: studentClassId ? String(studentClassId) : null,
+    role: session.role
+  })
+
+  // Get all published standalone quizzes for student's class
+  const quizQuery: any = { status: 'published' }
+  if (studentClassId) {
+    quizQuery.classId = studentClassId
+  }
+  const publishedQuizzes = await StandaloneQuiz.find(quizQuery).populate('instructor', 'name').lean()
+
+  console.log('Found quizzes for student:', {
+    totalQuizzes: publishedQuizzes.length,
+    quizzes: publishedQuizzes.map(q => ({
+      id: String(q._id),
+      title: q.title,
+      classId: q.classId ? String(q.classId) : null,
+      className: q.className,
+      section: q.section
+    }))
+  })
 
   // Get student's responses to standalone quizzes
   const standaloneResponses = await StandaloneQuizResponse.find({ studentId: session.id }).lean()

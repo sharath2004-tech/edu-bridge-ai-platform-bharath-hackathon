@@ -35,6 +35,19 @@ export async function GET(
       )
     }
 
+    // Check if student's class matches the quiz's assigned class
+    if (quiz.classId) {
+      const User = (await import('@/lib/models/User')).default
+      const student = await User.findById(session.id).select('classId').lean()
+      
+      if (!student?.classId || String(student.classId) !== String(quiz.classId)) {
+        return NextResponse.json(
+          { success: false, error: 'This quiz is not assigned to your class' },
+          { status: 403 }
+        )
+      }
+    }
+
     return NextResponse.json(
       { success: true, data: quiz },
       { status: 200 }

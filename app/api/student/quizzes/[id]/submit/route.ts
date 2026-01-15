@@ -38,6 +38,30 @@ export async function POST(
       )
     }
 
+    // Verify quiz exists and is assigned to student's class
+    const StandaloneQuiz = (await import('@/lib/models/StandaloneQuiz')).default
+    const quiz = await StandaloneQuiz.findById(id).lean()
+    
+    if (!quiz) {
+      return NextResponse.json(
+        { success: false, error: 'Quiz not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if student's class matches the quiz's assigned class
+    if (quiz.classId) {
+      const User = (await import('@/lib/models/User')).default
+      const student = await User.findById(session.id).select('classId').lean()
+      
+      if (!student?.classId || String(student.classId) !== String(quiz.classId)) {
+        return NextResponse.json(
+          { success: false, error: 'This quiz is not assigned to your class' },
+          { status: 403 }
+        )
+      }
+    }
+
     const response = await StandaloneQuizResponse.create({
       studentId: session.id,
       quizId: id,

@@ -1,3 +1,4 @@
+import { getSession } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface Slide {
@@ -176,6 +177,14 @@ function generateFallbackSlides(topic: string, numSlides: number): Slide[] {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSession()
+    if (!session || session.role !== 'teacher') {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const { topic, audience, numSlides, style, keyPoints } = await request.json()
 
     if (!topic) {
@@ -185,6 +194,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('Generating PPT for teacher:', session.id, 'Topic:', topic)
+
     const slides = await generatePPTWithCohere(
       topic,
       audience || 'students',
@@ -192,6 +203,8 @@ export async function POST(request: NextRequest) {
       style || 'educational',
       keyPoints || ''
     )
+
+    console.log('PPT generated successfully, slides count:', slides.length)
 
     return NextResponse.json({
       success: true,
