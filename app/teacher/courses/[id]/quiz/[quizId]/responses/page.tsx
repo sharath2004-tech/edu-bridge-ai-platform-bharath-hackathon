@@ -21,7 +21,7 @@ const QuizResponse = mongoose.models.QuizResponse || mongoose.model('QuizRespons
 
 export default async function QuizResponsesPage({ params }: { params: Promise<{ id: string; quizId: string }> }) {
   const session = await getSession()
-  if (!session || session.role !== 'teacher') {
+  if (!session || (session.role !== 'teacher' && session.role !== 'admin')) {
     redirect('/login')
   }
 
@@ -33,8 +33,13 @@ export default async function QuizResponsesPage({ params }: { params: Promise<{ 
     return <div>Course not found</div>
   }
 
-  if (String(course.instructor) !== session.id) {
+  // Teachers can only view their own courses, admins can view all courses from their school
+  if (session.role === 'teacher' && String(course.instructor) !== session.id) {
     return <div>Unauthorized</div>
+  }
+  
+  if (session.role === 'admin' && String(course.schoolId) !== session.schoolId) {
+    return <div>Unauthorized - Course not from your school</div>
   }
 
   const quizIndex = parseInt(quizId)
