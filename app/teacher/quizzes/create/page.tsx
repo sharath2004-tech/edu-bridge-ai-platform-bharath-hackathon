@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus, Trash } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function CreateQuizPage() {
   const router = useRouter()
@@ -17,9 +17,23 @@ export default function CreateQuizPage() {
   const [description, setDescription] = useState("")
   const [passingScore, setPassingScore] = useState(70)
   const [status, setStatus] = useState("draft")
+  const [classId, setClassId] = useState("")
+  const [classes, setClasses] = useState<any[]>([])
   const [questions, setQuestions] = useState([
     { question: "", options: ["", "", "", ""], correctAnswer: 0, explanation: "" }
   ])
+
+  useEffect(() => {
+    // Fetch teacher's assigned classes
+    fetch('/api/teacher/classes')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setClasses(data.data || [])
+        }
+      })
+      .catch(err => console.error('Error fetching classes:', err))
+  }, [])
 
   const addQuestion = () => {
     setQuestions([...questions, { question: "", options: ["", "", "", ""], correctAnswer: 0, explanation: "" }])
@@ -63,6 +77,19 @@ export default function CreateQuizPage() {
         }
       }
 
+      if (!classId) {
+        alert('Please select a class and section')
+        setLoading(false)
+        return
+      }
+
+      const selectedClass = classes.find(c => c._id === classId)
+      if (!selectedClass) {
+        alert('Invalid class selection')
+        setLoading(false)
+        return
+      }
+
       const res = await fetch("/api/teacher/quizzes/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -73,6 +100,9 @@ export default function CreateQuizPage() {
           questions,
           passingScore,
           status,
+          classId: selectedClass._id,
+          className: selectedClass.className,
+          section: selectedClass.section,
         }),
       })
 
@@ -121,6 +151,26 @@ export default function CreateQuizPage() {
               placeholder="e.g., Mathematics, Science, History"
               required 
             />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Class & Section *</label>
+            <select
+              value={classId}
+              onChange={(e) => setClassId(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            >
+              <option value="">Select a class...</option>
+              {classes.map((cls) => (
+                <option key={cls._id} value={cls._id}>
+                  {cls.className} - {cls.section}
+                </option>
+              ))}
+            </select>
+            {classes.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">No classes assigned. Please contact your administrator.</p>
+            )}
           </div>
 
           <div>

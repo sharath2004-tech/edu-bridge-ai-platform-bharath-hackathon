@@ -57,6 +57,8 @@ export default async function TeacherQuizzesPage() {
       _id: String(quiz._id),
       title: quiz.title,
       subject: quiz.subject,
+      className: quiz.className,
+      section: quiz.section,
       questionCount: quiz.questions?.length || 0,
       passingScore: quiz.passingScore,
       status: quiz.status,
@@ -150,6 +152,9 @@ export default async function TeacherQuizzesPage() {
                         </div>
                         <h3 className="font-semibold text-lg">{quiz.title}</h3>
                         <p className="text-sm text-muted-foreground">{quiz.subject}</p>
+                        {quiz.className && quiz.section && (
+                          <p className="text-xs text-blue-600 mt-1">Class: {quiz.className} - {quiz.section}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2 text-sm">
