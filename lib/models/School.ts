@@ -158,10 +158,47 @@ const SchoolSchema = new Schema<ISchool>(
   }
 );
 
-// Indexes for better query performance
-// Note: code and email already have indexes from schema definitions
-SchoolSchema.index({ isActive: 1 });
-SchoolSchema.index({ 'subscription.plan': 1 });
+// HIERARCHY INDEXES: Top-level entity indexes
+// Note: code and email already have unique indexes from schema definitions
+SchoolSchema.index({ isActive: 1, createdAt: -1 });
+SchoolSchema.index({ 'subscription.plan': 1, isActive: 1 });
+
+// HIERARCHY VIRTUALS: School is the top of the hierarchy
+// Virtual for admin users (one-to-many relationship)
+SchoolSchema.virtual('adminUsers', {
+  ref: 'User',
+  localField: '_id',
+  foreignField: 'schoolId',
+  match: { role: 'admin' },
+  options: { sort: { createdAt: 1 } }
+});
+
+// Virtual for principal user (one-to-one relationship)
+SchoolSchema.virtual('principalUser', {
+  ref: 'User',
+  localField: '_id',
+  foreignField: 'schoolId',
+  justOne: true,
+  match: { role: 'principal' }
+});
+
+// Virtual for all users in school
+SchoolSchema.virtual('allUsers', {
+  ref: 'User',
+  localField: '_id',
+  foreignField: 'schoolId'
+});
+
+// Virtual for all classes in school
+SchoolSchema.virtual('schoolClasses', {
+  ref: 'Class',
+  localField: '_id',
+  foreignField: 'schoolId'
+});
+
+// Enable virtual population
+SchoolSchema.set('toJSON', { virtuals: true });
+SchoolSchema.set('toObject', { virtuals: true });
 
 const School: Model<ISchool> =
   mongoose.models.School || mongoose.model<ISchool>('School', SchoolSchema);

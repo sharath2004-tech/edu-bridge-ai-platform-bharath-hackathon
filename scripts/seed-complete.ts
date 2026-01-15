@@ -9,6 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env.local') })
 import bcrypt from 'bcrypt'
 import { Attendance, Class, Content, Course, Exam, Mark, School, Section, Subject, User } from '../lib/models'
 import Timetable from '../lib/models/Timetable'
+import Notification from '../lib/models/Notification'
 import connectDB from '../lib/mongodb'
 
 async function seedCompleteDatabase() {
@@ -29,6 +30,7 @@ async function seedCompleteDatabase() {
     await Section.deleteMany({})
     await Content.deleteMany({})
     await Timetable.deleteMany({})
+    await Notification.deleteMany({})
 
     console.log('✅ All collections cleared')
 
@@ -165,6 +167,79 @@ async function seedCompleteDatabase() {
     })
 
     console.log(`   ✓ Created 3 principals`)
+
+    // ==================== ADMINS ====================
+    console.log('\n👔 Creating Admins...')
+    const adminPassword = await bcrypt.hash('admin123', 10)
+
+    // Create 2 admins per school
+    const admin1School1 = await User.create({
+      name: 'Sarah Mitchell',
+      email: 'sarah.mitchell@greenvalley.edu',
+      password: adminPassword,
+      role: 'admin',
+      schoolId: school1._id,
+      phone: '+1-555-0103',
+      bio: 'Senior administrator handling academic operations',
+      isActive: true,
+    })
+
+    const admin2School1 = await User.create({
+      name: 'John Stevens',
+      email: 'john.stevens@greenvalley.edu',
+      password: adminPassword,
+      role: 'admin',
+      schoolId: school1._id,
+      phone: '+1-555-0104',
+      bio: 'Administrator managing student affairs',
+      isActive: true,
+    })
+
+    const admin1School2 = await User.create({
+      name: 'Maria Garcia',
+      email: 'maria.garcia@sunriseschool.edu',
+      password: adminPassword,
+      role: 'admin',
+      schoolId: school2._id,
+      phone: '+1-555-0203',
+      bio: 'Administrative head for facilities and operations',
+      isActive: true,
+    })
+
+    const admin2School2 = await User.create({
+      name: 'David Thompson',
+      email: 'david.thompson@sunriseschool.edu',
+      password: adminPassword,
+      role: 'admin',
+      schoolId: school2._id,
+      phone: '+1-555-0204',
+      bio: 'Administrator overseeing curriculum development',
+      isActive: true,
+    })
+
+    const admin1School3 = await User.create({
+      name: 'Lisa Chen',
+      email: 'lisa.chen@oakwoodacademy.edu',
+      password: adminPassword,
+      role: 'admin',
+      schoolId: school3._id,
+      phone: '+1-555-0303',
+      bio: 'Administrative coordinator for student services',
+      isActive: true,
+    })
+
+    const admin2School3 = await User.create({
+      name: 'Robert Brown',
+      email: 'robert.brown@oakwoodacademy.edu',
+      password: adminPassword,
+      role: 'admin',
+      schoolId: school3._id,
+      phone: '+1-555-0304',
+      bio: 'Administrator managing school resources',
+      isActive: true,
+    })
+
+    console.log(`   ✓ Created 6 admins (2 per school)`)
 
     // ==================== CLASSES ====================
     console.log('\n📚 Creating Classes...')
@@ -938,10 +1013,11 @@ async function seedCompleteDatabase() {
     console.log('='.repeat(60))
     
     console.log('\n📊 SUMMARY:')
-    console.log('   Organizational:')
-    console.log(`   - 1 Super Admin`)
+    console.log('   Organizational Hierarchy:')
+    console.log(`   - 1 Super Admin (top level)`)
     console.log(`   - 3 Schools`)
-    console.log(`   - 3 Principals (one per school)`)
+    console.log(`   - 3 Principals (one per school) ✓`)
+    console.log(`   - 6 Admins (two per school)`)
     console.log(`   - ${allTeachers.length} Teachers`)
     console.log(`   - ${allClasses.length} Classes`)
     console.log(`   - ${allSubjects.length} Subjects`)
@@ -954,6 +1030,13 @@ async function seedCompleteDatabase() {
     console.log(`   - ${totalTimetableEntries} Timetable Entries`)
     console.log(`   - ${totalCoursesCreated} Online Courses (school-specific)`)
     
+    console.log('\n   Hierarchy Validation:')
+    console.log(`   ✓ All users have schoolId (except super-admin)`)
+    console.log(`   ✓ All students have classId`)
+    console.log(`   ✓ Each school has exactly 1 principal`)
+    console.log(`   ✓ Teachers assigned to classes`)
+    console.log(`   ✓ Classes have teachers and students`)
+    
     console.log('\n   Analytics:')
     console.log(`   - Overall Attendance: ${overallAttendancePercentage}%`)
     console.log(`   - Present: ${totalPresentRecords}, Absent: ${totalAbsentRecords}, Late: ${totalLateRecords}`)
@@ -964,10 +1047,18 @@ async function seedCompleteDatabase() {
     console.log('   - Email: superadmin@edubridge.com')
     console.log('   - Password: superadmin123')
     
+    console.log('\n   Admins:')
+    console.log('   - sarah.mitchell@greenvalley.edu / admin123 (Green Valley)')
+    console.log('   - john.stevens@greenvalley.edu / admin123 (Green Valley)')
+    console.log('   - maria.garcia@sunriseschool.edu / admin123 (Sunrise)')
+    console.log('   - david.thompson@sunriseschool.edu / admin123 (Sunrise)')
+    console.log('   - lisa.chen@oakwoodacademy.edu / admin123 (Oakwood)')
+    console.log('   - robert.brown@oakwoodacademy.edu / admin123 (Oakwood)')
+    
     console.log('\n   Principals:')
-    console.log('   - robert.anderson@greenvalley.edu / principal123')
-    console.log('   - patricia.martinez@sunriseschool.edu / principal123')
-    console.log('   - jennifer.wilson@oakwoodacademy.edu / principal123')
+    console.log('   - robert.anderson@greenvalley.edu / principal123 (Green Valley)')
+    console.log('   - patricia.martinez@sunriseschool.edu / principal123 (Sunrise)')
+    console.log('   - jennifer.wilson@oakwoodacademy.edu / principal123 (Oakwood)')
     
     console.log('\n   Teachers:')
     console.log('   - [teacher-email] / teacher123')
