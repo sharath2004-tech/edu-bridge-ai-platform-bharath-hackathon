@@ -71,9 +71,14 @@ const UserSchema = new Schema<IUser>(
       default: 'student',
       required: true,
     },
+    // HIERARCHY: All users except super-admin MUST belong to a school
     schoolId: {
       type: Schema.Types.ObjectId,
       ref: 'School',
+      required: function(this: IUser) {
+        return this.role !== 'super-admin'
+      },
+      index: true, // Critical for school isolation queries
     },
     avatar: {
       type: String,

@@ -10,6 +10,7 @@
     "start": "next start",
     "seed": "cross-env NODE_OPTIONS='--tls-min-v1.0' tsx --env-file=.env.local scripts/seed-complete.ts",
     "seed:old": "tsx scripts/seed.ts",
+    "validate-hierarchy": "cross-env NODE_OPTIONS='--tls-min-v1.0' tsx --env-file=.env.local scripts/validate-hierarchy.ts",
     "vercel-build": "next build"
   },
   "dependencies": {

@@ -14,11 +14,12 @@ export interface IClass extends Document {
 
 const ClassSchema = new Schema<IClass>(
   {
+    // HIERARCHY: Every class belongs to exactly one school
     schoolId: {
       type: Schema.Types.ObjectId,
       ref: 'School',
       required: [true, 'School ID is required'],
-      index: true,
+      index: true, // Critical for school isolation
     },
     className: {
       type: String,
@@ -33,9 +34,21 @@ const ClassSchema = new Schema<IClass>(
       uppercase: true,
       // A, B, C, D, E, etc.
     },
+    // HIERARCHY: Class teacher (optional, one teacher per class)
     classTeacherId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+      // Note: Validation commented out for now to allow seeding
+      // Will be enforced at application level
+      // validate: {
+      //   validator: async function(v: mongoose.Types.ObjectId) {
+      //     if (!v) return true // Optional field
+      //     const User = mongoose.model('User')
+      //     const teacher = await User.findOne({ _id: v, role: 'teacher', schoolId: this.schoolId })
+      //     return !!teacher // Must be a teacher in the same school
+      //   },
+      //   message: 'Class teacher must be a valid teacher in the same school'
+      // }
     },
     academicYear: {
       type: String,
@@ -52,11 +65,50 @@ const ClassSchema = new Schema<IClass>(
   }
 );
 
-// Compound index to ensure unique class-section per school
-ClassSchema.index({ schoolId: 1, className: 1, section: 1 }, { unique: true });
+// HIERARCHY ENFORCEMENT: Pre-save validation
+ClassSchema.pre('save', async function() {
+  if (!this.schoolId) {
+    throw new Error('Class must belong to a school')
+  }
+})
 
-// Index for querying by class teacher
-ClassSchema.index({ classTeacherId: 1 });
+// HIERARCHY INDEXES: Optimized for hierarchical queries
+// Compound index to ensure unique class-section per school (CRITICAL for school isolation)
+ClassSchema.index({ schoolId: 1, className: 1, section: 1 }, { unique: true })
+
+// Index for querying by school and teacher
+ClassSchema.index({ schoolId: 1, classTeacherId: 1 })
+ClassSchema.index({ classTeacherId: 1 }) // For teacher's class queries
+ClassSchema.index({ schoolId: 1, academicYear: 1 }) // For academic year filtering
+
+// Virtual for school details
+ClassSchema.virtual('school', {
+  ref: 'School',
+  localField: 'schoolId',
+  foreignField: '_id',
+  justOne: true
+})
+
+// Virtual for class teacher details
+ClassSchema.virtual('classTeacher', {
+  ref: 'User',
+  localField: 'classTeacherId',
+  foreignField: '_id',
+  justOne: true
+})
+
+// Virtual for students in this class
+ClassSchema.virtual('students', {
+  ref: 'User',
+  localField: '_id',
+  foreignField: 'classId',
+  match: { role: 'student' },
+  options: { sort: { rollNumber: 1 } }
+})
+
+// Enable virtual population
+ClassSchema.set('toJSON', { virtuals: true })
+ClassSchema.set('toObject', { virtuals: true })
 
 const Class = mongoose.models.Class || mongoose.model<IClass>('Class', ClassSchema);
 
