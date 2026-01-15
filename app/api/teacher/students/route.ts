@@ -114,11 +114,8 @@ export async function GET(req: NextRequest) {
     }
 
     if (classId) {
-      // Support both classId (ObjectId) and className (string)
-      query.$or = [
-        { classId: classId },
-        { className: classId }
-      ]
+      // Use classId directly as ObjectId
+      query.classId = classId
     }
 
     if (search) {
