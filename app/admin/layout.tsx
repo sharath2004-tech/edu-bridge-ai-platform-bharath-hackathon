@@ -1,5 +1,5 @@
 import { AdminSidebar } from "@/components/admin-sidebar"
-import Chatbot from "@/components/chatbot"
+import { AIChatbot } from "@/components/ai-chatbot"
 import { TopNav } from "@/components/top-nav"
 import type React from "react"
 
@@ -15,7 +15,7 @@ export default function AdminLayout({
       <main className="ml-0 lg:ml-64 pt-16">
         <div className="p-6 md:p-8">{children}</div>
       </main>
-      <Chatbot />
+      <AIChatbot />
     </div>
   )
 }

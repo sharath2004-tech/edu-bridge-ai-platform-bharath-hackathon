@@ -1,3 +1,4 @@
+import { AIChatbot } from "@/components/ai-chatbot"
 import { SuperAdminSidebar } from '@/components/super-admin-sidebar'
 
 export default function SuperAdminLayout({
@@ -13,6 +14,7 @@ export default function SuperAdminLayout({
           {children}
         </div>
       </main>
+      <AIChatbot />
     </div>
   )
 }
