@@ -22,13 +22,17 @@ export default async function StudentChatHistoryPage({ params }: { params: Promi
   const { studentId } = await params
   await connectDB()
 
-  // Get student info
-  const student = await User.findById(studentId).select('name email').lean()
+  // Get student info and verify they belong to the same school
+  const student = await User.findOne({ 
+    _id: studentId,
+    schoolId: session.schoolId 
+  }).select('name email').lean()
   
   if (!student) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <h2 className="text-2xl font-bold">Student Not Found</h2>
+        <p className="text-muted-foreground">This student does not belong to your school</p>
         <Link href="/admin/chat-history">
           <Button>Back to Chat History</Button>
         </Link>

@@ -20,14 +20,20 @@ export default async function ChatHistoryPage() {
 
   await connectDB()
 
-  // Get all students with their chat counts
-  const students = await User.find({ role: 'student' })
+  // Get all students from the same school as the admin
+  const students = await User.find({ 
+    role: 'student',
+    schoolId: session.schoolId 
+  })
     .select('name email')
     .lean()
 
-  // Get chat message counts per student
+  // Get student IDs for filtering chat messages
+  const studentIds = students.map(s => s._id)
+
+  // Get chat message counts per student (filtered by school students)
   const chatCounts = await ChatMessage.aggregate([
-    { $match: { role: 'user' } },
+    { $match: { role: 'user', userId: { $in: studentIds } } },
     { $group: { _id: '$userId', count: { $sum: 1 } } }
   ])
 
@@ -40,8 +46,8 @@ export default async function ChatHistoryPage() {
     messageCount: chatCountMap.get(String(student._id)) || 0
   }))
 
-  // Get recent chat messages
-  const recentChats = await ChatMessage.find()
+  // Get recent chat messages (filtered by school students)
+  const recentChats = await ChatMessage.find({ userId: { $in: studentIds } })
     .sort({ timestamp: -1 })
     .limit(20)
     .populate('userId', 'name email role')
