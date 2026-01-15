@@ -47,7 +47,8 @@ export default function StudentSectionPage({ params }: { params: { sectionId: st
       const res = await fetch('/api/student/offline-content')
       if (res.ok) {
         const data = await res.json()
-        const downloaded = new Set(data.data.map((d: any) => d.fileName))
+        // Create a Set of content IDs that are downloaded
+        const downloaded = new Set(data.data.map((d: any) => d.contentId || d.fileName))
         setDownloadedIds(downloaded)
       }
     } catch (error) {
@@ -71,31 +72,40 @@ export default function StudentSectionPage({ params }: { params: { sectionId: st
       }
 
       // Get file size
-      const response = await fetch(item.url, { method: 'HEAD' })
-      const fileSize = parseInt(response.headers.get('content-length') || '0')
+      let fileSize = 0
+      try {
+        const response = await fetch(item.url, { method: 'HEAD' })
+        fileSize = parseInt(response.headers.get('content-length') || '0')
+      } catch (e) {
+        // If HEAD fails, estimate based on type
+        fileSize = item.type === 'video' ? 10000000 : item.type === 'pdf' ? 500000 : 100000
+      }
 
       // Save to offline content database
       const saveRes = await fetch('/api/student/offline-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          courseId: null, // Section content, not course-specific
+          courseId: null,
+          contentId: item._id,
           lessonId: params.sectionId,
           contentType: item.type,
           fileName: item.title,
-          fileSize: fileSize
+          fileSize: fileSize,
+          fileUrl: item.url
         })
       })
 
       if (saveRes.ok) {
-        setDownloadedIds(prev => new Set(prev).add(item.title))
+        setDownloadedIds(prev => new Set(prev).add(item._id))
         alert('Content downloaded successfully! Available in Downloads section.')
       } else {
-        throw new Error('Failed to save download record')
+        const errorData = await saveRes.json()
+        throw new Error(errorData.error || 'Failed to save download record')
       }
     } catch (error) {
       console.error('Error downloading content:', error)
-      alert('Failed to download content. Please try again.')
+      alert(`Failed to download content: ${error instanceof Error ? error.message : 'Please try again.'}`)
     } finally {
       setDownloadingIds(prev => {
         const newSet = new Set(prev)
@@ -150,12 +160,11 @@ export default function StudentSectionPage({ params }: { params: { sectionId: st
       ) : (
         <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-4">
           {items.map((item) => {
-            const isDownloaded = downloadedIds.has(item.title)
+            const isDownloaded = downloadedIds.has(item._id)
             const isDownloading = downloadingIds.has(item._id)
 
             return (
-              <Card key={item._id} className="p-4 border border-border">
-                <div className="flex items-start justify-between mb-3">
+              <Card key={item._id} className="p-4 border border-border">\n                <div className="flex items-start justify-between mb-3">
                   <div className="p-2 bg-primary/10 rounded-lg">
                     {getIcon(item.type)}
                   </div>
