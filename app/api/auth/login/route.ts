@@ -72,6 +72,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid password. Please try again.' }, { status: 401 })
     }
 
+    // Check if student account is pending approval
+    if (user.role === 'student' && user.isPending) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Your account is pending approval from your class teacher. Please wait for approval before logging in.' 
+      }, { status: 403 })
+    }
+
     console.log('Login successful:', { userId: user._id, email: user.email, role: user.role })
 
     // Validate selected role matches user's actual role

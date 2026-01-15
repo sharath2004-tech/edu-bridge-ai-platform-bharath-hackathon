@@ -18,6 +18,12 @@ interface School {
   board: string
 }
 
+interface Class {
+  _id: string
+  className: string
+  section: string
+}
+
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -26,10 +32,12 @@ export default function SignUpPage() {
     confirmPassword: "",
     schoolCode: "",
     schoolId: "",
+    classId: "",
   })
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [schools, setSchools] = useState<School[]>([])
+  const [classes, setClasses] = useState<Class[]>([])
   const [verifiedSchool, setVerifiedSchool] = useState<School | null>(null)
   const [verifyingCode, setVerifyingCode] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +45,14 @@ export default function SignUpPage() {
   useEffect(() => {
     fetchSchools()
   }, [])
+
+  useEffect(() => {
+    if (formData.schoolId) {
+      fetchClasses(formData.schoolId)
+    } else {
+      setClasses([])
+    }
+  }, [formData.schoolId])
 
   const fetchSchools = async () => {
     try {
@@ -54,6 +70,19 @@ export default function SignUpPage() {
     } catch (error) {
       console.error('Error fetching schools:', error)
       setError('Network error. Please check your connection and try again.')
+    }
+  }
+
+  const fetchClasses = async (schoolId: string) => {
+    try {
+      const res = await fetch(`/api/schools/${schoolId}/classes`)
+      if (res.ok) {
+        const data = await res.json()
+        setClasses(data.classes || [])
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error)
+      setClasses([])
     }
   }
 
@@ -107,6 +136,13 @@ export default function SignUpPage() {
         return
       }
 
+      // Validate class selection for students
+      if (!formData.classId) {
+        setError('Please select your class before proceeding')
+        setIsLoading(false)
+        return
+      }
+
       const res = await fetch(`/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,6 +153,7 @@ export default function SignUpPage() {
           password: formData.password,
           role: 'student', // Always student for self-registration
           schoolId: formData.schoolId,
+          classId: formData.classId,
         }),
       })
       
@@ -128,9 +165,11 @@ export default function SignUpPage() {
         return
       }
       
-      // Success - redirect to dashboard
-      const role = data?.data?.role ?? "student"
-      window.location.href = `/${role}/dashboard`
+      // Success - show message and redirect
+      alert(data.message || 'Registration successful! Your account is pending approval from your class teacher.')
+      
+      // Redirect to login page since account is pending
+      window.location.href = '/login'
     } catch (err: any) {
       console.error('Signup error:', err)
       setError(err.message || 'Network error. Please check your connection and try again.')
@@ -287,6 +326,32 @@ export default function SignUpPage() {
 
                 {formData.schoolCode && !verifiedSchool && !verifyingCode && (
                   <p className="text-xs text-red-500">Invalid school code. Please check and try again.</p>
+                )}
+              </div>
+            )}
+
+            {/* Class Selection - Only show when school is selected */}
+            {verifiedSchool && (
+              <div className="space-y-3 animate-slideInLeft" style={{ animationDelay: "0.38s" }}>
+                <Label className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                  Select Your Class *
+                </Label>
+                <select
+                  className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  value={formData.classId}
+                  onChange={(e) => setFormData({ ...formData, classId: e.target.value })}
+                  required
+                >
+                  <option value="">-- Select Your Class --</option>
+                  {classes.map((cls) => (
+                    <option key={cls._id} value={cls._id}>
+                      {cls.className} - Section {cls.section}
+                    </option>
+                  ))}
+                </select>
+                {classes.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No classes available. Contact your school admin.</p>
                 )}
               </div>
             )}
