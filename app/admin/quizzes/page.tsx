@@ -3,8 +3,9 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { getSession } from "@/lib/auth"
 import { Course } from "@/lib/models"
+import StandaloneQuiz from "@/lib/models/StandaloneQuiz"
 import connectDB from "@/lib/mongodb"
-import { CheckCircle, ClipboardList, Search, TrendingUp, Users } from "lucide-react"
+import { BookOpen, CheckCircle, ClipboardList, Search, TrendingUp, Users } from "lucide-react"
 import mongoose from "mongoose"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -18,7 +19,16 @@ const QuizResponseSchema = new mongoose.Schema({
   submittedAt: { type: Date, default: Date.now }
 })
 
+const StandaloneQuizResponseSchema = new mongoose.Schema({
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'StandaloneQuiz', required: true },
+  answers: { type: Map, of: Number, required: true },
+  score: { type: Number, required: true },
+  submittedAt: { type: Date, default: Date.now }
+})
+
 const QuizResponse = mongoose.models.QuizResponse || mongoose.model('QuizResponse', QuizResponseSchema)
+const StandaloneQuizResponse = mongoose.models.StandaloneQuizResponse || mongoose.model('StandaloneQuizResponse', StandaloneQuizResponseSchema)
 
 export default async function AdminQuizzesPage() {
   const session = await getSession()
@@ -28,8 +38,48 @@ export default async function AdminQuizzesPage() {
 
   await connectDB()
 
-  // Get all courses with quizzes
-  const courses = await Course.find({ 'quizzes.0': { $exists: true } })
+  // Get all standalone quizzes from teachers in the same school
+  const standaloneQuizzes = await StandaloneQuiz.find({ schoolId: session.schoolId })
+    .populate('instructor', 'name email')
+    .lean()
+
+  // Collect standalone quizzes with statistics
+  const standAloneQuizList: any[] = []
+  for (const quiz of standaloneQuizzes) {
+    const responseCount = await StandaloneQuizResponse.countDocuments({ quizId: quiz._id })
+    const responses = await StandaloneQuizResponse.find({ quizId: quiz._id }).lean()
+    const avgScore = responses.length > 0
+      ? responses.reduce((sum, r) => sum + r.score, 0) / responses.length
+      : 0
+
+    const passCount = responses.filter(r => r.score >= quiz.passingScore).length
+    const failCount = responses.length - passCount
+
+    standAloneQuizList.push({
+      _id: String(quiz._id),
+      title: quiz.title,
+      subject: quiz.subject,
+      className: quiz.className,
+      section: quiz.section,
+      instructor: (quiz.instructor as any)?.name || 'Unknown',
+      instructorEmail: (quiz.instructor as any)?.email || '',
+      questionCount: quiz.questions?.length || 0,
+      passingScore: quiz.passingScore,
+      status: quiz.status,
+      responseCount,
+      averageScore: Math.round(avgScore),
+      passCount,
+      failCount,
+      passRate: responseCount > 0 ? Math.round((passCount / responseCount) * 100) : 0,
+      type: 'standalone'
+    })
+  }
+
+  // Get all courses with quizzes from the same school
+  const courses = await Course.find({ 
+    'quizzes.0': { $exists: true },
+    schoolId: session.schoolId 
+  })
     .populate('instructor', 'name email')
     .lean()
 
@@ -72,19 +122,23 @@ export default async function AdminQuizzesPage() {
           averageScore: Math.round(avgScore),
           passCount,
           failCount,
-          passRate: responseCount > 0 ? Math.round((passCount / responseCount) * 100) : 0
+          passRate: responseCount > 0 ? Math.round((passCount / responseCount) * 100) : 0,
+          type: 'course'
         })
       }
     }
   }
 
+  // Combine all quizzes
+  const allQuizzes = [...standAloneQuizList, ...quizzes]
+  
   // Sort by response count (most active first)
-  quizzes.sort((a, b) => b.responseCount - a.responseCount)
+  allQuizzes.sort((a, b) => b.responseCount - a.responseCount)
 
-  const totalQuizzes = quizzes.length
-  const totalResponses = quizzes.reduce((sum, q) => sum + q.responseCount, 0)
-  const avgPassRate = quizzes.length > 0 
-    ? Math.round(quizzes.reduce((sum, q) => sum + q.passRate, 0) / quizzes.length)
+  const totalQuizzes = allQuizzes.length
+  const totalResponses = allQuizzes.reduce((sum, q) => sum + q.responseCount, 0)
+  const avgPassRate = allQuizzes.length > 0 
+    ? Math.round(allQuizzes.reduce((sum, q) => sum + q.passRate, 0) / allQuizzes.length)
     : 0
 
   return (
@@ -156,7 +210,7 @@ export default async function AdminQuizzesPage() {
       </div>
 
       {/* Quiz List */}
-      {quizzes.length === 0 ? (
+      {allQuizzes.length === 0 ? (
         <Card className="p-12 text-center">
           <ClipboardList className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-xl font-semibold mb-2">No Quizzes Yet</h3>
@@ -164,17 +218,41 @@ export default async function AdminQuizzesPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {quizzes.map((quiz) => (
-            <Card key={`${quiz.courseId}-${quiz.quizIndex}`} className="p-6 hover:shadow-lg transition-shadow">
+          {allQuizzes.map((quiz) => (
+            <Card key={quiz.type === 'standalone' ? quiz._id : `${quiz.courseId}-${quiz.quizIndex}`} className="p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-3">
                     <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        {quiz.type === 'standalone' ? (
+                          <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">Standalone Quiz</span>
+                        ) : (
+                          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded flex items-center gap-1">
+                            <BookOpen className="w-3 h-3" />
+                            Course Quiz
+                          </span>
+                        )}
+                        {quiz.status && (
+                          <span className={`text-xs px-2 py-1 rounded ${quiz.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {quiz.status}
+                          </span>
+                        )}
+                      </div>
                       <h3 className="font-semibold text-lg">{quiz.title}</h3>
-                      <p className="text-sm text-muted-foreground">{quiz.courseTitle}</p>
+                      {quiz.type === 'standalone' ? (
+                        <>
+                          <p className="text-sm text-muted-foreground">{quiz.subject}</p>
+                          {quiz.className && quiz.section && (
+                            <p className="text-xs text-blue-600">Class: {quiz.className} - {quiz.section}</p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{quiz.courseTitle}</p>
+                      )}
                       <p className="text-xs text-muted-foreground">Instructor: {quiz.instructor}</p>
                     </div>
-                    <Link href={`/teacher/courses/${quiz.courseId}/quiz/${quiz.quizIndex}/responses`}>
+                    <Link href={quiz.type === 'standalone' ? `/teacher/quizzes/${quiz._id}/responses` : `/teacher/courses/${quiz.courseId}/quiz/${quiz.quizIndex}/responses`}>
                       <button className="text-sm text-primary hover:underline">View Details →</button>
                     </Link>
                   </div>
