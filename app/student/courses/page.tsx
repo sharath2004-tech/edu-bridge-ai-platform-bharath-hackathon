@@ -49,6 +49,23 @@ export default async function CoursesPage() {
       enrolledStudents: c.enrolledStudents,
       description: c.description
     }))
+  } else {
+    // If student is not in a section, show all published courses from their school
+    const coursesData = await Course.find({ 
+      schoolId: session.schoolId,
+      status: 'published'
+    }).lean()
+    
+    courses = coursesData.map(c => ({
+      _id: String(c._id),
+      title: c.title,
+      category: c.category,
+      level: c.level,
+      duration: c.duration,
+      rating: c.rating,
+      enrolledStudents: c.enrolledStudents,
+      description: c.description
+    }))
   }
 
   return (
