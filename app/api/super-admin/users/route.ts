@@ -4,7 +4,7 @@ import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import bcrypt from 'bcrypt'
-import { generatePassword, sendAdminCredentials } from '@/lib/email'
+import { generatePassword, sendAdminCredentials, sendTeacherCredentials, sendStudentCredentials } from '@/lib/email'
 
 export async function GET(request: NextRequest) {
   try {
@@ -155,13 +155,35 @@ export async function POST(request: NextRequest) {
     if (sendEmail && email) {
       try {
         const school = schoolId ? await School.findById(schoolId) : null
-        await sendAdminCredentials(
-          email.toLowerCase(),
-          name,
-          school?.name || 'EduBridge Platform',
-          school?.code || 'N/A',
-          generatedPassword
-        )
+        const schoolName = school?.name || 'EduBridge Platform'
+        const schoolCode = school?.code || 'N/A'
+        
+        // Use appropriate email function based on role
+        if (role === 'super-admin' || role === 'admin' || role === 'principal') {
+          await sendAdminCredentials(
+            email.toLowerCase(),
+            name,
+            schoolName,
+            schoolCode,
+            generatedPassword
+          )
+        } else if (role === 'teacher') {
+          await sendTeacherCredentials(
+            email.toLowerCase(),
+            name,
+            schoolName,
+            schoolCode,
+            generatedPassword
+          )
+        } else if (role === 'student') {
+          await sendStudentCredentials(
+            email.toLowerCase(),
+            name,
+            schoolName,
+            schoolCode,
+            generatedPassword
+          )
+        }
       } catch (emailError) {
         console.error('Error sending email:', emailError)
         // Don't fail user creation if email fails

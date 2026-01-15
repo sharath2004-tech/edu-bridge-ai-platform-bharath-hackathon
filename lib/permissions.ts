@@ -3,12 +3,13 @@
  * 
  * Role Hierarchy:
  * 1. Super Admin - Platform owner, manages all schools
- * 2. Principal - School-level admin, manages their school
- * 3. Teacher - Manages assigned classes and subjects
- * 4. Student - View-only access to their own data
+ * 2. Admin - School-level administrator, manages their school (similar to principal)
+ * 3. Principal - School-level head, manages their school
+ * 4. Teacher - Manages assigned classes and subjects
+ * 5. Student - View-only access to their own data
  */
 
-export type UserRole = 'super-admin' | 'principal' | 'teacher' | 'student';
+export type UserRole = 'super-admin' | 'admin' | 'principal' | 'teacher' | 'student';
 
 export interface Permission {
   resource: string;
@@ -28,6 +29,26 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     { resource: 'analytics', action: 'read', scope: 'all' },
     { resource: 'reports', action: 'read', scope: 'all' },
     { resource: 'school-registrations', action: 'manage', scope: 'all' },
+  ],
+  
+  'admin': [
+    // School-level administrator (similar permissions to principal)
+    { resource: 'school', action: 'read', scope: 'own' },
+    { resource: 'school', action: 'update', scope: 'own' },
+    { resource: 'users', action: 'manage', scope: 'school' },
+    { resource: 'teachers', action: 'create', scope: 'school' },
+    { resource: 'teachers', action: 'manage', scope: 'school' },
+    { resource: 'students', action: 'create', scope: 'school' },
+    { resource: 'students', action: 'manage', scope: 'school' },
+    { resource: 'classes', action: 'manage', scope: 'school' },
+    { resource: 'subjects', action: 'manage', scope: 'school' },
+    { resource: 'attendance', action: 'read', scope: 'school' },
+    { resource: 'marks', action: 'read', scope: 'school' },
+    { resource: 'reports', action: 'read', scope: 'school' },
+    { resource: 'stats', action: 'read', scope: 'school' },
+    { resource: 'analytics', action: 'read', scope: 'school' },
+    { resource: 'timetable', action: 'manage', scope: 'school' },
+    { resource: 'courses', action: 'manage', scope: 'school' },
   ],
   
   'principal': [

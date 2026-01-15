@@ -134,7 +134,7 @@ export default function AdminClassesPage() {
       } else {
         console.error('Class creation error:', data.error)
         let errorMsg = data.error || "Failed to create class"
-        if (data.error?.includes('School information')) {
+        if (typeof data.error === 'string' && data.error.includes('School information')) {
           errorMsg = "Your admin account is not assigned to a school. Please contact the super admin to assign your account to a school."
         }
         toast({

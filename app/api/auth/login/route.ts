@@ -39,12 +39,24 @@ export async function POST(req: NextRequest) {
     
     // Super admin login - no school required
     if (selectedRole === 'super-admin') {
+      console.log('🔍 Super admin login attempt:')
+      console.log('   Email (lowercase):', identifier.toLowerCase())
+      console.log('   Password provided:', password ? `${password.substring(0, 3)}***` : 'EMPTY')
+      
       const user = await User.findOne({ 
         email: identifier.toLowerCase(),
         role: 'super-admin'
       }).select('+password')
       
+      console.log('   User found:', !!user)
+      if (user) {
+        console.log('   User role:', user.role)
+        console.log('   User email:', user.email)
+        console.log('   Has password hash:', !!user.password)
+      }
+      
       if (!user) {
+        console.log('❌ Super admin not found with email:', identifier.toLowerCase())
         return NextResponse.json({ 
           success: false, 
           error: 'Invalid super admin credentials' 
@@ -52,13 +64,18 @@ export async function POST(req: NextRequest) {
       }
       
       const ok = await bcrypt.compare(password, user.password)
+      console.log('   Password match:', ok)
+      
       if (!ok) {
+        console.log('❌ Password comparison failed')
         return NextResponse.json({ 
           success: false, 
           error: 'Invalid password' 
         }, { status: 401 })
       }
 
+      console.log('✅ Super admin login successful')
+      
       // Set session cookie for super admin
       const payload = { 
         id: String(user._id),
@@ -78,13 +95,15 @@ export async function POST(req: NextRequest) {
         } 
       })
       
-      response.cookies.set('auth-session', JSON.stringify(payload), {
+      response.cookies.set('edubridge_session', JSON.stringify(payload), {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7, // 7 days
         path: '/'
       })
+      
+      console.log('🍪 Cookie set: edubridge_session')
       
       return response
     }

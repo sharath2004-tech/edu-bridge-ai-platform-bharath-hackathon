@@ -1,5 +1,5 @@
 import { getSession } from '@/lib/auth'
-import { generatePassword, sendAdminCredentials } from '@/lib/email'
+import { generatePassword, sendAdminCredentials, sendTeacherCredentials, sendStudentCredentials } from '@/lib/email'
 import { User } from '@/lib/models'
 import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
@@ -62,13 +62,35 @@ export async function POST(req: NextRequest) {
     if (sendEmail && email) {
       try {
         const school = await School.findById(session.schoolId)
-        await sendAdminCredentials(
-          email.toLowerCase(),
-          name,
-          school?.name || 'Your School',
-          school?.code || 'N/A',
-          generatedPassword
-        )
+        const schoolName = school?.name || 'Your School'
+        const schoolCode = school?.code || 'N/A'
+        
+        // Use appropriate email function based on role
+        if (role === 'principal') {
+          await sendAdminCredentials(
+            email.toLowerCase(),
+            name,
+            schoolName,
+            schoolCode,
+            generatedPassword
+          )
+        } else if (role === 'teacher') {
+          await sendTeacherCredentials(
+            email.toLowerCase(),
+            name,
+            schoolName,
+            schoolCode,
+            generatedPassword
+          )
+        } else if (role === 'student') {
+          await sendStudentCredentials(
+            email.toLowerCase(),
+            name,
+            schoolName,
+            schoolCode,
+            generatedPassword
+          )
+        }
       } catch (emailError) {
         console.error('Error sending email:', emailError)
       }
@@ -157,8 +179,8 @@ export async function DELETE(request: NextRequest) {
 
     await connectDB()
     
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    // Get userId from request body
+    const { userId } = await request.json()
     
     if (!userId) {
       return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 })
