@@ -1,5 +1,5 @@
 import { getSession } from '@/lib/auth'
-import { generatePassword, sendAdminCredentials, sendTeacherCredentials, sendStudentCredentials } from '@/lib/email'
+import { generatePassword, sendAdminCredentials, sendStudentCredentials, sendTeacherCredentials } from '@/lib/email'
 import { User } from '@/lib/models'
 import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
