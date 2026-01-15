@@ -17,14 +17,15 @@ import { useEffect, useState } from "react"
 
 type OfflineContent = {
   _id: string
-  course: {
+  course?: {
     _id: string
     title: string
     thumbnail?: string
   }
-  contentType: 'video' | 'pdf' | 'notes' | 'quiz'
+  contentType: 'video' | 'pdf' | 'audio' | 'notes' | 'quiz' | 'text'
   fileName: string
   fileSize: number
+  fileUrl: string
   downloadedAt: string
   lastAccessedAt: string
   syncStatus: 'pending' | 'synced' | 'outdated'
@@ -223,7 +224,9 @@ export default function DownloadsPage() {
 
                   <div className="flex-1">
                     <h3 className="font-semibold mb-1">{download.fileName}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">{download.course.title}</p>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {download.course?.title || 'Section Content'}
+                    </p>
                     
                     <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                       <span>{formatSize(download.fileSize)}</span>
@@ -238,6 +241,16 @@ export default function DownloadsPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {download.fileUrl && (
+                    <Button
+                      onClick={() => window.open(download.fileUrl, '_blank')}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Open
+                    </Button>
+                  )}
                   <Button
                     onClick={() => handleDelete(download._id)}
                     variant="ghost"

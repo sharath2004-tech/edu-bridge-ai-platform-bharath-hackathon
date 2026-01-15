@@ -19,14 +19,15 @@ export async function GET(request: NextRequest) {
 
     const downloadData = downloads.map((d: any) => ({
       _id: String(d._id),
-      course: {
-        _id: String(d.courseId?._id),
-        title: d.courseId?.title || 'Unknown',
-        thumbnail: d.courseId?.thumbnail
-      },
+      course: d.courseId ? {
+        _id: String(d.courseId._id),
+        title: d.courseId.title || 'Unknown',
+        thumbnail: d.courseId.thumbnail
+      } : undefined,
       contentType: d.contentType,
       fileName: d.fileName,
       fileSize: d.fileSize,
+      fileUrl: d.fileUrl,
       downloadedAt: d.downloadedAt.toISOString(),
       lastAccessedAt: d.lastAccessedAt.toISOString(),
       syncStatus: d.syncStatus
@@ -46,17 +47,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { courseId, lessonId, contentType, fileName, fileSize } = await request.json()
+    const { courseId, contentId, lessonId, contentType, fileName, fileSize, fileUrl } = await request.json()
 
     await connectDB()
 
     // Check if already exists
-    const existing = await OfflineContent.findOne({
+    const existingQuery: any = {
       userId: session.id,
-      courseId,
-      lessonId: lessonId || null,
-      contentType
-    })
+      contentType,
+      fileName
+    }
+    if (courseId) existingQuery.courseId = courseId
+    if (contentId) existingQuery.contentId = contentId
+    if (lessonId) existingQuery.lessonId = lessonId
+
+    const existing = await OfflineContent.findOne(existingQuery)
 
     if (existing) {
       existing.lastAccessedAt = new Date()
@@ -66,11 +71,13 @@ export async function POST(request: NextRequest) {
 
     const offlineContent = await OfflineContent.create({
       userId: session.id,
-      courseId,
+      courseId: courseId || undefined,
+      contentId: contentId || undefined,
       lessonId: lessonId || undefined,
       contentType,
       fileName,
       fileSize,
+      fileUrl,
       syncStatus: 'synced'
     })
 
