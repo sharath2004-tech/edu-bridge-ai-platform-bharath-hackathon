@@ -89,14 +89,19 @@ export default async function ContentPage() {
     name: s.name
   }))
   
-  // Fetch all content owned by teacher
-  const contentData = await Content.find({ owner: session.id }).lean()
-  const items: { _id: string; title: string; type: string; section: string; description?: string }[] = contentData.map(c => ({
+  // Fetch all content owned by teacher with section info
+  const contentData = await Content.find({ owner: session.id }).populate('section', 'name').lean()
+  const items: { _id: string; title: string; type: string; section: { _id: string; name: string }; description?: string; url?: string; text?: string }[] = contentData.map(c => ({
     _id: String(c._id),
     title: c.title,
     type: c.type,
-    section: String(c.section),
-    description: c.description
+    section: {
+      _id: String(c.section?._id || c.section),
+      name: (c.section as any)?.name || 'Unknown Section'
+    },
+    description: c.description,
+    url: c.url,
+    text: c.text
   }))
 
   return (
@@ -200,7 +205,32 @@ export default async function ContentPage() {
                   </span>
                   <h3 className="font-semibold text-sm mb-1">{item.title}</h3>
                   {item.description && <p className="text-xs text-muted-foreground mb-2">{item.description}</p>}
-                  <p className="text-xs text-muted-foreground">Section ID: {item.section}</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    <strong>Section:</strong> {item.section.name}
+                  </p>
+                  {item.url && (
+                    <p className="text-xs text-blue-600 mb-1 break-all">
+                      <strong>File:</strong> <a href={item.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">{item.url}</a>
+                    </p>
+                  )}
+                  {item.text && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      <strong>Text:</strong> {item.text}
+                    </p>
+                  )}
+                  {item.url && ['video', 'audio'].includes(item.type) && (
+                    <div className="mt-2">
+                      {item.type === 'video' ? (
+                        <video controls className="w-full rounded max-h-32">
+                          <source src={item.url} />
+                        </video>
+                      ) : (
+                        <audio controls className="w-full">
+                          <source src={item.url} />
+                        </audio>
+                      )}
+                    </div>
+                  )}
                 </div>
               </Card>
             ))}
