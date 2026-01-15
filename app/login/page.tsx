@@ -140,7 +140,8 @@ function LoginForm() {
             </select>
           </div>
 
-          {/* School Code Input */}
+          {/* School Code Input - Hidden for Super Admin */}
+          {selectedRole !== 'super-admin' && (
           <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.08s" }}>
             <div className="flex items-center justify-between">
               <Label htmlFor="schoolCode" className="flex items-center gap-2">
@@ -186,6 +187,7 @@ function LoginForm() {
               </div>
             )}
           </div>
+          )}
 
           {/* Email/ID Input */}
           <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.1s" }}>
