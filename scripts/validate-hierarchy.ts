@@ -14,10 +14,9 @@
  */
 
 import mongoose from 'mongoose';
+import Class from '../lib/models/Class';
 import School from '../lib/models/School';
 import User from '../lib/models/User';
-import Class from '../lib/models/Class';
-import Notification from '../lib/models/Notification';
 
 interface ValidationResult {
   category: string;
