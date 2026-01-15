@@ -63,6 +63,15 @@ export function middleware(req: NextRequest) {
   const session = parseSession(sessionCookie)
   const role = session?.role
 
+  // Debug logging for super admin
+  if (pathname.startsWith('/super-admin')) {
+    console.log('🔍 Middleware check for super-admin route:')
+    console.log('   Path:', pathname)
+    console.log('   Cookie found:', !!sessionCookie)
+    console.log('   Session parsed:', !!session)
+    console.log('   Role:', role)
+  }
+
   // If the user hits / after logging in, redirect to their dashboard
   if (pathname === '/' && role) {
     const url = req.nextUrl.clone()

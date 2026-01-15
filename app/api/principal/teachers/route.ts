@@ -192,7 +192,8 @@ export async function POST(request: NextRequest) {
     // Send email if requested
     if (sendEmail && !password) {
       try {
-        await sendAdminCredentials(
+        const { sendTeacherCredentials } = await import('@/lib/email')
+        await sendTeacherCredentials(
           email.toLowerCase(),
           name,
           school.name,
