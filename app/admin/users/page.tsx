@@ -279,19 +279,12 @@ export default function AdminUsersPage() {
                           <label key={cls._id} className="flex items-center gap-2 cursor-pointer text-sm">
                             <input
                               type="checkbox"
-                              checked={selectedClasses.includes(cls.className)}
+                              checked={selectedClasses.includes(cls._id)}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  if (!selectedClasses.includes(cls.className)) {
-                                    setSelectedClasses([...selectedClasses, cls.className])
-                                  }
+                                  setSelectedClasses([...selectedClasses, cls._id])
                                 } else {
-                                  const hasOtherSections = classes.some(
-                                    (c: any) => c.className === cls.className && c._id !== cls._id && selectedClasses.includes(c.className)
-                                  )
-                                  if (!hasOtherSections) {
-                                    setSelectedClasses(selectedClasses.filter(c => c !== cls.className))
-                                  }
+                                  setSelectedClasses(selectedClasses.filter(c => c !== cls._id))
                                 }
                               }}
                               className="w-4 h-4 rounded border-gray-300"
@@ -304,7 +297,7 @@ export default function AdminUsersPage() {
                   )}
                   {selectedClasses.length > 0 && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Selected: {selectedClasses.join(', ')}
+                      Selected: {selectedClasses.length} class(es)
                     </p>
                   )}
                 </div>
