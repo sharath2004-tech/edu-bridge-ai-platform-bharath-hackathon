@@ -13,17 +13,34 @@ export async function GET(req: NextRequest) {
   await connectDB()
   let query: any = {}
   if (admin) {
-    // Admin can see all sections
-    query = {}
+    // Admin can see all sections from their school
+    const User = (await import('@/lib/models/User')).default
+    const user = await User.findById(admin.id)
+    if (user?.schoolId) {
+      const Section = (await import('@/lib/models/Section')).default
+      const User2 = (await import('@/lib/models/User')).default
+      const teachers = await User2.find({ schoolId: user.schoolId, role: 'teacher' }).select('_id')
+      const teacherIds = teachers.map(t => t._id)
+      query = { owner: { $in: teacherIds } }
+    }
   } else if (teacher) {
     // Teacher sees only their sections
     query = { owner: teacher.id }
   } else if (student) {
-    // Student sees sections they belong to
-    query = { students: student.id }
+    // For testing: Student sees all sections from their school
+    // In production, use: query = { students: student.id }
+    const User = (await import('@/lib/models/User')).default
+    const user = await User.findById(student.id)
+    if (user?.schoolId) {
+      const User2 = (await import('@/lib/models/User')).default
+      const teachers = await User2.find({ schoolId: user.schoolId, role: 'teacher' }).select('_id')
+      const teacherIds = teachers.map(t => t._id)
+      query = { owner: { $in: teacherIds } }
+    }
   }
 
-  const sections = await Section.find(query)
+  const sections = await Section.find(query).lean()
+  console.log(`Found ${sections.length} sections for ${session.role}`)
   return NextResponse.json({ success: true, data: sections })
 }
 
