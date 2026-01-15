@@ -22,15 +22,11 @@ import {
 import { Award, Plus, Search, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
 
-const CLASSES = [
-  '6th Grade A', '6th Grade B',
-  '7th Grade A', '7th Grade B',
-  '8th Grade A', '8th Grade B',
-  '9th Grade A', '9th Grade B', '9th Grade C',
-  '10th Grade A', '10th Grade B', '10th Grade C',
-  '11th Science', '11th Commerce', '11th Arts',
-  '12th Science', '12th Commerce', '12th Arts',
-]
+interface Class {
+  _id: string
+  className: string
+  section: string
+}
 
 const SUBJECTS = [
   'Mathematics', 'Physics', 'Chemistry', 'Biology',
@@ -64,15 +60,22 @@ interface Mark {
 }
 
 export default function MarksPage() {
+  const [classes, setClasses] = useState<Class[]>([])
   const [marks, setMarks] = useState<Mark[]>([])
   const [students, setStudents] = useState<Student[]>([])
+  const [selectedClassId, setSelectedClassId] = useState('')
   const [selectedClass, setSelectedClass] = useState('')
+  const [selectedSection, setSelectedSection] = useState('')
   const [selectedSubject, setSelectedSubject] = useState('')
   const [selectedTerm, setSelectedTerm] = useState('Term 1 2024-25')
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [statistics, setStatistics] = useState<any>(null)
+
+  useEffect(() => {
+    fetchClasses()
+  }, [])
 
   // Form state
   const [formData, setFormData] = useState({
@@ -86,18 +89,30 @@ export default function MarksPage() {
   })
 
   useEffect(() => {
-    if (selectedClass) {
+    if (selectedClassId) {
       fetchStudents()
       fetchMarks()
     }
-  }, [selectedClass, selectedSubject, selectedTerm])
+  }, [selectedClassId, selectedSubject, selectedTerm])
+
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch('/api/principal/classes')
+      const data = await res.json()
+      if (data.success) {
+        setClasses(data.classes || [])
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error)
+    }
+  }
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch(`/api/principal/students?className=${selectedClass}`)
+      const res = await fetch(`/api/principal/students?classId=${selectedClassId}`)
       if (res.ok) {
         const data = await res.json()
-        setStudents(data.users || [])
+        setStudents(data.students || [])
       }
     } catch (error) {
       console.error('Error fetching students:', error)
@@ -107,7 +122,7 @@ export default function MarksPage() {
   const fetchMarks = async () => {
     try {
       setLoading(true)
-      let url = `/api/principal/marks?className=${selectedClass}&term=${selectedTerm}`
+      let url = `/api/principal/marks?class=${selectedClass}&section=${selectedSection}&term=${selectedTerm}`
       if (selectedSubject) url += `&subject=${selectedSubject}`
       
       const res = await fetch(url)
@@ -192,7 +207,7 @@ export default function MarksPage() {
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button disabled={!selectedClass || !selectedSubject}>
+            <Button disabled={!selectedClassId || !selectedSubject}>
               <Plus className="w-4 h-4 mr-2" />
               Add Marks
             </Button>
@@ -299,14 +314,23 @@ export default function MarksPage() {
       <Card className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <Label>Class *</Label>
-            <Select value={selectedClass} onValueChange={setSelectedClass}>
+            <Label>Class & Section *</Label>
+            <Select value={selectedClassId} onValueChange={(value) => {
+              setSelectedClassId(value)
+              const cls = classes.find(c => c._id === value)
+              if (cls) {
+                setSelectedClass(cls.className)
+                setSelectedSection(cls.section)
+              }
+            }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select class" />
               </SelectTrigger>
               <SelectContent>
-                {CLASSES.map(cls => (
-                  <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                {classes.map(cls => (
+                  <SelectItem key={cls._id} value={cls._id}>
+                    {cls.className} - Section {cls.section}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
