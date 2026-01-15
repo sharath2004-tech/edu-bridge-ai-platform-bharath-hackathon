@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
 import dotenv from 'dotenv'
+import mongoose from 'mongoose'
 import path from 'path'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
