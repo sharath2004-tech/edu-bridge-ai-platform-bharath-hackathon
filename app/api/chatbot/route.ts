@@ -12,14 +12,17 @@ export async function POST(req: NextRequest) {
   try {
     // Authenticate user - all roles can access chatbot
     const authResult = authenticateAndAuthorize(req, {
-      requiredRoles: ['super-admin', 'principal', 'teacher', 'student'],
+      requiredRoles: ['super-admin', 'admin', 'principal', 'teacher', 'student'],
     });
 
     if (authResult instanceof NextResponse) {
+      console.log('❌ Chatbot auth failed')
       return authResult;
     }
 
     const user = authResult;
+    console.log('💬 Chatbot request from:', user.role, user.name)
+    
     const { message, conversationHistory } = await req.json();
 
     if (!message || message.trim().length === 0) {
@@ -35,13 +38,15 @@ export async function POST(req: NextRequest) {
     // Use Cohere AI to generate response
     const response = await generateAIResponse(message, roleContext, conversationHistory);
 
+    console.log('✅ Chatbot response generated successfully')
+
     return NextResponse.json({
       success: true,
       response,
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error('Chatbot error:', error);
+    console.error('❌ Chatbot error:', error)
     return NextResponse.json(
       { error: 'Failed to process chatbot request' },
       { status: 500 }
@@ -54,6 +59,7 @@ function getRoleContext(role: string, name: string): string {
     student: `You are an educational assistant helping ${name}, a student. Provide clear explanations, study tips, and guidance on coursework. Be encouraging and supportive.`,
     teacher: `You are an educational assistant helping ${name}, a teacher. Provide teaching strategies, classroom management tips, and content creation guidance.`,
     principal: `You are an administrative assistant helping ${name}, a principal. Provide insights on school management, enrollment, and educational leadership.`,
+    admin: `You are an administrative assistant helping ${name}, a school admin. Provide insights on school management, student oversight, and administrative tasks.`,
     'super-admin': `You are an administrative assistant helping ${name}, a super admin. Provide platform management and multi-school oversight guidance.`,
   };
 
@@ -66,6 +72,11 @@ async function generateAIResponse(
   history?: any[]
 ): Promise<string> {
   try {
+    if (!process.env.COHERE_API_KEY) {
+      console.warn('⚠️ COHERE_API_KEY not configured, using fallback response')
+      return getFallbackResponse();
+    }
+
     // Build chat history for context with proper typing
     const chatHistory: { role: 'USER' | 'CHATBOT'; message: string }[] = history?.slice(-10).map((msg: any) => ({
       role: (msg.role === 'user' ? 'USER' : 'CHATBOT') as 'USER' | 'CHATBOT',
@@ -91,6 +102,7 @@ Platform Features:
 
 Always be helpful, educational, and maintain a positive tone. If you don't know something, admit it honestly.`;
 
+    console.log('🤖 Calling Cohere API...')
     const response = await cohere.chat({
       model: 'command-r-plus',
       message: message,
@@ -100,11 +112,17 @@ Always be helpful, educational, and maintain a positive tone. If you don't know 
       maxTokens: 500,
     });
 
+    console.log('✅ Cohere API responded')
     return response.text || 'I apologize, but I could not generate a response. Please try again.';
   } catch (error: any) {
-    console.error('Cohere API error:', error);
+    console.error('❌ Cohere API error:', error.message)
     // Fallback to basic response if Cohere fails
-    return `I'm here to help with your educational journey! I can assist with:
+    return getFallbackResponse();
+  }
+}
+
+function getFallbackResponse(): string {
+  return `I'm here to help with your educational journey! I can assist with:
 
 📚 **Courses** - Browse, enroll, and learn
 📝 **Study Tips** - Exam preparation and learning strategies
@@ -113,5 +131,4 @@ Always be helpful, educational, and maintain a positive tone. If you don't know 
 ⚙️ **Platform** - Navigate and use features
 
 What would you like to know more about?`;
-  }
 }
