@@ -15,11 +15,18 @@ export async function POST(request: NextRequest) {
 
     await connectDB()
 
-    const { title, subject, description, questions, passingScore, status } = await request.json()
+    const { title, subject, description, questions, passingScore, status, classId, className, section } = await request.json()
 
     if (!title || !subject || !questions || questions.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Title, subject, and questions are required' },
+        { status: 400 }
+      )
+    }
+
+    if (!classId || !className || !section) {
+      return NextResponse.json(
+        { success: false, error: 'Class and section are required' },
         { status: 400 }
       )
     }
@@ -30,6 +37,9 @@ export async function POST(request: NextRequest) {
       description,
       instructor: session.id,
       schoolId: session.schoolId,
+      classId,
+      className,
+      section,
       questions,
       passingScore: passingScore || 70,
       status: status || 'draft'
