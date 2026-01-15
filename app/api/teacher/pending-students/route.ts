@@ -1,6 +1,6 @@
 import { getSession } from '@/lib/auth'
-import Notification from '@/lib/models/Notification'
 import { User } from '@/lib/models'
+import Notification from '@/lib/models/Notification'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
