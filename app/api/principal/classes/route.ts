@@ -79,10 +79,18 @@ export async function POST(request: NextRequest) {
       userSchoolId: user.schoolId,
       className, 
       section, 
-      classTeacherId 
+      classTeacherId,
+      academicYear,
+      bodyKeys: Object.keys(body)
     })
 
     if (!className || !section) {
+      console.error('Validation failed - missing fields:', { 
+        hasClassName: !!className, 
+        hasSection: !!section,
+        classNameValue: className,
+        sectionValue: section
+      })
       return NextResponse.json(
         { success: false, error: 'Class name and section are required' },
         { status: 400 }
@@ -93,6 +101,7 @@ export async function POST(request: NextRequest) {
     const schoolId = user.schoolId
 
     if (!schoolId) {
+      console.error('No school ID available:', { userId: user.id, role: user.role })
       return NextResponse.json(
         { success: false, error: 'School information required' },
         { status: 400 }
@@ -107,8 +116,14 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingClass) {
+      console.error('Duplicate class detected:', { 
+        schoolId, 
+        className, 
+        section, 
+        existingClassId: existingClass._id 
+      })
       return NextResponse.json(
-        { success: false, error: 'Class with this name and section already exists' },
+        { success: false, error: `Class ${className} - Section ${section} already exists in your school` },
         { status: 400 }
       )
     }

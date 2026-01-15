@@ -4,8 +4,9 @@ import connectDB from '@/lib/mongodb'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
+  let session = null
   try {
-    const session = await getSession()
+    session = await getSession()
     
     if (!session || (session.role !== 'teacher' && session.role !== 'principal')) {
       return NextResponse.json(
@@ -18,12 +19,17 @@ export async function GET() {
 
     // Fetch teacher's assigned classes
     const Class = (await import('@/lib/models/Class')).default
-    const teacher = await User.findById(session.userId).select('assignedClasses')
+    const teacherId = session.userId || session.id
+    
+    console.log('Teacher dashboard - fetching for:', { teacherId, role: session.role })
+    
+    const teacher = await User.findById(teacherId).select('assignedClasses')
     let classes = []
     if (teacher && teacher.assignedClasses && teacher.assignedClasses.length > 0) {
       const classIds = teacher.assignedClasses.map((cls: any) => 
         typeof cls === 'string' ? cls : cls.toString()
       )
+      console.log('Fetching classes for IDs:', classIds)
       classes = await Class.find({
         _id: { $in: classIds },
         schoolId: session.schoolId
@@ -32,7 +38,7 @@ export async function GET() {
 
     // Fetch teacher's courses from their school only
     const courses = await Course.find({
-      instructor: session.id,
+      instructor: teacherId,
       schoolId: session.schoolId,
       status: { $ne: 'archived' }
     }).select('title enrolledStudents rating').lean()
@@ -92,8 +98,15 @@ export async function GET() {
     })
   } catch (error: any) {
     console.error('Teacher dashboard error:', error)
+    console.error('Error stack:', error.stack)
+    console.error('Session info:', { 
+      hasSession: !!session, 
+      userId: session?.userId, 
+      id: session?.id,
+      role: session?.role 
+    })
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch dashboard data' },
+      { success: false, error: 'Failed to fetch dashboard data', details: error.message },
       { status: 500 }
     )
   }
