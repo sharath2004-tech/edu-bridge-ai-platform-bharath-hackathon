@@ -9,22 +9,44 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
+interface Class {
+  _id: string
+  className: string
+  section: string
+}
+
 export default function EnrollStudentPage() {
   const router = useRouter()
+  const [classes, setClasses] = useState<Class[]>([])
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
     phone: "",
-    className: "",
-    section: "A",
+    classId: "",
     rollNumber: "",
     bio: ""
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    fetchClasses()
+  }, [])
+
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch('/api/principal/classes')
+      const data = await res.json()
+      if (data.success) {
+        setClasses(data.classes || [])
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setError(null)
@@ -50,6 +72,13 @@ export default function EnrollStudentPage() {
     }
 
     try {
+      const selectedClass = classes.find(c => c._id === formData.classId)
+      if (!selectedClass) {
+        setError("Please select a class")
+        setIsLoading(false)
+        return
+      }
+
       const res = await fetch("/api/principal/students", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,8 +87,8 @@ export default function EnrollStudentPage() {
           email: formData.email,
           password: formData.password,
           phone: formData.phone || undefined,
-          className: formData.className,
-          section: formData.section,
+          className: selectedClass.className,
+          section: selectedClass.section,
           rollNumber: formData.rollNumber || undefined,
           bio: formData.bio || undefined
         })
@@ -189,50 +218,26 @@ export default function EnrollStudentPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="className">Class *</Label>
+              <Label htmlFor="classId">Class & Section *</Label>
               <select
-                id="className"
-                name="className"
-                value={formData.className}
+                id="classId"
+                name="classId"
+                value={formData.classId}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border rounded-lg"
                 required
               >
                 <option value="">Select class</option>
-                <option value="6th Grade">6th Grade</option>
-                <option value="7th Grade">7th Grade</option>
-                <option value="8th Grade">8th Grade</option>
-                <option value="9th Grade">9th Grade</option>
-                <option value="10th Grade">10th Grade</option>
-                <option value="11th Science">11th Science</option>
-                <option value="11th Commerce">11th Commerce</option>
-                <option value="11th Arts">11th Arts</option>
-                <option value="12th Science">12th Science</option>
-                <option value="12th Commerce">12th Commerce</option>
-                <option value="12th Arts">12th Arts</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="section">Section *</Label>
-              <select
-                id="section"
-                name="section"
-                value={formData.section}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-              >
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
-                <option value="E">E</option>
+                {classes.map((cls) => (
+                  <option key={cls._id} value={cls._id}>
+                    {cls.className} - Section {cls.section}
+                  </option>
+                ))}
               </select>
               <p className="text-xs text-muted-foreground">
-                e.g., 10-A, 11-B, 12-Science
+                Don't see your class? <a href="/principal/classes" className="text-primary hover:underline">Create it first</a>
               </p>
             </div>
 
