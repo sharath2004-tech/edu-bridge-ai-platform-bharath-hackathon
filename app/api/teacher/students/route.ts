@@ -18,8 +18,20 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { name, email, rollNo, classId, parentName, parentPhone, phone, password, sendEmail } = body
 
+    console.log('Create student request body:', body)
+    console.log('Validation:', { name: !!name, email: !!email, classId: !!classId })
+
     if (!name || !email || !classId) {
-      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Missing required fields',
+        details: { 
+          hasName: !!name, 
+          hasEmail: !!email, 
+          hasClassId: !!classId,
+          received: { name, email, classId }
+        }
+      }, { status: 400 })
     }
 
     const exists = await User.findOne({ email: email.toLowerCase() })
