@@ -29,7 +29,7 @@ export default function CreateQuizPage() {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          setClasses(data.data || [])
+          setClasses(data.classes || [])
         }
       })
       .catch(err => console.error('Error fetching classes:', err))
