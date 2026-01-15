@@ -20,7 +20,7 @@ const StandaloneQuizResponse = mongoose.models.StandaloneQuizResponse || mongoos
 
 export default async function QuizResponsesPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession()
-  if (!session || session.role !== 'teacher') {
+  if (!session || (session.role !== 'teacher' && session.role !== 'admin')) {
     redirect('/login')
   }
 
@@ -32,8 +32,13 @@ export default async function QuizResponsesPage({ params }: { params: Promise<{ 
     return <div>Quiz not found</div>
   }
 
-  if (String(quiz.instructor) !== session.id) {
+  // Teachers can only view their own quizzes, admins can view all quizzes from their school
+  if (session.role === 'teacher' && String(quiz.instructor) !== session.id) {
     return <div>Unauthorized</div>
+  }
+  
+  if (session.role === 'admin' && String(quiz.schoolId) !== session.schoolId) {
+    return <div>Unauthorized - Quiz not from your school</div>
   }
 
   const responses = await StandaloneQuizResponse.find({
