@@ -8,11 +8,21 @@ export async function POST(req: NextRequest) {
   try {
     const { schoolCode, identifier, password, selectedRole } = await req.json()
     
-    if (!schoolCode || !identifier || !password) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'School code, user ID/email, and password are required' 
-      }, { status: 400 })
+    // Super admin doesn't need school code
+    if (selectedRole === 'super-admin') {
+      if (!identifier || !password) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Email and password are required' 
+        }, { status: 400 })
+      }
+    } else {
+      if (!schoolCode || !identifier || !password) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'School code, user ID/email, and password are required' 
+        }, { status: 400 })
+      }
     }
 
     // Connect to database with error handling
@@ -27,7 +37,59 @@ export async function POST(req: NextRequest) {
       }, { status: 503 })
     }
     
-    // Find school by code
+    // Super admin login - no school required
+    if (selectedRole === 'super-admin') {
+      const user = await User.findOne({ 
+        email: identifier.toLowerCase(),
+        role: 'super-admin'
+      }).select('+password')
+      
+      if (!user) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Invalid super admin credentials' 
+        }, { status: 401 })
+      }
+      
+      const ok = await bcrypt.compare(password, user.password)
+      if (!ok) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Invalid password' 
+        }, { status: 401 })
+      }
+
+      // Set session cookie for super admin
+      const payload = { 
+        id: String(user._id),
+        userId: String(user._id),
+        role: user.role, 
+        name: user.name, 
+        email: user.email,
+      }
+      
+      const response = NextResponse.json({ 
+        success: true, 
+        data: { 
+          role: user.role, 
+          name: user.name,
+          email: user.email,
+          mustChangePassword: user.mustChangePassword || false
+        } 
+      })
+      
+      response.cookies.set('auth-session', JSON.stringify(payload), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/'
+      })
+      
+      return response
+    }
+    
+    // Regular login - find school by code
     const school = await School.findOne({ code: schoolCode.toUpperCase() })
     if (!school) {
       return NextResponse.json({ 
