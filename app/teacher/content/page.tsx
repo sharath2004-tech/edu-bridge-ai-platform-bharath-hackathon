@@ -29,14 +29,25 @@ async function createSection(formData: FormData) {
 async function uploadContent(formData: FormData) {
   "use server"
   const session = await getSession()
-  if (!session || session.role !== 'teacher') return
+  if (!session || session.role !== 'teacher') {
+    throw new Error('Unauthorized')
+  }
   
-  const title = String(formData.get("title") ?? "")
-  const description = String(formData.get("description") ?? "")
+  const title = String(formData.get("title") ?? "").trim()
+  const description = String(formData.get("description") ?? "").trim()
   const type = String(formData.get("type") ?? "text")
-  const section = String(formData.get("section") ?? "")
-  const text = String(formData.get("text") ?? "")
+  const section = String(formData.get("section") ?? "").trim()
+  const text = String(formData.get("text") ?? "").trim()
+  const urlInput = String(formData.get("url") ?? "").trim()
   const file = formData.get("file") as File | null
+
+  // Validation
+  if (!title) {
+    throw new Error('Title is required')
+  }
+  if (!section) {
+    throw new Error('Section is required')
+  }
 
   let url = ""
   
@@ -52,25 +63,32 @@ async function uploadContent(formData: FormData) {
     } catch (e) {
       // Directory might already exist
     }
-    const fileName = `${Date.now()}-${file.name}`
+    // Sanitize filename
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+    const fileName = `${Date.now()}-${sanitizedName}`
     const uploadPath = join(uploadsDir, fileName)
     await writeFile(uploadPath, buffer)
     url = `/uploads/${fileName}`
-  } else {
-    // Fallback to URL input
-    url = String(formData.get("url") ?? "")
+  } else if (urlInput) {
+    // Use URL input
+    url = urlInput
+  } else if (type !== 'text') {
+    // For non-text types, require either file or URL
+    throw new Error('Please upload a file or provide a URL')
   }
 
   await connectDB()
-  await Content.create({ 
+  const content = await Content.create({ 
     title, 
     description, 
     type, 
-    url, 
-    text, 
+    url: url || undefined, 
+    text: text || undefined, 
     section, 
     owner: session.id 
   })
+  
+  console.log('Content created successfully:', content._id)
   revalidatePath("/teacher/content")
 }
 
