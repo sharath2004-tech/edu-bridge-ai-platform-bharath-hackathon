@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { AlertTriangle, ArrowLeft, Lock, Mail } from "lucide-react"
+import { OfflineAuth } from "@/lib/offline-auth"
+import { AlertTriangle, ArrowLeft, Lock, Mail, WifiOff } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
@@ -79,6 +80,17 @@ function LoginForm() {
       }
       
       if (data.success) {
+        // Cache session for offline access
+        if (data?.data) {
+          OfflineAuth.cacheSession({
+            userId: data.data.id || data.data._id,
+            role: data.data.role,
+            name: data.data.name || data.data.fullName || identifier,
+            email: data.data.email,
+            schoolCode: schoolCode || data.data.schoolCode
+          })
+        }
+
         // Check if user must change password (temporary password)
         if (data?.data?.mustChangePassword) {
           window.location.href = '/change-password'
@@ -102,6 +114,13 @@ function LoginForm() {
       }
     } catch (err) {
       console.error('Login error:', err)
+      
+      // If network error and offline, redirect to offline login
+      if (!navigator.onLine) {
+        window.location.href = '/offline-login'
+        return
+      }
+      
       setError('Network error. Please check your connection and try again.')
       setIsLoading(false)
     }
@@ -290,6 +309,18 @@ function LoginForm() {
               GitHub
             </Button>
           </div>
+
+          {/* Offline Access Button */}
+          {!navigator.onLine && (
+            <div className="pt-4 border-t">
+              <Link href="/offline-login">
+                <Button variant="secondary" className="w-full gap-2">
+                  <WifiOff className="w-4 h-4" />
+                  Access Offline Content
+                </Button>
+              </Link>
+            </div>
+          )}
         </Card>
 
         {/* Sign Up Link */}

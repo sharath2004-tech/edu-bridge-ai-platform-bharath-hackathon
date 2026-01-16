@@ -1,6 +1,6 @@
 // Service Worker for Offline Video Playback
-const CACHE_NAME = 'edubridge-v2'
-const VIDEO_CACHE = 'video-cache-v2'
+const CACHE_NAME = 'edubridge-v3'
+const VIDEO_CACHE = 'video-cache-v3'
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -9,6 +9,8 @@ self.addEventListener('install', (event) => {
       return cache.addAll([
         '/',
         '/offline',
+        '/offline-login',
+        '/student/offline-videos',
         '/manifest.json'
       ])
     })
