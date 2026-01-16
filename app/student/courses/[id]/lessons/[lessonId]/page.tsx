@@ -85,7 +85,12 @@ export default async function LessonPage({
       {/* Video/Content Player */}
       {lesson.videoUrl ? (
         <Card className="p-0 overflow-hidden">
-          <VideoPlayerWithError videoUrl={lesson.videoUrl} title={lesson.title} />
+          <VideoPlayerWithError 
+            videoUrl={lesson.videoUrl} 
+            title={lesson.title}
+            courseId={id}
+            lessonId={lessonId.toString()}
+          />
         </Card>
       ) : (
         <Card className="p-6 bg-muted/50">

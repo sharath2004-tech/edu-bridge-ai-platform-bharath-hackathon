@@ -16,14 +16,15 @@ export function CourseThumbnail({ thumbnail, title }: CourseThumbnailProps) {
     )
   }
 
-  // Transform Cloudinary URL for optimization
+  // Optimize Bunny.net URL
   const getOptimizedUrl = (url: string) => {
-    if (!url.includes('cloudinary.com')) return url
+    if (!url.includes('b-cdn.net')) return url
     
     try {
-      const parts = url.split('/upload/')
-      if (parts.length !== 2) return url
-      return `${parts[0]}/upload/w_400,h_300,c_fill,q_auto,f_auto/${parts[1]}`
+      const urlObj = new URL(url)
+      urlObj.searchParams.set('width', '400')
+      urlObj.searchParams.set('height', '300')
+      return urlObj.toString()
     } catch {
       return url
     }

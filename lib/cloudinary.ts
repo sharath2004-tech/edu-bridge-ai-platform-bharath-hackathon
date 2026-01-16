@@ -1,79 +1,41 @@
 /**
- * Cloudinary Helper Functions
- * Transforms Cloudinary URLs for optimized delivery
+ * Bunny.net Helper Functions
+ * Optimizes media URLs for better performance
  */
 
-export function getCloudinaryUrl(url: string, options?: {
+export function getOptimizedUrl(url: string, options?: {
   width?: number
   height?: number
-  crop?: string
-  quality?: string
-  format?: string
 }): string {
-  if (!url || !url.includes('cloudinary.com')) {
+  if (!url || !url.includes('b-cdn.net')) {
     return url
   }
 
-  const {
-    width,
-    height,
-    crop = 'fill',
-    quality = 'auto',
-    format = 'auto',
-  } = options || {}
+  const { width, height } = options || {}
 
   try {
-    // Extract the public ID from the URL
-    const parts = url.split('/upload/')
-    if (parts.length !== 2) return url
-
-    const [baseUrl, assetPath] = parts
+    // Bunny.net supports query parameters for image optimization
+    const urlObj = new URL(url)
     
-    // Build transformation string
-    const transformations: string[] = []
+    if (width) urlObj.searchParams.set('width', width.toString())
+    if (height) urlObj.searchParams.set('height', height.toString())
     
-    if (width) transformations.push(`w_${width}`)
-    if (height) transformations.push(`h_${height}`)
-    if (crop) transformations.push(`c_${crop}`)
-    if (quality) transformations.push(`q_${quality}`)
-    if (format) transformations.push(`f_${format}`)
-    
-    const transformStr = transformations.join(',')
-    
-    // Return transformed URL
-    return `${baseUrl}/upload/${transformStr}/${assetPath}`
+    return urlObj.toString()
   } catch (error) {
-    console.error('Error transforming Cloudinary URL:', error)
+    console.error('Error optimizing Bunny.net URL:', error)
     return url
   }
 }
 
 export function getThumbnailUrl(url: string): string {
-  return getCloudinaryUrl(url, {
+  return getOptimizedUrl(url, {
     width: 400,
     height: 300,
-    crop: 'fill',
-    quality: 'auto',
-    format: 'auto',
   })
 }
 
 export function getVideoThumbnail(videoUrl: string): string {
-  if (!videoUrl || !videoUrl.includes('cloudinary.com')) {
-    return videoUrl
-  }
-
-  try {
-    // For videos, get a thumbnail at 1 second
-    const parts = videoUrl.split('/upload/')
-    if (parts.length !== 2) return videoUrl
-
-    const [baseUrl, assetPath] = parts
-    const transformStr = 'w_400,h_300,c_fill,so_1.0,f_jpg'
-    
-    return `${baseUrl}/upload/${transformStr}/${assetPath}`
-  } catch (error) {
-    console.error('Error generating video thumbnail:', error)
-    return videoUrl
-  }
+  // For Bunny.net videos, you can use the Stream API for thumbnails
+  // For now, return the video URL as-is
+  return videoUrl
 }

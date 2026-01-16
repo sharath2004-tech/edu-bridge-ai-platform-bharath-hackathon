@@ -1,17 +1,116 @@
 "use client"
 
-import { FileText } from "lucide-react"
-import { useState } from "react"
+import { Download, CheckCircle, WifiOff } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Button } from "./ui/button"
+import { offlineStorage } from "@/lib/offline-storage"
 
 interface VideoPlayerProps {
   videoUrl: string
   title: string
+  courseId?: string
+  lessonId?: string
 }
 
-export function VideoPlayerWithError({ videoUrl, title }: VideoPlayerProps) {
+export function VideoPlayerWithError({ videoUrl, title, courseId, lessonId }: VideoPlayerProps) {
   const [videoError, setVideoError] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [isOfflineAvailable, setIsOfflineAvailable] = useState(false)
+  const [offlineUrl, setOfflineUrl] = useState<string | null>(null)
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
 
-  // Handle YouTube videos
+  const videoId = `${courseId}-${lessonId}`
+
+  useEffect(() => {
+    checkOfflineAvailability()
+
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [videoId])
+
+  const checkOfflineAvailability = async () => {
+    if (courseId && lessonId) {
+      try {
+        const url = await offlineStorage.getVideoUrl(videoId)
+        if (url) {
+          setIsOfflineAvailable(true)
+          setOfflineUrl(url)
+        }
+      } catch (error) {
+        console.error('Error checking offline:', error)
+      }
+    }
+  }
+
+  const handleDownloadOffline = async () => {
+    if (!courseId || !lessonId) {
+      handleRegularDownload()
+      return
+    }
+
+    setIsDownloading(true)
+
+    try {
+      const url = await offlineStorage.downloadVideo(videoUrl, {
+        id: videoId,
+        courseId,
+        lessonId,
+        title,
+        fileUrl: videoUrl,
+        downloadedAt: Date.now(),
+      })
+
+      setOfflineUrl(url)
+      setIsOfflineAvailable(true)
+      alert('✅ Video saved for offline viewing!')
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('❌ Failed to download video.')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const handleRegularDownload = async () => {
+    try {
+      const response = await fetch(videoUrl)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = title + '.' + (videoUrl.split('.').pop() || 'mp4')
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Download failed:', error)
+      window.open(videoUrl, '_blank')
+    }
+  }
+
+  const handleDeleteOffline = async () => {
+    if (!courseId || !lessonId) return
+    try {
+      await offlineStorage.deleteVideo(videoId)
+      setIsOfflineAvailable(false)
+      setOfflineUrl(null)
+      alert('✅ Offline video deleted')
+    } catch (error) {
+      console.error('Delete failed:', error)
+    }
+  }
+
+  const currentVideoUrl = (!isOnline && offlineUrl) ? offlineUrl : videoUrl
+
   if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
     return (
       <div className="aspect-video">
@@ -25,71 +124,94 @@ export function VideoPlayerWithError({ videoUrl, title }: VideoPlayerProps) {
     )
   }
 
-  // Handle PDF files
   if (videoUrl.endsWith('.pdf')) {
     return (
-      <div className="aspect-video bg-muted flex items-center justify-center">
-        <div className="text-center space-y-4 p-8">
-          <FileText className="w-16 h-16 mx-auto text-primary" />
-          <div>
-            <h3 className="font-semibold mb-2">PDF Document</h3>
-            <a 
-              href={videoUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              Open PDF in New Tab
-            </a>
-          </div>
+      <div className="space-y-4">
+        <div className="aspect-video bg-muted border rounded-lg overflow-hidden">
+          <iframe src={videoUrl} className="w-full h-full" title={title} />
         </div>
+        <Button onClick={handleRegularDownload} className="gap-2">
+          <Download className="w-4 h-4" />
+          Download PDF
+        </Button>
       </div>
     )
   }
 
-  // Handle regular video files
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
+      {!isOnline && (
+        <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg flex items-center gap-2">
+          <WifiOff className="w-4 h-4 text-orange-600" />
+          <span className="text-sm text-orange-700 dark:text-orange-300">
+            {offlineUrl ? '✅ Playing from offline storage' : '⚠️ You are offline'}
+          </span>
+        </div>
+      )}
+
       {!videoError && (
-        <video 
-          controls 
-          className="w-full bg-black" 
-          onError={(e) => {
-            console.error('Video failed to load:', videoUrl)
-            setVideoError(true)
-          }}
-        >
-          <source src={videoUrl} type="video/mp4" />
-          <source src={videoUrl} type="video/webm" />
-          <source src={videoUrl} type="video/ogg" />
-          Your browser does not support the video tag.
-        </video>
+        <>
+          <video 
+            key={currentVideoUrl}
+            controls 
+            controlsList="nodownload"
+            className="w-full rounded-lg bg-black"
+            preload="metadata"
+            onError={() => setVideoError(true)}
+          >
+            <source src={currentVideoUrl} type="video/mp4" />
+            <source src={currentVideoUrl} type="video/webm" />
+            <source src={currentVideoUrl} type="video/ogg" />
+            Your browser does not support the video tag.
+          </video>
+          
+          <div className="flex gap-2 flex-wrap">
+            {isOfflineAvailable ? (
+              <>
+                <Button variant="outline" className="gap-2" disabled>
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  Available Offline
+                </Button>
+                <Button onClick={handleDeleteOffline} variant="destructive" size="sm">
+                  Remove Offline
+                </Button>
+              </>
+            ) : (
+              <Button 
+                onClick={handleDownloadOffline} 
+                className="gap-2"
+                disabled={isDownloading}
+              >
+                <Download className="w-4 h-4" />
+                {isDownloading ? 'Downloading...' : 'Download for Offline'}
+              </Button>
+            )}
+            
+            <Button onClick={handleRegularDownload} variant="outline" className="gap-2">
+              <Download className="w-4 h-4" />
+              Save to Device
+            </Button>
+          </div>
+        </>
       )}
       
       {videoError && (
         <div className="p-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
           <h3 className="font-semibold text-red-800 dark:text-red-200 mb-2">❌ Video Failed to Load</h3>
-          <p className="text-sm text-red-700 dark:text-red-300 mb-3">
-            The video file could not be loaded. This may happen if:
-          </p>
-          <ul className="text-sm text-red-700 dark:text-red-300 ml-4 list-disc space-y-1 mb-3">
-            <li>The file was uploaded on Vercel (files don't persist)</li>
-            <li>The video URL is invalid or inaccessible</li>
-            <li>The file format is not supported</li>
-          </ul>
-          <div className="mt-3 p-3 bg-white dark:bg-gray-900 rounded border">
-            <p className="text-xs font-mono break-all text-gray-600 dark:text-gray-400">
-              Video URL: {videoUrl}
-            </p>
-          </div>
-          <a 
-            href={videoUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 mt-3 text-sm text-primary hover:underline"
-          >
-            Try opening directly
-          </a>
+          {isOfflineAvailable ? (
+            <Button onClick={() => window.location.reload()} className="mt-3">
+              Try Offline Version
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleDownloadOffline}
+              className="mt-3 gap-2"
+              disabled={isDownloading}
+            >
+              <Download className="w-4 h-4" />
+              Download for Offline
+            </Button>
+          )}
         </div>
       )}
     </div>
