@@ -88,6 +88,12 @@ function LoginForm() {
         credentials: 'include', // Important for cookies
       })
 
+      // Check if response is JSON
+      const contentType = res.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server returned non-JSON response')
+      }
+
       const data = await res.json()
       
       if (!res.ok) {
@@ -99,13 +105,27 @@ function LoginForm() {
       if (data.success) {
         // Cache session for offline access
         if (data?.data) {
-          OfflineAuth.cacheSession({
-            userId: data.data.id || data.data._id,
-            role: data.data.role,
-            name: data.data.name || data.data.fullName || identifier,
-            email: data.data.email,
-            schoolCode: schoolCode || data.data.schoolCode
-          })
+          try {
+            console.log('Attempting to cache session:', {
+              userId: data.data.id || data.data._id,
+              role: data.data.role,
+              name: data.data.name || data.data.fullName || identifier,
+            })
+            
+            OfflineAuth.cacheSession({
+              userId: data.data.id || data.data._id || 'unknown',
+              role: data.data.role || 'student',
+              name: data.data.name || data.data.fullName || identifier,
+              email: data.data.email || identifier,
+              schoolCode: schoolCode || data.data.schoolCode || ''
+            })
+            
+            // Verify session was cached
+            const cached = OfflineAuth.getCachedSession()
+            console.log('Session cached successfully:', cached ? '✅' : '❌')
+          } catch (error) {
+            console.error('Failed to cache session:', error)
+          }
         }
 
         // Check if user must change password (temporary password)
