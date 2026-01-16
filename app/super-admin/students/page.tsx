@@ -4,12 +4,14 @@ import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { usePagination } from '@/hooks/use-pagination'
 import { Download, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function SuperAdminStudentsPage() {
   const [students, setStudents] = useState<any[]>([])
@@ -17,6 +19,8 @@ export default function SuperAdminStudentsPage() {
   const [schoolFilter, setSchoolFilter] = useState('all')
   const [classFilter, setClassFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedStudent, setSelectedStudent] = useState<any>(null)
+  const [viewDialog, setViewDialog] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams({ role: 'student' })
@@ -51,7 +55,38 @@ export default function SuperAdminStudentsPage() {
             {students.length} students across all schools
           </p>
         </div>
-        <Button variant="outline">
+        <Button 
+          variant="outline"
+          onClick={() => {
+            // Create CSV content
+            const headers = ['Roll No', 'Name', 'School', 'Class', 'Email', 'Parent Name', 'Parent Phone', 'Status']
+            const csvData = students.map(s => [
+              s.rollNo || 'N/A',
+              s.name,
+              s.schoolId?.name || 'N/A',
+              s.classId ? `${s.classId.className}-${s.classId.section}` : 'N/A',
+              s.email,
+              s.parentName || 'N/A',
+              s.parentPhone || 'N/A',
+              s.isActive ? 'Active' : 'Inactive'
+            ])
+            
+            const csvContent = [
+              headers.join(','),
+              ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n')
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' })
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `students_${new Date().toISOString().split('T')[0]}.csv`
+            a.click()
+            window.URL.revokeObjectURL(url)
+            toast.success('Students exported successfully!')
+          }}
+        >
           <Download className="mr-2 h-4 w-4" />
           Export CSV
         </Button>
@@ -133,8 +168,25 @@ export default function SuperAdminStudentsPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm">View</Button>
-                      <Button variant="ghost" size="sm">Edit</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStudent(student)
+                          setViewDialog(true)
+                        }}
+                      >
+                        View
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          toast.info('Edit functionality coming soon!')
+                        }}
+                      >
+                        Edit
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -154,6 +206,83 @@ export default function SuperAdminStudentsPage() {
           />
         </CardContent>
       </Card>
+
+      {/* View Student Dialog */}
+      <Dialog open={viewDialog} onOpenChange={setViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Student Details</DialogTitle>
+            <DialogDescription>Complete information about {selectedStudent?.name}</DialogDescription>
+          </DialogHeader>
+          {selectedStudent && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Roll Number</p>
+                  <p className="text-sm font-mono">{selectedStudent.rollNo || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Name</p>
+                  <p className="text-sm">{selectedStudent.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Email</p>
+                  <p className="text-sm">{selectedStudent.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">School</p>
+                  <p className="text-sm">{selectedStudent.schoolId?.name || 'N/A'}</p>
+                  <p className="text-xs text-muted-foreground">{selectedStudent.schoolId?.code || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Class</p>
+                  <p className="text-sm">
+                    {selectedStudent.classId 
+                      ? `${selectedStudent.classId.className}-${selectedStudent.classId.section}`
+                      : 'N/A'
+                    }
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <Badge variant={selectedStudent.isActive ? 'default' : 'secondary'}>
+                    {selectedStudent.isActive ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Parent Name</p>
+                  <p className="text-sm">{selectedStudent.parentName || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Parent Phone</p>
+                  <p className="text-sm">{selectedStudent.parentPhone || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
+                  <p className="text-sm">
+                    {selectedStudent.dateOfBirth 
+                      ? new Date(selectedStudent.dateOfBirth).toLocaleDateString()
+                      : 'N/A'
+                    }
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Gender</p>
+                  <p className="text-sm capitalize">{selectedStudent.gender || 'N/A'}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm font-medium text-muted-foreground">Address</p>
+                  <p className="text-sm">{selectedStudent.address || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Joined</p>
+                  <p className="text-sm">{new Date(selectedStudent.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

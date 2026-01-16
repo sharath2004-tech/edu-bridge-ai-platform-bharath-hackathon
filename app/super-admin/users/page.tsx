@@ -185,7 +185,36 @@ export default function SuperAdminUsersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              // Create CSV content
+              const headers = ['Name', 'Email', 'Role', 'School', 'Phone', 'Status']
+              const csvData = users.map(u => [
+                u.name,
+                u.email,
+                u.role,
+                u.schoolId?.name || 'N/A',
+                u.phone || 'N/A',
+                u.isActive ? 'Active' : 'Inactive'
+              ])
+              
+              const csvContent = [
+                headers.join(','),
+                ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+              ].join('\n')
+              
+              // Download CSV
+              const blob = new Blob([csvContent], { type: 'text/csv' })
+              const url = window.URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `users_${new Date().toISOString().split('T')[0]}.csv`
+              a.click()
+              window.URL.revokeObjectURL(url)
+              toast({ title: 'Success', description: 'Users exported successfully!' })
+            }}
+          >
             <Download className="mr-2 h-4 w-4" />
             Export CSV
           </Button>

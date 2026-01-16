@@ -4,15 +4,20 @@ import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { usePagination } from '@/hooks/use-pagination'
 import { BookOpen, GraduationCap, Mail, Phone, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function SuperAdminTeachersPage() {
   const [teachers, setTeachers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [schoolFilter, setSchoolFilter] = useState('all')
+  const [selectedTeacher, setSelectedTeacher] = useState<any>(null)
+  const [viewProfileDialog, setViewProfileDialog] = useState(false)
+  const [viewClassesDialog, setViewClassesDialog] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams({ role: 'teacher' })
@@ -121,9 +126,35 @@ export default function SuperAdminTeachersPage() {
               </div>
 
               <div className="flex gap-2 mt-6 pt-6 border-t">
-                <Button variant="outline" size="sm">View Profile</Button>
-                <Button variant="outline" size="sm">View Classes</Button>
-                <Button variant="outline" size="sm">Edit</Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedTeacher(teacher)
+                    setViewProfileDialog(true)
+                  }}
+                >
+                  View Profile
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedTeacher(teacher)
+                    setViewClassesDialog(true)
+                  }}
+                >
+                  View Classes
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    toast.info('Edit functionality coming soon!')
+                  }}
+                >
+                  Edit
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -140,6 +171,78 @@ export default function SuperAdminTeachersPage() {
         endIndex={pagination.endIndex}
         totalItems={pagination.totalItems}
       />
+
+      {/* View Profile Dialog */}
+      <Dialog open={viewProfileDialog} onOpenChange={setViewProfileDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Teacher Profile</DialogTitle>
+            <DialogDescription>Detailed information about {selectedTeacher?.name}</DialogDescription>
+          </DialogHeader>
+          {selectedTeacher && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Name</p>
+                  <p className="text-sm">{selectedTeacher.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Email</p>
+                  <p className="text-sm">{selectedTeacher.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Phone</p>
+                  <p className="text-sm">{selectedTeacher.phone || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">School</p>
+                  <p className="text-sm">{selectedTeacher.schoolId?.name || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Subject</p>
+                  <p className="text-sm">{selectedTeacher.subjectSpecialization || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Role</p>
+                  <p className="text-sm">{selectedTeacher.teacherRole || 'Teacher'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <Badge variant={selectedTeacher.isActive ? 'default' : 'secondary'}>
+                    {selectedTeacher.isActive ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Joined</p>
+                  <p className="text-sm">{new Date(selectedTeacher.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Classes Dialog */}
+      <Dialog open={viewClassesDialog} onOpenChange={setViewClassesDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assigned Classes</DialogTitle>
+            <DialogDescription>Classes taught by {selectedTeacher?.name}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            {selectedTeacher?.assignedClasses && selectedTeacher.assignedClasses.length > 0 ? (
+              selectedTeacher.assignedClasses.map((cls: any, idx: number) => (
+                <div key={idx} className="p-3 border rounded-lg">
+                  <p className="font-medium">{cls.className}-{cls.section}</p>
+                  <p className="text-sm text-muted-foreground">{cls.subject}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">No classes assigned yet</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
