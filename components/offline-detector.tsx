@@ -1,7 +1,7 @@
 "use client"
 
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation"
 
 export function OfflineDetector() {
   const router = useRouter()
