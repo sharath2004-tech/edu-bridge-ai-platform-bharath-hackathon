@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, X } from "lucide-react"
+import { Plus, Upload, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
