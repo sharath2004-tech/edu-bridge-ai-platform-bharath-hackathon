@@ -1,9 +1,9 @@
 "use client"
 
-import { Download, CheckCircle, WifiOff } from "lucide-react"
-import { useState, useEffect } from "react"
-import { Button } from "./ui/button"
 import { offlineStorage } from "@/lib/offline-storage"
+import { CheckCircle, Download, WifiOff } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Button } from "./ui/button"
 
 interface VideoPlayerProps {
   videoUrl: string
