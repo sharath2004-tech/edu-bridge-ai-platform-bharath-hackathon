@@ -36,6 +36,7 @@ export default function DownloadsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [totalSize, setTotalSize] = useState(0)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchDownloads()
@@ -242,14 +243,24 @@ export default function DownloadsPage() {
 
                 <div className="flex items-center gap-2">
                   {download.fileUrl && (
-                    <Button
-                      onClick={() => window.open(download.fileUrl, '_blank')}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Open
-                    </Button>
+                    <>
+                      <Button
+                        onClick={() => setExpandedId(expandedId === download._id ? null : download._id)}
+                        variant="default"
+                        size="sm"
+                      >
+                        <Video className="w-4 h-4 mr-2" />
+                        {expandedId === download._id ? 'Hide' : 'View'}
+                      </Button>
+                      <Button
+                        onClick={() => window.open(download.fileUrl, '_blank')}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Open
+                      </Button>
+                    </>
                   )}
                   <Button
                     onClick={() => handleDelete(download._id)}
@@ -260,6 +271,42 @@ export default function DownloadsPage() {
                   </Button>
                 </div>
               </div>
+              
+              {/* Expanded Media Preview */}
+              {expandedId === download._id && download.fileUrl && (
+                <div className="mt-4 border-t pt-4">
+                  {download.contentType === 'video' && (
+                    <div className="bg-black rounded-lg overflow-hidden">
+                      <video controls className="w-full" controlsList="nodownload" preload="metadata">
+                        <source src={download.fileUrl} type="video/mp4" />
+                        <source src={download.fileUrl} type="video/webm" />
+                        <source src={download.fileUrl} type="video/ogg" />
+                        Your browser does not support video playback.
+                      </video>
+                    </div>
+                  )}
+                  {download.contentType === 'audio' && (
+                    <div className="p-4 bg-muted rounded-lg">
+                      <audio controls className="w-full" controlsList="nodownload" preload="metadata">
+                        <source src={download.fileUrl} type="audio/mpeg" />
+                        <source src={download.fileUrl} type="audio/ogg" />
+                        <source src={download.fileUrl} type="audio/wav" />
+                        Your browser does not support audio playback.
+                      </audio>
+                    </div>
+                  )}
+                  {download.contentType === 'pdf' && (
+                    <div className="border rounded-lg overflow-hidden bg-white">
+                      <iframe 
+                        src={download.fileUrl} 
+                        className="w-full" 
+                        style={{ height: '500px' }}
+                        title={download.fileName}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </Card>
           ))
         )}

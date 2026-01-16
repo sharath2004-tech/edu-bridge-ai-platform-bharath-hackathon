@@ -205,31 +205,53 @@ export default function StudentSectionPage({ params }: { params: { sectionId: st
                 
                 {/* Video Player */}
                 {item.type === "video" && item.url && (
-                  <video controls className="w-full rounded-lg mt-2">
-                    <source src={item.url} />
-                    Your browser does not support video playback.
-                  </video>
+                  <div className="mt-3 bg-black rounded-lg overflow-hidden">
+                    <video 
+                      controls 
+                      className="w-full" 
+                      controlsList="nodownload" 
+                      preload="metadata"
+                      style={{ maxHeight: '400px' }}
+                    >
+                      <source src={item.url} type="video/mp4" />
+                      <source src={item.url} type="video/webm" />
+                      <source src={item.url} type="video/ogg" />
+                      Your browser does not support video playback.
+                    </video>
+                  </div>
                 )}
                 
                 {/* Audio Player */}
                 {item.type === "audio" && item.url && (
-                  <audio controls className="w-full mt-2">
-                    <source src={item.url} />
-                    Your browser does not support audio playback.
-                  </audio>
+                  <div className="mt-3 p-3 bg-muted rounded-lg">
+                    <audio controls className="w-full" controlsList="nodownload" preload="metadata">
+                      <source src={item.url} type="audio/mpeg" />
+                      <source src={item.url} type="audio/ogg" />
+                      <source src={item.url} type="audio/wav" />
+                      Your browser does not support audio playback.
+                    </audio>
+                  </div>
                 )}
                 
-                {/* PDF Link */}
+                {/* PDF Viewer with Iframe */}
                 {item.type === "pdf" && item.url && (
-                  <a 
-                    href={item.url} 
-                    target="_blank" 
-                    rel="noreferrer" 
-                    className="inline-flex items-center gap-2 text-sm text-primary underline hover:text-primary/80 mt-2"
-                  >
-                    <FileDown className="w-4 h-4" />
-                    View PDF
-                  </a>
+                  <div className="mt-3 border rounded-lg overflow-hidden bg-white">
+                    <iframe 
+                      src={item.url} 
+                      className="w-full" 
+                      style={{ height: '500px' }}
+                      title={item.title}
+                    />
+                    <a 
+                      href={item.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center justify-center gap-2 py-3 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                    >
+                      <FileDown className="w-4 h-4" />
+                      Open PDF in Full Screen
+                    </a>
+                  </div>
                 )}
                 
                 {/* Text Content */}

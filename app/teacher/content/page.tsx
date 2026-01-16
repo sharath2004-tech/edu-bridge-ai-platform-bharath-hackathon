@@ -274,17 +274,47 @@ export default async function ContentPage() {
                       <strong>Text:</strong> {item.text}
                     </p>
                   )}
-                  {item.url && ['video', 'audio'].includes(item.type) && (
-                    <div className="mt-2">
-                      {item.type === 'video' ? (
-                        <video controls className="w-full rounded max-h-32">
-                          <source src={item.url} />
-                        </video>
-                      ) : (
-                        <audio controls className="w-full">
-                          <source src={item.url} />
-                        </audio>
-                      )}
+                  
+                  {/* Video Preview */}
+                  {item.type === 'video' && item.url && (
+                    <div className="mt-3 bg-black rounded-lg overflow-hidden">
+                      <video controls className="w-full" controlsList="nodownload" preload="metadata">
+                        <source src={item.url} type="video/mp4" />
+                        <source src={item.url} type="video/webm" />
+                        <source src={item.url} type="video/ogg" />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  )}
+                  
+                  {/* Audio Preview */}
+                  {item.type === 'audio' && item.url && (
+                    <div className="mt-3">
+                      <audio controls className="w-full" controlsList="nodownload" preload="metadata">
+                        <source src={item.url} type="audio/mpeg" />
+                        <source src={item.url} type="audio/ogg" />
+                        <source src={item.url} type="audio/wav" />
+                        Your browser does not support the audio tag.
+                      </audio>
+                    </div>
+                  )}
+                  
+                  {/* PDF Preview */}
+                  {item.type === 'pdf' && item.url && (
+                    <div className="mt-3 border rounded-lg overflow-hidden">
+                      <iframe 
+                        src={item.url} 
+                        className="w-full h-64" 
+                        title={item.title}
+                      />
+                      <a 
+                        href={item.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="block text-center py-2 bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20"
+                      >
+                        Open PDF in New Tab
+                      </a>
                     </div>
                   )}
                 </div>
