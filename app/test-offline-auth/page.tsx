@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { OfflineAuth } from "@/lib/offline-auth"
-import { CheckCircle, XCircle, RefreshCw } from "lucide-react"
+import { CheckCircle, RefreshCw, XCircle } from "lucide-react"
 import { useState } from "react"
 
 export default function TestOfflineAuthPage() {
