@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { OfflineAuth } from "@/lib/offline-auth"
-import { WifiOff, LogIn, Video, User } from "lucide-react"
+import { LogIn, User, Video, WifiOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
