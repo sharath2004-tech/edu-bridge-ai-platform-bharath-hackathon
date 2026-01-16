@@ -1,5 +1,3 @@
-"use client"
-
 // Offline authentication manager
 // Stores user session in localStorage for offline access
 
@@ -18,9 +16,18 @@ const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 export class OfflineAuth {
   /**
+   * Check if we're in a browser environment
+   */
+  private static isBrowser(): boolean {
+    return typeof window !== 'undefined' && typeof localStorage !== 'undefined'
+  }
+
+  /**
    * Cache user session for offline access
    */
   static cacheSession(session: Omit<OfflineSession, 'cachedAt' | 'expiresAt'>): void {
+    if (!this.isBrowser()) return
+    
     try {
       const offlineSession: OfflineSession = {
         ...session,
@@ -38,6 +45,8 @@ export class OfflineAuth {
    * Get cached session if available and valid
    */
   static getCachedSession(): OfflineSession | null {
+    if (!this.isBrowser()) return null
+    
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (!stored) return null
@@ -61,6 +70,8 @@ export class OfflineAuth {
    * Check if user is authenticated (online or offline)
    */
   static isAuthenticated(): boolean {
+    if (!this.isBrowser()) return false
+    
     // Check online session first (cookie)
     if (typeof document !== 'undefined') {
       const cookie = document.cookie
@@ -78,6 +89,8 @@ export class OfflineAuth {
    * Clear cached session
    */
   static clearSession(): void {
+    if (!this.isBrowser()) return
+    
     try {
       localStorage.removeItem(STORAGE_KEY)
       console.log('✅ Offline session cleared')
@@ -90,13 +103,15 @@ export class OfflineAuth {
    * Check if currently offline
    */
   static isOffline(): boolean {
-    return typeof navigator !== 'undefined' && !navigator.onLine
+    return this.isBrowser() && typeof navigator !== 'undefined' && !navigator.onLine
   }
 
   /**
    * Get user role (from cookie or cached session)
    */
   static getUserRole(): string | null {
+    if (!this.isBrowser()) return null
+    
     // Try online session first
     if (typeof document !== 'undefined') {
       const cookie = document.cookie
