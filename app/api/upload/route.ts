@@ -7,6 +7,13 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+})
+
+console.log('🔧 Cloudinary Config:', {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY ? '***' + process.env.CLOUDINARY_API_KEY.slice(-4) : 'MISSING',
+  api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING',
 })
 
 export async function POST(request: NextRequest) {
@@ -57,6 +64,7 @@ export async function POST(request: NextRequest) {
     const resourceType = fileType === 'video' ? 'video' : fileType === 'audio' ? 'video' : 'auto'
 
     console.log(`🔄 Uploading to Cloudinary as resource type: ${resourceType}`)
+    console.log(`📋 Using cloud: ${process.env.CLOUDINARY_CLOUD_NAME}`)
 
     // Upload to Cloudinary with increased timeout
     const result = await new Promise<any>((resolve, reject) => {
@@ -67,10 +75,27 @@ export async function POST(request: NextRequest) {
           public_id: `${session.id}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`,
           chunk_size: 6000000, // 6MB chunks for large files
           timeout: 120000, // 120 seconds timeout for large files
+          overwrite: true,
+          invalidate: true,
         },
         (error, result) => {
-          if (error) reject(error)
-          else resolve(result)
+          if (error) {
+            console.error('❌ Cloudinary upload error:', {
+              message: error.message,
+              http_code: error.http_code,
+              name: error.name,
+            })
+            reject(error)
+          } else if (result) {
+            console.log('✅ Cloudinary upload success:', {
+              url: result.secure_url,
+              format: result.format,
+              resource_type: result.resource_type,
+            })
+            resolve(result)
+          } else {
+            reject(new Error('No result from Cloudinary'))
+          }
         }
       )
       uploadStream.end(buffer)
@@ -91,9 +116,18 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error: any) {
-    console.error('❌ Error uploading file to Cloudinary:', error)
+    console.error('❌ Error uploading file to Cloudinary:', {
+      message: error.message,
+      http_code: error.http_code,
+      error: error,
+    })
     return NextResponse.json(
-      { success: false, error: 'Failed to upload file', message: error.message },
+      { 
+        success: false, 
+        error: 'Failed to upload file', 
+        message: error.message,
+        http_code: error.http_code,
+      },
       { status: 500 }
     )
   }
