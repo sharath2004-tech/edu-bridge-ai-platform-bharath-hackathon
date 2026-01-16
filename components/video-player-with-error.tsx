@@ -1,6 +1,6 @@
 "use client"
 
-import { FileText, Video } from "lucide-react"
+import { FileText } from "lucide-react"
 import { useState } from "react"
 
 interface VideoPlayerProps {

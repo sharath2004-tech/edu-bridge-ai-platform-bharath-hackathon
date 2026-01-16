@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { VideoPlayerWithError } from "@/components/video-player-with-error"
 import { getSession } from "@/lib/auth"
 import { Course } from "@/lib/models"
 import connectDB from "@/lib/mongodb"
 import { ArrowLeft, ArrowRight, BookOpen, CheckCircle, Video } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { VideoPlayerWithError } from "@/components/video-player-with-error"
 
 export default async function LessonPage({ 
   params 
