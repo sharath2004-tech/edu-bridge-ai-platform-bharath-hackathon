@@ -17,6 +17,7 @@ type CourseType = {
   rating?: number
   enrolledStudents?: any[]
   description?: string
+  thumbnail?: string
 }
 
 export default async function CoursesPage() {
@@ -47,7 +48,8 @@ export default async function CoursesPage() {
       duration: c.duration,
       rating: c.rating,
       enrolledStudents: c.enrolledStudents,
-      description: c.description
+      description: c.description,
+      thumbnail: c.thumbnail
     }))
   } else {
     // If student is not in a section, show all published courses from their school
@@ -64,7 +66,8 @@ export default async function CoursesPage() {
       duration: c.duration,
       rating: c.rating,
       enrolledStudents: c.enrolledStudents,
-      description: c.description
+      description: c.description,
+      thumbnail: c.thumbnail
     }))
   }
 
@@ -122,7 +125,17 @@ export default async function CoursesPage() {
               className="overflow-hidden border border-border hover:border-primary/50 transition-all group animate-slideInLeft"
               style={{ animationDelay: `${i * 0.05}s` }}
             >
-              <div className="h-32 bg-gradient-to-br from-primary/20 to-accent/20 group-hover:from-primary/30 group-hover:to-accent/30 transition-all"></div>
+              {course.thumbnail ? (
+                <div className="h-32 overflow-hidden">
+                  <img 
+                    src={course.thumbnail} 
+                    alt={course.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              ) : (
+                <div className="h-32 bg-gradient-to-br from-primary/20 to-accent/20 group-hover:from-primary/30 group-hover:to-accent/30 transition-all"></div>
+              )}
               <div className="p-4 space-y-3">
                 <div>
                   <span className="inline-block px-2 py-1 bg-secondary/20 text-secondary text-xs font-medium rounded">

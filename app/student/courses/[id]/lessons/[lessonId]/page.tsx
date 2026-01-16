@@ -82,7 +82,7 @@ export default async function LessonPage({
       </div>
 
       {/* Video/Content Player */}
-      {lesson.videoUrl && (
+      {lesson.videoUrl ? (
         <Card className="p-0 overflow-hidden">
           {lesson.videoUrl.includes('youtube.com') || lesson.videoUrl.includes('youtu.be') ? (
             <div className="aspect-video">
@@ -111,12 +111,48 @@ export default async function LessonPage({
               </div>
             </div>
           ) : (
-            <video controls className="w-full">
-              <source src={lesson.videoUrl} type="video/mp4" />
-              <source src={lesson.videoUrl} type="video/webm" />
-              Your browser does not support the video tag.
-            </video>
+            <div className="space-y-2">
+              <video controls className="w-full bg-black" onError={(e) => {
+                console.error('Video failed to load:', lesson.videoUrl)
+                e.currentTarget.style.display = 'none'
+                const errorDiv = document.getElementById('video-error')
+                if (errorDiv) errorDiv.style.display = 'block'
+              }}>
+                <source src={lesson.videoUrl} type="video/mp4" />
+                <source src={lesson.videoUrl} type="video/webm" />
+                <source src={lesson.videoUrl} type="video/ogg" />
+                Your browser does not support the video tag.
+              </video>
+              <div id="video-error" style={{ display: 'none' }} className="p-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <h3 className="font-semibold text-red-800 dark:text-red-200 mb-2">❌ Video Failed to Load</h3>
+                <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                  The video file could not be loaded. This may happen if:
+                </p>
+                <ul className="text-sm text-red-700 dark:text-red-300 ml-4 list-disc space-y-1 mb-3">
+                  <li>The file was uploaded on Vercel (files don't persist)</li>
+                  <li>The video URL is invalid or inaccessible</li>
+                  <li>The file format is not supported</li>
+                </ul>
+                <div className="mt-3 p-3 bg-white dark:bg-gray-900 rounded border">
+                  <p className="text-xs font-mono break-all text-gray-600 dark:text-gray-400">
+                    Video URL: {lesson.videoUrl}
+                  </p>
+                </div>
+                <a 
+                  href={lesson.videoUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-3 text-sm text-primary hover:underline"
+                >
+                  Try opening directly
+                </a>
+              </div>
+            </div>
           )}
+        </Card>
+      ) : (
+        <Card className="p-6 bg-muted/50">
+          <p className="text-sm text-muted-foreground text-center">No video content available for this lesson</p>
         </Card>
       )}
 

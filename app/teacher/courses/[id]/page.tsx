@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { DeleteCourseButton } from "@/components/delete-course-button"
 import { getSession } from "@/lib/auth"
 import { Course } from "@/lib/models"
 import connectDB from "@/lib/mongodb"
@@ -64,11 +65,12 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
         {isTeacher && (
           <div className="flex gap-2">
             <Link href={`/teacher/courses/${id}/quiz/create`}>
-              <Button variant="outline">Add Quiz</Button>
+              <Button variant="outline" size="sm">Add Quiz</Button>
             </Link>
             <Link href={`/teacher/courses/${id}/edit`}>
-              <Button>Edit Course</Button>
+              <Button size="sm">Edit Course</Button>
             </Link>
+            <DeleteCourseButton courseId={id} />
           </div>
         )}
       </div>
