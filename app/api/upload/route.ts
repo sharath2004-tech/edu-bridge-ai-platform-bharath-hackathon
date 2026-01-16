@@ -66,24 +66,35 @@ export async function POST(request: NextRequest) {
     console.log(`🔄 Uploading to Cloudinary as resource type: ${resourceType}`)
     console.log(`📋 Using cloud: ${process.env.CLOUDINARY_CLOUD_NAME}`)
 
+    // Upload configuration with better video support
+    const uploadOptions: any = {
+      resource_type: resourceType as 'video' | 'auto',
+      folder: 'edu-bridge',
+      chunk_size: 6000000, // 6MB chunks for large files
+      timeout: 300000, // 5 minutes timeout for large videos
+      overwrite: true,
+    }
+
+    // For videos, add additional options
+    if (resourceType === 'video') {
+      uploadOptions.eager = [
+        { streaming_profile: 'auto', format: 'auto' }
+      ]
+      uploadOptions.eager_async = true
+      uploadOptions.format = 'mp4' // Ensure MP4 format for compatibility
+    }
+
     // Upload to Cloudinary with increased timeout
     const result = await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          resource_type: resourceType as 'video' | 'auto',
-          folder: 'edu-bridge',
-          public_id: `${session.id}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`,
-          chunk_size: 6000000, // 6MB chunks for large files
-          timeout: 120000, // 120 seconds timeout for large files
-          overwrite: true,
-          invalidate: true,
-        },
+        uploadOptions,
         (error, result) => {
           if (error) {
             console.error('❌ Cloudinary upload error:', {
               message: error.message,
               http_code: error.http_code,
               name: error.name,
+              error: error,
             })
             reject(error)
           } else if (result) {
