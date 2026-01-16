@@ -1,8 +1,8 @@
+import { CourseThumbnail } from "@/components/course-thumbnail"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { getSession } from "@/lib/auth"
-import { getThumbnailUrl } from "@/lib/cloudinary"
 import { Course, Section } from "@/lib/models"
 import connectDB from "@/lib/mongodb"
 import { Clock, FolderOpen, Search, Star, Video } from "lucide-react"
@@ -126,23 +126,7 @@ export default async function CoursesPage() {
               className="overflow-hidden border border-border hover:border-primary/50 transition-all group animate-slideInLeft"
               style={{ animationDelay: `${i * 0.05}s` }}
             >
-              {course.thumbnail ? (
-                <div className="h-32 overflow-hidden bg-muted">
-                  <img 
-                    src={getThumbnailUrl(course.thumbnail)} 
-                    alt={course.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                    onError={(e) => {
-                      console.error('Failed to load thumbnail:', course.thumbnail)
-                      // Hide image and show parent background on error
-                      e.currentTarget.style.display = 'none'
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="h-32 bg-gradient-to-br from-primary/20 to-accent/20 group-hover:from-primary/30 group-hover:to-accent/30 transition-all"></div>
-              )}
+              <CourseThumbnail thumbnail={course.thumbnail} title={course.title} />
               <div className="p-4 space-y-3">
                 <div>
                   <span className="inline-block px-2 py-1 bg-secondary/20 text-secondary text-xs font-medium rounded">
