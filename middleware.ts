@@ -46,6 +46,11 @@ function parseSession(sessionCookie: string | undefined): { role?: string; id?: 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   
+  // Allow offline-login page always
+  if (pathname === '/offline-login') {
+    return NextResponse.next()
+  }
+
   // Skip middleware for public static files and API routes
   if (
     pathname.startsWith('/_next') ||
@@ -62,6 +67,12 @@ export function middleware(req: NextRequest) {
   const sessionCookie = req.cookies.get('edubridge_session')?.value
   const session = parseSession(sessionCookie)
   const role = session?.role
+
+  // Allow offline videos page for students without authentication
+  // (offline access relies on IndexedDB, not server data)
+  if (pathname === '/student/offline-videos') {
+    return NextResponse.next()
+  }
 
   // Debug logging for super admin
   if (pathname.startsWith('/super-admin')) {
