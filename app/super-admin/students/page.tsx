@@ -21,6 +21,9 @@ export default function SuperAdminStudentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStudent, setSelectedStudent] = useState<any>(null)
   const [viewDialog, setViewDialog] = useState(false)
+  const [editDialog, setEditDialog] = useState(false)
+  const [editForm, setEditForm] = useState<any>({})
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams({ role: 'student' })
@@ -182,7 +185,17 @@ export default function SuperAdminStudentsPage() {
                         variant="ghost" 
                         size="sm"
                         onClick={() => {
-                          toast.info('Edit functionality coming soon!')
+                          setSelectedStudent(student)
+                          setEditForm({
+                            name: student.name,
+                            email: student.email,
+                            rollNo: student.rollNo || '',
+                            parentName: student.parentName || '',
+                            parentPhone: student.parentPhone || '',
+                            address: student.address || '',
+                            isActive: student.isActive
+                          })
+                          setEditDialog(true)
                         }}
                       >
                         Edit
@@ -281,6 +294,112 @@ export default function SuperAdminStudentsPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Student Dialog */}
+      <Dialog open={editDialog} onOpenChange={setEditDialog}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Student</DialogTitle>
+            <DialogDescription>Update student information</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={async (e) => {
+            e.preventDefault()
+            setUpdating(true)
+            try {
+              const res = await fetch(`/api/super-admin/users`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: selectedStudent._id,
+                  ...editForm
+                })
+              })
+              const data = await res.json()
+              if (data.success) {
+                toast.success('Student updated successfully!')
+                setEditDialog(false)
+                // Refresh students list
+                const params = new URLSearchParams({ role: 'student' })
+                if (schoolFilter !== 'all') params.set('schoolId', schoolFilter)
+                if (classFilter !== 'all') params.set('classId', classFilter)
+                if (searchQuery) params.set('search', searchQuery)
+                const refreshRes = await fetch(`/api/super-admin/users?${params}`)
+                const refreshData = await refreshRes.json()
+                if (refreshData.success) setStudents(refreshData.users)
+              } else {
+                toast.error(data.error || 'Failed to update student')
+              }
+            } catch (error) {
+              toast.error('Failed to update student')
+            } finally {
+              setUpdating(false)
+            }
+          }} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={editForm.name || ''}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Email</label>
+              <Input
+                type="email"
+                value={editForm.email || ''}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Roll Number</label>
+              <Input
+                value={editForm.rollNo || ''}
+                onChange={(e) => setEditForm({ ...editForm, rollNo: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Parent Name</label>
+              <Input
+                value={editForm.parentName || ''}
+                onChange={(e) => setEditForm({ ...editForm, parentName: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Parent Phone</label>
+              <Input
+                value={editForm.parentPhone || ''}
+                onChange={(e) => setEditForm({ ...editForm, parentPhone: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Address</label>
+              <Input
+                value={editForm.address || ''}
+                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={editForm.isActive}
+                onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
+                className="h-4 w-4"
+              />
+              <label className="text-sm font-medium">Active</label>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button type="button" variant="outline" onClick={() => setEditDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updating}>
+                {updating ? 'Updating...' : 'Update'}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

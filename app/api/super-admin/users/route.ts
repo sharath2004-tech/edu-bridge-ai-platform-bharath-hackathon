@@ -264,3 +264,84 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session || session.role !== 'super-admin') {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Super Admin access required' },
+        { status: 401 }
+      )
+    }
+
+    await connectDB()
+
+    const data = await request.json()
+    const { userId, ...updateData } = data
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'User ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Find user
+    const user = await User.findById(userId)
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    // Validate email uniqueness if email is being changed
+    if (updateData.email && updateData.email.toLowerCase() !== user.email) {
+      const existingUser = await User.findOne({ email: updateData.email.toLowerCase() })
+      if (existingUser) {
+        return NextResponse.json(
+          { success: false, error: 'Email already exists' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Prepare update object (only allow specific fields)
+    const allowedFields = ['name', 'email', 'phone', 'isActive', 'rollNo', 'parentName', 'parentPhone', 'address', 'subjectSpecialization', 'teacherRole']
+    const updateObj: any = {}
+    
+    allowedFields.forEach(field => {
+      if (updateData[field] !== undefined) {
+        if (field === 'email') {
+          updateObj[field] = updateData[field].toLowerCase()
+        } else {
+          updateObj[field] = updateData[field]
+        }
+      }
+    })
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateObj },
+      { new: true, runValidators: true }
+    )
+      .populate('schoolId', 'name code')
+      .populate('classId', 'className section')
+      .select('-password')
+      .lean()
+
+    return NextResponse.json({
+      success: true,
+      message: 'User updated successfully',
+      user: updatedUser
+    })
+  } catch (error: any) {
+    console.error('Error updating user:', error)
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    )
+  }
+}
