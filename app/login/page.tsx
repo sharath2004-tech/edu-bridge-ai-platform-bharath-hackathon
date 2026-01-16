@@ -36,10 +36,29 @@ function LoginForm() {
     
     // Check offline status only on client
     if (typeof navigator !== 'undefined') {
-      setIsOffline(!navigator.onLine)
+      const currentlyOffline = !navigator.onLine
+      setIsOffline(currentlyOffline)
+      
+      // If offline and user has cached session, auto-redirect to offline login
+      if (currentlyOffline) {
+        const hasCachedSession = OfflineAuth.getCachedSession()
+        if (hasCachedSession) {
+          console.log('🔴 Offline mode detected with cached session - redirecting to offline login')
+          setTimeout(() => {
+            window.location.href = '/offline-login'
+          }, 1500) // Give user time to see the message
+        }
+      }
       
       const handleOnline = () => setIsOffline(false)
-      const handleOffline = () => setIsOffline(true)
+      const handleOffline = () => {
+        setIsOffline(true)
+        // Check for cached session and redirect
+        const hasCachedSession = OfflineAuth.getCachedSession()
+        if (hasCachedSession) {
+          window.location.href = '/offline-login'
+        }
+      }
       
       window.addEventListener('online', handleOnline)
       window.addEventListener('offline', handleOffline)
@@ -177,6 +196,23 @@ function LoginForm() {
         <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center gap-2 text-amber-600 text-sm">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
           <span>You need to sign in with the correct account to access that page.</span>
+        </div>
+      )}
+
+      {isOffline && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-4">
+          <p className="font-medium">🔴 You are currently offline</p>
+          {typeof window !== 'undefined' && OfflineAuth.getCachedSession() ? (
+            <div>
+              <p className="text-sm">✅ Cached session found! Redirecting to offline login...</p>
+              <p className="text-xs mt-1">If not redirected, <a href="/offline-login" className="underline font-medium">click here</a></p>
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm">❌ No cached session found.</p>
+              <p className="text-xs mt-1">You must login with internet connection at least once before offline access is available.</p>
+            </div>
+          )}
         </div>
       )}
 

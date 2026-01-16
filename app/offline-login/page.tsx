@@ -114,14 +114,21 @@ export default function OfflineLoginPage() {
         </div>
 
         <div>
-          <h1 className="text-2xl font-bold mb-2">Offline Login</h1>
+          <h1 className="text-2xl font-bold mb-2">Offline Mode</h1>
           <p className="text-muted-foreground">
-            You're offline, but you can still access downloaded content
+            ✅ You can access your downloaded content while offline
           </p>
         </div>
 
         {cachedSession ? (
           <div className="space-y-4">
+            {/* Success Banner */}
+            <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-lg">
+              <p className="text-green-800 dark:text-green-300 text-sm font-medium">
+                ✅ Session Found! You're logged in offline.
+              </p>
+            </div>
+
             <div className="p-4 bg-muted rounded-lg text-left">
               <div className="flex items-center gap-3 mb-2">
                 <User className="w-5 h-5 text-primary" />
@@ -133,12 +140,17 @@ export default function OfflineLoginPage() {
               {cachedSession.email && (
                 <p className="text-xs text-muted-foreground mt-2">{cachedSession.email}</p>
               )}
+              {cachedSession.cachedAt && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Last online: {new Date(cachedSession.cachedAt).toLocaleDateString()} at {new Date(cachedSession.cachedAt).toLocaleTimeString()}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Button onClick={handleOfflineLogin} className="w-full gap-2" size="lg">
                 <Video className="w-5 h-5" />
-                Continue Offline
+                Access Offline Videos
               </Button>
               
               {/* Direct link as fallback */}
@@ -151,22 +163,34 @@ export default function OfflineLoginPage() {
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Cached session expires: {new Date(cachedSession.expiresAt).toLocaleDateString()}
+              Session expires: {new Date(cachedSession.expiresAt).toLocaleDateString()}
             </p>
             
             {debugInfo && (
-              <p className="text-xs text-green-600">Debug: {debugInfo}</p>
+              <p className="text-xs text-blue-600">Debug: {debugInfo}</p>
             )}
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <p className="text-sm text-destructive">
+            <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
                 ⚠️ No cached session found
               </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                You need to login online at least once to access content offline
+              <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">
+                You need to login with internet connection at least once before offline access is available.
               </p>
+            </div>
+
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg text-left">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                📝 How to enable offline access:
+              </p>
+              <ol className="text-xs text-blue-700 dark:text-blue-400 space-y-1 list-decimal list-inside">
+                <li>Connect to the internet</li>
+                <li>Login to EduBridge AI</li>
+                <li>Your session will be cached automatically</li>
+                <li>Go offline and return to this page</li>
+              </ol>
             </div>
             
             {debugInfo && (
