@@ -16,16 +16,8 @@ const nextConfig = {
   },
   // Optimize production builds
   compress: true,
-  // Ensure service worker is properly served
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-      }
-    }
-    return config
-  },
+  // Empty turbopack config to silence warning
+  turbopack: {},
 }
 
 export default nextConfig
