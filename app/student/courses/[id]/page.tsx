@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { getSession } from "@/lib/auth"
-import { Course } from "@/lib/models"
+import { Course, Section } from "@/lib/models"
 import connectDB from "@/lib/mongodb"
-import { ArrowLeft, BookOpen, Clock, FileText, Play, Star, Users, Video } from "lucide-react"
+import { ArrowLeft, BookOpen, Clock, FileText, FolderOpen, Play, Star, Users, Video } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
@@ -36,6 +36,11 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
 
   const totalLessons = course.lessons?.length || 0
   const instructorName = (course.instructor as any)?.name || 'Unknown Instructor'
+  
+  // Fetch sections assigned to this course
+  const assignedSections = course.sections && course.sections.length > 0
+    ? await Section.find({ _id: { $in: course.sections } }).select('_id name').lean()
+    : []
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -111,7 +116,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
       {/* Lessons */}
       {totalLessons > 0 ? (
         <div>
-          <h2 className="text-2xl font-bold mb-4">Course Content</h2>
+          <h2 className="text-2xl font-bold mb-4">Course Lessons</h2>
           <div className="space-y-3">
             {course.lessons?.map((lesson: any, i: number) => (
               <Card
@@ -182,6 +187,46 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                   </Link>
                 </div>
               </Card>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Additional Course Materials (from Sections) */}
+      {assignedSections.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Additional Course Materials</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Access videos, PDFs, and other materials uploaded by your instructor
+          </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {assignedSections.map((section: any, i: number) => (
+              <Link
+                key={section._id}
+                href={`/student/content/${section._id}`}
+                className="block"
+              >
+                <Card
+                  className="p-6 border border-border hover:border-primary/50 transition-all group cursor-pointer animate-slideInLeft"
+                  style={{ animationDelay: `${0.9 + i * 0.05}s` }}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-all">
+                      <FolderOpen className="w-6 h-6 text-primary" />
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2">{section.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    View uploaded materials
+                  </p>
+                  <div className="mt-4">
+                    <Button size="sm" variant="outline" className="w-full gap-2">
+                      <FolderOpen className="w-4 h-4" />
+                      View Materials
+                    </Button>
+                  </div>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
