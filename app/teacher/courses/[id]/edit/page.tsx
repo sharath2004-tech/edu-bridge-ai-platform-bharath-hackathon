@@ -5,50 +5,33 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Upload, X } from "lucide-react"
+import { Trash2, Upload, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
-export default function CreateCoursePage() {
+export default function EditCoursePage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [lessons, setLessons] = useState([{ title: "", description: "", content: "", videoUrl: "", duration: 0 }])
-  const [sections, setSections] = useState<any[]>([])
-  const [selectedSections, setSelectedSections] = useState<string[]>([])
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
-  
-  // Store lesson files separately using ref (Files can't be stored in React state)
-  const lessonFilesRef = useRef<{ [key: number]: File }>({})
-  const [lessonFileNames, setLessonFileNames] = useState<{ [key: number]: string }>({})
+  const [course, setCourse] = useState<any>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState("")
+  const [lessons, setLessons] = useState<any[]>([])
 
   useEffect(() => {
-    fetchSections()
-  }, [])
+    fetchCourse()
+  }, [params.id])
 
-  const fetchSections = async () => {
+  const fetchCourse = async () => {
     try {
-      const res = await fetch('/api/sections')
+      const res = await fetch(`/api/courses/${params.id}`)
       if (res.ok) {
         const data = await res.json()
-        setSections(data.sections || [])
+        setCourse(data.data)
+        setLessons(data.data.lessons || [])
+        setThumbnailPreview(data.data.thumbnail || "")
       }
     } catch (error) {
-      console.error('Error fetching sections:', error)
+      console.error('Error fetching course:', error)
     }
-  }
-
-  const addLesson = () => {
-    setLessons([...lessons, { title: "", description: "", content: "", videoUrl: "", duration: 0 }])
-  }
-
-  const removeLesson = (index: number) => {
-    setLessons(lessons.filter((_, i) => i !== index))
-  }
-
-  const updateLesson = (index: number, field: string, value: any) => {
-    const updated = [...lessons]
-    updated[index] = { ...updated[index], [field]: value }
-    setLessons(updated)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -58,42 +41,33 @@ export default function CreateCoursePage() {
     try {
       const formData = new FormData(e.currentTarget)
       
-      // Upload thumbnail if exists
-      let thumbnail = ""
-      const thumbnailFile = (window as any).thumbnailFile
-      if (thumbnailFile) {
+      // Upload thumbnail if changed
+      let thumbnail = thumbnailPreview
+      if ((window as any).thumbnailFile) {
         const thumbFormData = new FormData()
-        thumbFormData.append('file', thumbnailFile)
+        thumbFormData.append('file', (window as any).thumbnailFile)
         
-        const thumbRes = await fetch('/api/upload', {
+        const uploadRes = await fetch('/api/upload', {
           method: 'POST',
           body: thumbFormData,
         })
         
-        if (thumbRes.ok) {
-          const thumbData = await thumbRes.json()
-          thumbnail = thumbData.url
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json()
+          thumbnail = uploadData.url
         }
       }
-      
-      // Upload files for lessons that have them
+
+      // Process lessons with file uploads
       const processedLessons = await Promise.all(
         lessons.map(async (lesson, idx) => {
-          let videoUrl = lesson.videoUrl
+          let videoUrl = lesson.videoUrl || ""
           
-          const lessonFile = lessonFilesRef.current[idx]
-          
-          console.log(`🔍 Processing lesson ${idx + 1}:`, {
-            hasFile: !!lessonFile,
-            fileName: lessonFileNames[idx],
-            hasVideoUrl: !!lesson.videoUrl
-          })
-          
-          // If lesson has a file, upload it
-          if (lessonFile) {
-            console.log(`Uploading video for lesson ${idx + 1}:`, lessonFile.name)
+          // If lesson has a new file, upload it
+          if ((lesson as any).file) {
+            console.log(`Uploading video for lesson ${idx + 1}:`, (lesson as any).file.name)
             const fileFormData = new FormData()
-            fileFormData.append('file', lessonFile)
+            fileFormData.append('file', (lesson as any).file)
             
             const uploadRes = await fetch('/api/upload', {
               method: 'POST',
@@ -109,8 +83,6 @@ export default function CreateCoursePage() {
               console.error(`❌ Video upload failed:`, errorData)
               alert(`Failed to upload video for lesson ${idx + 1}: ${errorData.error || 'Unknown error'}`)
             }
-          } else {
-            console.log(`⚠️ No file attached for lesson ${idx + 1}`)
           }
           
           return {
@@ -134,34 +106,51 @@ export default function CreateCoursePage() {
         lessons: processedLessons,
         status: formData.get("status") || "draft",
         thumbnail,
-        sections: selectedSections,
       }
 
-      const res = await fetch("/api/teacher/courses", {
-        method: "POST",
+      const res = await fetch(`/api/courses/${params.id}`, {
+        method: 'PUT',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
 
       if (res.ok) {
-        router.push("/teacher/courses")
+        router.push(`/teacher/courses/${params.id}`)
         router.refresh()
       } else {
         const errorData = await res.json()
-        alert(errorData.error || "Failed to create course")
+        alert(errorData.error || "Failed to update course")
       }
     } catch (error) {
-      alert("Error creating course")
+      alert("Error updating course")
     } finally {
       setLoading(false)
     }
   }
 
+  const addLesson = () => {
+    setLessons([...lessons, { title: "", description: "", content: "", videoUrl: "", duration: 0 }])
+  }
+
+  const removeLesson = (index: number) => {
+    setLessons(lessons.filter((_, i) => i !== index))
+  }
+
+  const updateLesson = (index: number, field: string, value: any) => {
+    const updated = [...lessons]
+    updated[index] = { ...updated[index], [field]: value }
+    setLessons(updated)
+  }
+
+  if (!course) {
+    return <div className="text-center p-8">Loading...</div>
+  }
+
   return (
     <div className="space-y-6 animate-fadeIn max-w-4xl">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Create New Course</h1>
-        <p className="text-muted-foreground">Design and publish your course content</p>
+        <h1 className="text-3xl font-bold mb-2">Edit Course</h1>
+        <p className="text-muted-foreground">Update your course content</p>
       </div>
 
       {/* Cloudinary Setup Notice */}
@@ -192,13 +181,14 @@ export default function CreateCoursePage() {
           
           <div>
             <label className="text-sm font-medium mb-2 block">Course Title *</label>
-            <Input name="title" placeholder="e.g., Introduction to JavaScript" required />
+            <Input name="title" defaultValue={course.title} placeholder="e.g., Introduction to JavaScript" required />
           </div>
 
           <div>
             <label className="text-sm font-medium mb-2 block">Description *</label>
             <Textarea 
               name="description" 
+              defaultValue={course.description}
               placeholder="Describe what students will learn..." 
               rows={4}
               required 
@@ -220,8 +210,8 @@ export default function CreateCoursePage() {
                   size="sm"
                   className="absolute top-2 right-2"
                   onClick={() => {
-                    setThumbnailPreview(null)
-                    ;(window as any).thumbnailFile = null
+                    setThumbnailPreview("")
+                    delete (window as any).thumbnailFile
                   }}
                 >
                   <X className="w-4 h-4" />
@@ -261,12 +251,12 @@ export default function CreateCoursePage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Category *</label>
-              <Input name="category" placeholder="e.g., Programming" required />
+              <Input name="category" defaultValue={course.category} placeholder="e.g., Programming" required />
             </div>
 
             <div>
               <label className="text-sm font-medium mb-2 block">Level *</label>
-              <select name="level" className="w-full px-4 py-2 border rounded-lg" required>
+              <select name="level" defaultValue={course.level} className="w-full px-4 py-2 border rounded-lg" required>
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
                 <option value="advanced">Advanced</option>
@@ -277,75 +267,44 @@ export default function CreateCoursePage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Price (USD)</label>
-              <Input name="price" type="number" min="0" step="0.01" defaultValue="0" />
+              <Input name="price" type="number" min="0" step="0.01" defaultValue={course.price || 0} />
             </div>
 
             <div>
               <label className="text-sm font-medium mb-2 block">Duration (minutes)</label>
-              <Input name="duration" type="number" min="0" defaultValue="0" />
+              <Input name="duration" type="number" min="0" defaultValue={course.duration || 0} />
             </div>
           </div>
 
           <div>
             <label className="text-sm font-medium mb-2 block">Status</label>
-            <select name="status" className="w-full px-4 py-2 border rounded-lg">
+            <select name="status" defaultValue={course.status} className="w-full px-4 py-2 border rounded-lg">
               <option value="draft">Draft</option>
               <option value="published">Published</option>
             </select>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium mb-2 block">Assign to Sections (optional)</label>
-            <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
-              {sections.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No sections available</p>
-              ) : (
-                sections.map((section) => (
-                  <label key={section._id} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedSections.includes(section._id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedSections([...selectedSections, section._id])
-                        } else {
-                          setSelectedSections(selectedSections.filter(id => id !== section._id))
-                        }
-                      }}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">{section.name}</span>
-                  </label>
-                ))
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Students in selected sections will see this course</p>
           </div>
         </Card>
 
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-lg">Lessons</h3>
-            <Button type="button" onClick={addLesson} size="sm" variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
+            <h3 className="font-semibold text-lg">Course Lessons</h3>
+            <Button type="button" onClick={addLesson} variant="outline" size="sm">
               Add Lesson
             </Button>
           </div>
 
           {lessons.map((lesson, idx) => (
-            <Card key={idx} className="p-4 space-y-3 bg-muted/30">
+            <Card key={idx} className="p-4 space-y-3 bg-muted/20">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium">Lesson {idx + 1}</h4>
-                {lessons.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeLesson(idx)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                )}
+                <span className="font-medium text-sm">Lesson {idx + 1}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeLesson(idx)}
+                >
+                  <Trash2 className="w-4 h-4 text-destructive" />
+                </Button>
               </div>
 
               <Input
@@ -388,18 +347,15 @@ export default function CreateCoursePage() {
                         onChange={(e) => {
                           const file = e.target.files?.[0]
                           if (file) {
-                            console.log(`📁 File selected for lesson ${idx + 1}:`, file.name, `Size: ${(file.size / 1024 / 1024).toFixed(2)}MB`)
-                            // Store file in ref (not state, as File objects don't work in state)
-                            lessonFilesRef.current[idx] = file
-                            // Store filename in state for display
-                            setLessonFileNames(prev => ({ ...prev, [idx]: file.name }))
+                            updateLesson(idx, "file", file)
+                            updateLesson(idx, "fileName", file.name)
                           }
                         }}
                       />
                       <label htmlFor={`lesson-file-${idx}`} className="cursor-pointer">
                         <Button type="button" variant="outline" size="sm" asChild>
                           <span>
-                            {lessonFileNames[idx] || "Choose File"}
+                            {(lesson as any).fileName || "Choose File"}
                           </span>
                         </Button>
                       </label>
@@ -407,18 +363,14 @@ export default function CreateCoursePage() {
                         Video, Audio, PDF, Word, PowerPoint (Max 50MB)
                       </p>
                     </div>
-                    {lessonFileNames[idx] && (
+                    {(lesson as any).fileName && (
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          delete lessonFilesRef.current[idx]
-                          setLessonFileNames(prev => {
-                            const updated = { ...prev }
-                            delete updated[idx]
-                            return updated
-                          })
+                          updateLesson(idx, "file", null)
+                          updateLesson(idx, "fileName", "")
                         }}
                       >
                         <X className="w-4 h-4" />
@@ -440,7 +392,7 @@ export default function CreateCoursePage() {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={loading}>
-            {loading ? "Creating..." : "Create Course"}
+            {loading ? "Updating..." : "Update Course"}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
