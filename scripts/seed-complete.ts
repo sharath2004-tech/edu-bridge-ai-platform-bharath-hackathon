@@ -564,24 +564,44 @@ async function seedCompleteDatabase() {
         { _id: classDoc._id },
         { strength: studentsInClass.length }
       )
-
-      // Assign class teacher (first teacher of the school)
-      const classTeacher = allTeachers.find(t => t.schoolId.equals(classDoc.schoolId))
-      if (classTeacher) {
-        await Class.updateOne(
-          { _id: classDoc._id },
-          { classTeacherId: classTeacher._id }
-        )
-        
-        // Update teacher's assigned classes
-        await User.updateOne(
-          { _id: classTeacher._id },
-          { $addToSet: { assignedClasses: classDoc._id } }
-        )
-      }
     }
 
     console.log(`   ✓ Created ${totalStudents} students across selected classes`)
+
+    // ==================== ASSIGN TEACHERS TO CLASSES ====================
+    console.log('\n👥 Assigning Teachers to Classes...')
+    
+    // Group teachers by school
+    const teachersBySchool = {
+      [school1._id.toString()]: gvhsTeachers,
+      [school2._id.toString()]: srisTeachers,
+      [school3._id.toString()]: owacTeachers,
+    }
+
+    // Assign classes to teachers (distribute evenly)
+    for (const [schoolId, schoolTeachers] of Object.entries(teachersBySchool)) {
+      const schoolClasses = targetClasses.filter(c => c.schoolId.toString() === schoolId)
+      
+      // Distribute classes among teachers
+      schoolClasses.forEach((classDoc, index) => {
+        const teacherIndex = index % schoolTeachers.length
+        const teacher = schoolTeachers[teacherIndex]
+        
+        // Add class to teacher's assignedClasses
+        User.updateOne(
+          { _id: teacher._id },
+          { $addToSet: { assignedClasses: classDoc._id } }
+        ).exec()
+        
+        // Set as class teacher
+        Class.updateOne(
+          { _id: classDoc._id },
+          { classTeacherId: teacher._id }
+        ).exec()
+      })
+      
+      console.log(`   ✓ Assigned ${schoolClasses.length} classes to ${schoolTeachers.length} teachers in school ${schoolId}`)
+    }
 
     // Update teachers' assigned subjects
     for (const teacher of allTeachers) {
@@ -595,6 +615,8 @@ async function seedCompleteDatabase() {
         { assignedSubjects: teacherSubjects.map(s => s._id) }
       )
     }
+    
+    console.log(`   ✓ Updated all teachers with their assigned subjects`)
 
     // ==================== EXAMS ====================
     console.log('\n📝 Creating Exams...')
