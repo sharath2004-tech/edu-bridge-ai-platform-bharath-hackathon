@@ -157,7 +157,13 @@ export default function SuperAdminSchoolsPage() {
             Manage all registered schools on the platform
           </p>
         </div>
-        <Button>
+        <Button onClick={() => {
+          toast({
+            title: 'School Registration',
+            description: 'School registration is available at /school-registration'
+          })
+          window.open('/school-registration', '_blank')
+        }}>
           <Building2 className="mr-2 h-4 w-4" />
           Add New School
         </Button>
