@@ -1,20 +1,11 @@
 import { getSession } from '@/lib/auth'
-import { v2 as cloudinary } from 'cloudinary'
 import { NextRequest, NextResponse } from 'next/server'
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-})
-
-console.log('🔧 Cloudinary Config:', {
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY ? '***' + process.env.CLOUDINARY_API_KEY.slice(-4) : 'MISSING',
-  api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING',
-})
+/**
+ * Bunny.net Upload API
+ * Better for videos than Cloudinary - no duration limits
+ * Setup: https://bunny.net (Sign up and create storage zone)
+ */
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,11 +17,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if Cloudinary is configured
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      console.error('❌ Cloudinary not configured')
+    // Check if Bunny.net is configured
+    if (!process.env.BUNNY_STORAGE_ZONE || !process.env.BUNNY_API_KEY || !process.env.BUNNY_CDN_HOSTNAME) {
+      console.error('❌ Bunny.net not configured')
       return NextResponse.json(
-        { success: false, error: 'Cloudinary is not configured. Please add CLOUDINARY credentials to .env.local' },
+        { success: false, error: 'Bunny.net is not configured. Add BUNNY_STORAGE_ZONE, BUNNY_API_KEY, BUNNY_CDN_HOSTNAME to environment variables' },
         { status: 500 }
       )
     }
@@ -45,94 +36,65 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`📤 Uploading file: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB, Type: ${file.type}`)
-
-    // Validate file size (max 100MB for Cloudinary)
-    if (file.size > 100 * 1024 * 1024) {
-      return NextResponse.json(
-        { success: false, error: 'File size exceeds 100MB limit' },
-        { status: 400 }
-      )
-    }
+    console.log(`📤 Uploading to Bunny.net: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB, Type: ${file.type}`)
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Determine resource type based on file type
+    // Create unique filename
+    const timestamp = Date.now()
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+    const fileName = `${session.id}-${timestamp}-${sanitizedName}`
+    
+    // Determine folder based on file type
     const fileType = file.type.split('/')[0]
-    const resourceType = fileType === 'video' ? 'video' : fileType === 'audio' ? 'video' : 'auto'
+    const folder = fileType === 'video' ? 'videos' : fileType === 'image' ? 'images' : 'files'
+    const filePath = `edu-bridge/${folder}/${fileName}`
 
-    console.log(`🔄 Uploading to Cloudinary as resource type: ${resourceType}`)
-    console.log(`📋 Using cloud: ${process.env.CLOUDINARY_CLOUD_NAME}`)
+    console.log(`🔄 Uploading to path: ${filePath}`)
 
-    // Upload configuration with better video support
-    const uploadOptions: any = {
-      resource_type: resourceType as 'video' | 'auto',
-      folder: 'edu-bridge',
-      chunk_size: 6000000, // 6MB chunks for large files
-      timeout: 300000, // 5 minutes timeout for large videos
-      overwrite: true,
-    }
-
-    // Use upload preset if provided
-    if (process.env.CLOUDINARY_UPLOAD_PRESET) {
-      uploadOptions.upload_preset = process.env.CLOUDINARY_UPLOAD_PRESET
-      console.log(`📦 Using upload preset: ${process.env.CLOUDINARY_UPLOAD_PRESET}`)
-    }
-
-    // For videos, add additional options
-    if (resourceType === 'video') {
-      uploadOptions.eager_async = true
-      uploadOptions.format = 'mp4' // Ensure MP4 format for compatibility
-    }
-
-    // Upload to Cloudinary with increased timeout
-    const result = await new Promise<any>((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        uploadOptions,
-        (error, result) => {
-          if (error) {
-            console.error('❌ Cloudinary upload error:', {
-              message: error.message,
-              http_code: error.http_code,
-              name: error.name,
-              error: error,
-            })
-            reject(error)
-          } else if (result) {
-            console.log('✅ Cloudinary upload success:', {
-              url: result.secure_url,
-              format: result.format,
-              resource_type: result.resource_type,
-            })
-            resolve(result)
-          } else {
-            reject(new Error('No result from Cloudinary'))
-          }
-        }
-      )
-      uploadStream.end(buffer)
+    // Upload to Bunny.net Storage
+    const uploadUrl = `https://storage.bunnycdn.com/${process.env.BUNNY_STORAGE_ZONE}/${filePath}`
+    
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'AccessKey': process.env.BUNNY_API_KEY,
+        'Content-Type': 'application/octet-stream',
+        'Content-Length': buffer.length.toString(),
+      },
+      body: buffer,
     })
 
-    console.log(`✅ Upload successful: ${result.secure_url}`)
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text()
+      console.error('❌ Bunny.net upload error:', {
+        status: uploadResponse.status,
+        statusText: uploadResponse.statusText,
+        error: errorText,
+      })
+      throw new Error(`Bunny.net upload failed: ${uploadResponse.statusText}`)
+    }
+
+    // Construct CDN URL
+    const cdnUrl = `https://${process.env.BUNNY_CDN_HOSTNAME}/${filePath}`
+
+    console.log(`✅ Upload successful: ${cdnUrl}`)
 
     return NextResponse.json(
       { 
         success: true, 
-        url: result.secure_url,
-        publicId: result.public_id,
+        url: cdnUrl,
         fileName: file.name,
-        resourceType: result.resource_type,
-        format: result.format,
-        size: result.bytes,
+        fileType: fileType,
+        size: file.size,
       },
       { status: 200 }
     )
   } catch (error: any) {
-    console.error('❌ Error uploading file to Cloudinary:', {
+    console.error('❌ Error uploading file to Bunny.net:', {
       message: error.message,
-      http_code: error.http_code,
       error: error,
     })
     return NextResponse.json(
@@ -140,7 +102,6 @@ export async function POST(request: NextRequest) {
         success: false, 
         error: 'Failed to upload file', 
         message: error.message,
-        http_code: error.http_code,
       },
       { status: 500 }
     )

@@ -164,21 +164,21 @@ export default function CreateCoursePage() {
         <p className="text-muted-foreground">Design and publish your course content</p>
       </div>
 
-      {/* Cloudinary Setup Notice */}
-      <Card className="p-4 border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-950/20">
+      {/* Bunny.net Setup Notice */}
+      <Card className="p-4 border-l-4 border-l-orange-500 bg-orange-50 dark:bg-orange-950/20">
         <div className="flex gap-3">
           <div className="flex-shrink-0">
-            ☁️
+            🐰
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-1">Cloudinary Cloud Storage Enabled</h3>
-            <p className="text-sm text-blue-700 dark:text-blue-300">
-              Videos are now uploaded to <strong>Cloudinary</strong> and will persist on Vercel deployments!
+            <h3 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">Bunny.net CDN Storage Enabled</h3>
+            <p className="text-sm text-orange-700 dark:text-orange-300">
+              Videos & images are now uploaded to <strong>Bunny.net CDN</strong> - perfect for Vercel deployments!
             </p>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 mt-2 ml-4 list-disc">
-              <li><strong>Setup Required</strong> - Add Cloudinary credentials to .env.local (see CLOUDINARY_SETUP.md)</li>
-              <li><strong>Free Tier</strong> - 25GB storage, 25GB bandwidth/month</li>
-              <li><strong>Max Size</strong> - 100MB per video file</li>
+            <ul className="text-sm text-orange-700 dark:text-orange-300 mt-2 ml-4 list-disc">
+              <li><strong>Setup</strong> - Add BUNNY_STORAGE_ZONE, BUNNY_API_KEY, BUNNY_CDN_HOSTNAME to environment variables</li>
+              <li><strong>$1 Free Credit</strong> - ~100GB storage + bandwidth (much better than alternatives)</li>
+              <li><strong>No Limits</strong> - No video duration restrictions, unlimited file size</li>
             </ul>
           </div>
         </div>
