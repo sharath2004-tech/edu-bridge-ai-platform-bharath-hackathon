@@ -11,14 +11,33 @@ export default function OfflineLoginPage() {
   const router = useRouter()
   const [cachedSession, setCachedSession] = useState<any>(null)
   const [isOnline, setIsOnline] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string>('')
 
   useEffect(() => {
     // Check online status
     setIsOnline(navigator.onLine)
 
-    // Get cached session
-    const session = OfflineAuth.getCachedSession()
-    setCachedSession(session)
+    // Get cached session with debug info
+    try {
+      const session = OfflineAuth.getCachedSession()
+      setCachedSession(session)
+      
+      // Check raw localStorage
+      const rawSession = localStorage.getItem('edubridge_offline_session')
+      console.log('Raw localStorage:', rawSession)
+      console.log('Parsed session:', session)
+      
+      if (!session && rawSession) {
+        setDebugInfo('Session exists in storage but failed to parse')
+      } else if (session) {
+        setDebugInfo('Session found and valid')
+      } else {
+        setDebugInfo('No session found in localStorage')
+      }
+    } catch (error) {
+      console.error('Error checking session:', error)
+      setDebugInfo('Error: ' + (error as Error).message)
+    }
 
     // Listen for online/offline events
     const handleOnline = () => {
@@ -119,6 +138,10 @@ export default function OfflineLoginPage() {
             <p className="text-xs text-muted-foreground">
               Cached session expires: {new Date(cachedSession.expiresAt).toLocaleDateString()}
             </p>
+            
+            {debugInfo && (
+              <p className="text-xs text-green-600">Debug: {debugInfo}</p>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -130,6 +153,14 @@ export default function OfflineLoginPage() {
                 You need to login online at least once to access content offline
               </p>
             </div>
+            
+            {debugInfo && (
+              <div className="p-3 bg-muted rounded text-xs font-mono">
+                <p className="font-semibold mb-1">Debug Info:</p>
+                <p>{debugInfo}</p>
+                <p className="mt-2">Check browser console for more details</p>
+              </div>
+            )}
 
             <Button onClick={goToRegularLogin} className="w-full" variant="outline">
               Try Regular Login
