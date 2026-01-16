@@ -10,7 +10,7 @@ const menuItems = [
   { href: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/student/courses", label: "Courses", icon: BookOpen },
   { href: "/student/quizzes", label: "My Quizzes", icon: ClipboardCheck },
-  { href: "/student/downloads", label: "Downloads", icon: Download },
+  { href: "/student/offline-videos", label: "Offline Videos", icon: Download },
   { href: "/student/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/student/community", label: "Community", icon: Users },
   { href: "/student/settings", label: "Settings", icon: Settings },

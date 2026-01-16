@@ -1,9 +1,11 @@
 "use client"
 
 import { offlineStorage } from "@/lib/offline-storage"
-import { CheckCircle, Download, WifiOff } from "lucide-react"
-import { useEffect, useState } from "react"
+import { CheckCircle, Download, WifiOff, Maximize2, Minimize2, Monitor } from "lucide-react"
+import { useEffect, useState, useRef } from "react"
 import { Button } from "./ui/button"
+
+type VideoSize = 'small' | 'medium' | 'large' | 'full'
 
 interface VideoPlayerProps {
   videoUrl: string
@@ -18,8 +20,18 @@ export function VideoPlayerWithError({ videoUrl, title, courseId, lessonId }: Vi
   const [isOfflineAvailable, setIsOfflineAvailable] = useState(false)
   const [offlineUrl, setOfflineUrl] = useState<string | null>(null)
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
+  const [videoSize, setVideoSize] = useState<VideoSize>('medium')
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   const videoId = `${courseId}-${lessonId}`
+
+  // Size configurations
+  const sizeClasses = {
+    small: 'max-w-md',    // ~448px
+    medium: 'max-w-2xl',  // ~672px
+    large: 'max-w-4xl',   // ~896px
+    full: 'w-full'        // 100%
+  }
 
   useEffect(() => {
     checkOfflineAvailability()
@@ -109,17 +121,47 @@ export function VideoPlayerWithError({ videoUrl, title, courseId, lessonId }: Vi
     }
   }
 
+  const togglePictureInPicture = async () => {
+    if (!videoRef.current) return
+    
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture()
+      } else {
+        await videoRef.current.requestPictureInPicture()
+      }
+    } catch (error) {
+      console.error('PiP failed:', error)
+    }
+  }
+
+  const cycleSize = () => {
+    const sizes: VideoSize[] = ['small', 'medium', 'large', 'full']
+    const currentIndex = sizes.indexOf(videoSize)
+    const nextIndex = (currentIndex + 1) % sizes.length
+    setVideoSize(sizes[nextIndex])
+  }
+
   const currentVideoUrl = (!isOnline && offlineUrl) ? offlineUrl : videoUrl
 
   if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
     return (
-      <div className="aspect-video">
-        <iframe
-          src={videoUrl.replace('watch?v=', 'embed/')}
-          className="w-full h-full"
-          allowFullScreen
-          title={title}
-        />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-muted-foreground">Video Size: {videoSize}</span>
+          <Button onClick={cycleSize} variant="outline" size="sm" className="gap-2">
+            <Maximize2 className="w-4 h-4" />
+            Resize ({videoSize})
+          </Button>
+        </div>
+        <div className={`${sizeClasses[videoSize]} mx-auto aspect-video`}>
+          <iframe
+            src={videoUrl.replace('watch?v=', 'embed/')}
+            className="w-full h-full rounded-lg"
+            allowFullScreen
+            title={title}
+          />
+        </div>
       </div>
     )
   }
@@ -140,6 +182,48 @@ export function VideoPlayerWithError({ videoUrl, title, courseId, lessonId }: Vi
 
   return (
     <div className="space-y-4">
+      {/* Size Controls */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Video Size:</span>
+          <div className="flex gap-1">
+            <Button 
+              onClick={() => setVideoSize('small')} 
+              variant={videoSize === 'small' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Small
+            </Button>
+            <Button 
+              onClick={() => setVideoSize('medium')} 
+              variant={videoSize === 'medium' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Medium
+            </Button>
+            <Button 
+              onClick={() => setVideoSize('large')} 
+              variant={videoSize === 'large' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Large
+            </Button>
+            <Button 
+              onClick={() => setVideoSize('full')} 
+              variant={videoSize === 'full' ? 'default' : 'outline'}
+              size="sm"
+            >
+              Full
+            </Button>
+          </div>
+        </div>
+        
+        <Button onClick={togglePictureInPicture} variant="outline" size="sm" className="gap-2">
+          <Monitor className="w-4 h-4" />
+          Picture-in-Picture
+        </Button>
+      </div>
+
       {!isOnline && (
         <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg flex items-center gap-2">
           <WifiOff className="w-4 h-4 text-orange-600" />
@@ -151,19 +235,22 @@ export function VideoPlayerWithError({ videoUrl, title, courseId, lessonId }: Vi
 
       {!videoError && (
         <>
-          <video 
-            key={currentVideoUrl}
-            controls 
-            controlsList="nodownload"
-            className="w-full rounded-lg bg-black"
-            preload="metadata"
-            onError={() => setVideoError(true)}
-          >
-            <source src={currentVideoUrl} type="video/mp4" />
-            <source src={currentVideoUrl} type="video/webm" />
-            <source src={currentVideoUrl} type="video/ogg" />
-            Your browser does not support the video tag.
-          </video>
+          <div className={`${sizeClasses[videoSize]} mx-auto`}>
+            <video 
+              ref={videoRef}
+              key={currentVideoUrl}
+              controls 
+              controlsList="nodownload"
+              className="w-full rounded-lg bg-black shadow-lg"
+              preload="metadata"
+              onError={() => setVideoError(true)}
+            >
+              <source src={currentVideoUrl} type="video/mp4" />
+              <source src={currentVideoUrl} type="video/webm" />
+              <source src={currentVideoUrl} type="video/ogg" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
           
           <div className="flex gap-2 flex-wrap">
             {isOfflineAvailable ? (

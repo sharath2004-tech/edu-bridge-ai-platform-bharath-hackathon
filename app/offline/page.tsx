@@ -2,11 +2,40 @@
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Home, RefreshCw, WifiOff } from "lucide-react"
-import Link from "next/link"
+import { Video, RefreshCw, WifiOff } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export default function OfflinePage() {
-  const handleRefresh = () => {
+  const router = useRouter()
+  const [isOnline, setIsOnline] = useState(false)
+
+  useEffect(() => {
+    // Check online status
+    setIsOnline(navigator.onLine)
+
+    const handleOnline = () => {
+      setIsOnline(true)
+      // Auto reload when back online
+      setTimeout(() => window.location.reload(), 1000)
+    }
+    
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  const goToOfflineVideos = () => {
+    router.push('/student/offline-videos')
+  }
+
+  const retry = () => {
     window.location.reload()
   }
 
@@ -14,39 +43,42 @@ export default function OfflinePage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-muted/50 to-background">
       <Card className="max-w-md w-full p-8 text-center">
         <div className="mb-6">
-          <div className="w-20 h-20 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
-            <WifiOff className="w-10 h-10 text-muted-foreground" />
+          <div className="w-20 h-20 mx-auto mb-4 bg-orange-100 dark:bg-orange-950/30 rounded-full flex items-center justify-center">
+            <WifiOff className="w-10 h-10 text-orange-600" />
           </div>
           <h1 className="text-3xl font-bold mb-2">You're Offline</h1>
           <p className="text-muted-foreground">
-            No internet connection detected. You can still access your downloaded content.
+            {isOnline 
+              ? "Connection restored! Refreshing..."
+              : "No internet connection. But you can still watch your downloaded videos!"
+            }
           </p>
         </div>
 
-        <div className="space-y-3">
-          <Link href="/student/downloads">
-            <Button className="w-full" variant="default">
-              View Downloads
+        {!isOnline && (
+          <div className="space-y-3">
+            <Button onClick={goToOfflineVideos} className="w-full gap-2" size="lg">
+              <Video className="w-5 h-5" />
+              View Offline Videos
             </Button>
-          </Link>
 
-          <Button onClick={handleRefresh} className="w-full" variant="outline">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Try Again
-          </Button>
-
-          <Link href="/student/dashboard">
-            <Button className="w-full" variant="ghost">
-              <Home className="w-4 h-4 mr-2" />
-              Go to Dashboard
+            <Button onClick={retry} className="w-full gap-2" variant="outline">
+              <RefreshCw className="w-4 h-4" />
+              Try Again
             </Button>
-          </Link>
-        </div>
+          </div>
+        )}
+
+        {isOnline && (
+          <div className="flex items-center justify-center gap-2 text-green-600">
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            <span>Reconnecting...</span>
+          </div>
+        )}
 
         <div className="mt-6 pt-6 border-t">
           <p className="text-xs text-muted-foreground">
-            Downloaded content is available in the Downloads section. 
-            Connect to the internet to access new content.
+            💡 Tip: Download videos when you have internet to watch them later offline
           </p>
         </div>
       </Card>

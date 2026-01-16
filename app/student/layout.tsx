@@ -1,4 +1,5 @@
 import { AIChatbot } from "@/components/ai-chatbot"
+import { OfflineDetector } from "@/components/offline-detector"
 import { Sidebar } from "@/components/sidebar"
 import { TopNav } from "@/components/top-nav"
 import type React from "react"
@@ -10,6 +11,7 @@ export default function StudentLayout({
 }) {
   return (
     <div className="min-h-screen bg-background">
+      <OfflineDetector />
       <Sidebar />
       <TopNav />
       <main className="ml-0 lg:ml-64 pt-16">
