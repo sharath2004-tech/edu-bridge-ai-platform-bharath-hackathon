@@ -1,16 +1,15 @@
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import Class from "@/lib/models/Class";
 import User from "@/lib/models/User";
 import dbConnect from "@/lib/mongodb";
-import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST: Assign a teacher to a class
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     
-    if (!session?.user || session.user.role !== "principal") {
+    if (!session || session.role !== "principal") {
       return NextResponse.json(
         { error: "Unauthorized - Principal access only" },
         { status: 403 }
@@ -29,8 +28,8 @@ export async function POST(request: NextRequest) {
     await dbConnect();
 
     // Get principal's school
-    const principal = await User.findById(session.user.id);
-    if (!principal || !principal.school) {
+    const principal = await User.findById(session.id);
+    if (!principal || !principal.schoolId) {
       return NextResponse.json(
         { error: "Principal school not found" },
         { status: 404 }
@@ -40,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Verify teacher belongs to principal's school
     const teacher = await User.findOne({ 
       _id: teacherId, 
-      school: principal.school,
+      schoolId: principal.schoolId,
       role: "teacher" 
     });
 
@@ -54,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Verify class belongs to principal's school
     const classDoc = await Class.findOne({ 
       _id: classId, 
-      school: principal.school 
+      schoolId: principal.schoolId 
     });
 
     if (!classDoc) {
@@ -94,9 +93,9 @@ export async function POST(request: NextRequest) {
 // DELETE: Unassign a teacher from a class
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     
-    if (!session?.user || session.user.role !== "principal") {
+    if (!session || session.role !== "principal") {
       return NextResponse.json(
         { error: "Unauthorized - Principal access only" },
         { status: 403 }
@@ -117,8 +116,8 @@ export async function DELETE(request: NextRequest) {
     await dbConnect();
 
     // Get principal's school
-    const principal = await User.findById(session.user.id);
-    if (!principal || !principal.school) {
+    const principal = await User.findById(session.id);
+    if (!principal || !principal.schoolId) {
       return NextResponse.json(
         { error: "Principal school not found" },
         { status: 404 }
@@ -128,7 +127,7 @@ export async function DELETE(request: NextRequest) {
     // Verify teacher belongs to principal's school
     const teacher = await User.findOne({ 
       _id: teacherId, 
-      school: principal.school,
+      schoolId: principal.schoolId,
       role: "teacher" 
     });
 
