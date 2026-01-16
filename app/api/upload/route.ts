@@ -75,11 +75,14 @@ export async function POST(request: NextRequest) {
       overwrite: true,
     }
 
+    // Use upload preset if provided
+    if (process.env.CLOUDINARY_UPLOAD_PRESET) {
+      uploadOptions.upload_preset = process.env.CLOUDINARY_UPLOAD_PRESET
+      console.log(`📦 Using upload preset: ${process.env.CLOUDINARY_UPLOAD_PRESET}`)
+    }
+
     // For videos, add additional options
     if (resourceType === 'video') {
-      uploadOptions.eager = [
-        { streaming_profile: 'auto', format: 'auto' }
-      ]
       uploadOptions.eager_async = true
       uploadOptions.format = 'mp4' // Ensure MP4 format for compatibility
     }
