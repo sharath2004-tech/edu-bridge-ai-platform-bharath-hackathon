@@ -15,6 +15,7 @@ export default function CreateCoursePage() {
   const [lessons, setLessons] = useState([{ title: "", description: "", content: "", videoUrl: "", duration: 0 }])
   const [sections, setSections] = useState<any[]>([])
   const [selectedSections, setSelectedSections] = useState<string[]>([])
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
 
   useEffect(() => {
     fetchSections()
@@ -165,18 +166,56 @@ export default function CreateCoursePage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Course Thumbnail (optional)</label>
-            <input
-              type="file"
-              accept="image/*"
-              className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) {
-                  (window as any).thumbnailFile = file
-                }
-              }}
-            />
+            <label className="text-sm font-medium mb-2 block">Course Thumbnail</label>
+            {thumbnailPreview && (
+              <div className="mb-3 relative">
+                <img 
+                  src={thumbnailPreview} 
+                  alt="Thumbnail preview" 
+                  className="w-full h-48 object-cover rounded-lg border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={() => {
+                    setThumbnailPreview(null)
+                    ;(window as any).thumbnailFile = null
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+              <input
+                id="thumbnail-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    (window as any).thumbnailFile = file
+                    const reader = new FileReader()
+                    reader.onloadend = () => {
+                      setThumbnailPreview(reader.result as string)
+                    }
+                    reader.readAsDataURL(file)
+                  }
+                }}
+              />
+              <label htmlFor="thumbnail-upload" className="cursor-pointer">
+                <div className="flex flex-col items-center gap-2">
+                  <Upload className="w-8 h-8 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Click to upload thumbnail</p>
+                    <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 10MB</p>
+                  </div>
+                </div>
+              </label>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
@@ -291,24 +330,54 @@ export default function CreateCoursePage() {
               />
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Video/PDF URL or Upload</label>
+                <label className="text-sm font-medium mb-2 block">Video/PDF URL or Upload File</label>
                 <Input
                   placeholder="Paste URL (e.g., YouTube link, PDF link)"
                   value={lesson.videoUrl}
                   onChange={(e) => updateLesson(idx, "videoUrl", e.target.value)}
                 />
-                <div className="mt-2">
-                  <input
-                    type="file"
-                    accept="video/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx"
-                    className="text-sm"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        updateLesson(idx, "file", file)
-                      }
-                    }}
-                  />
+                <div className="mt-3 border-2 border-dashed border-border rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <Upload className="w-5 h-5 text-primary" />
+                    <div className="flex-1">
+                      <input
+                        id={`lesson-file-${idx}`}
+                        type="file"
+                        accept="video/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            updateLesson(idx, "file", file)
+                            updateLesson(idx, "fileName", file.name)
+                          }
+                        }}
+                      />
+                      <label htmlFor={`lesson-file-${idx}`} className="cursor-pointer">
+                        <Button type="button" variant="outline" size="sm" asChild>
+                          <span>
+                            {(lesson as any).fileName || "Choose File"}
+                          </span>
+                        </Button>
+                      </label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Video, Audio, PDF, Word, PowerPoint (Max 50MB)
+                      </p>
+                    </div>
+                    {(lesson as any).fileName && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          updateLesson(idx, "file", null)
+                          updateLesson(idx, "fileName", "")
+                        }}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
