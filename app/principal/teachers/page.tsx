@@ -4,9 +4,8 @@ import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { usePagination } from '@/hooks/use-pagination'
 import { BookOpen, Edit, Plus, Search, Trash2, UserPlus } from "lucide-react"
 import { useEffect, useState } from "react"

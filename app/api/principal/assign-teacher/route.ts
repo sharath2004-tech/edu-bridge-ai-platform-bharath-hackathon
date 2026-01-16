@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import dbConnect from "@/lib/mongodb";
-import User from "@/lib/models/User";
 import Class from "@/lib/models/Class";
+import User from "@/lib/models/User";
+import dbConnect from "@/lib/mongodb";
+import { getServerSession } from "next-auth";
+import { NextRequest, NextResponse } from "next/server";
 
 // POST: Assign a teacher to a class
 export async function POST(request: NextRequest) {
