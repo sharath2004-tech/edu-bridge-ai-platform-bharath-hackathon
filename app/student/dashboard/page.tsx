@@ -4,7 +4,8 @@ import { GamificationWidget } from "@/components/gamification-widget"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { ArrowRight, BookOpen, Clock, Play, Target, TrendingUp } from "lucide-react"
+import { ArrowRight, BookOpen, Clock, FolderOpen, Play, Target, TrendingUp } from "lucide-react"
+import Link from "next/link"
 import { useEffect, useState } from "react"
 
 interface DashboardData {
@@ -195,6 +196,21 @@ export default function StudentDashboard() {
                 <p className="text-sm text-muted-foreground">No upcoming deadlines</p>
               )}
             </div>
+          </Card>
+
+          {/* My Sections - Quick Access */}
+          <Card className="p-4 border border-primary/30 bg-primary/5">
+            <div className="flex items-center gap-2 mb-3">
+              <FolderOpen className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold">My Sections</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">Access course materials uploaded by your teachers</p>
+            <Link href="/student/sections">
+              <Button size="sm" className="w-full gap-2">
+                <FolderOpen className="w-4 h-4" />
+                View Sections
+              </Button>
+            </Link>
           </Card>
 
           {/* Recommended */}

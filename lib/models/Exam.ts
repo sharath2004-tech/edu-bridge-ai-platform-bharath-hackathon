@@ -45,7 +45,6 @@ const ExamSchema = new Schema<IExam>(
     date: {
       type: Date,
       required: [true, 'Exam date is required'],
-      index: true,
     },
     term: {
       type: String,
@@ -84,9 +83,6 @@ const ExamSchema = new Schema<IExam>(
 
 // Index for querying exams by school and class
 ExamSchema.index({ schoolId: 1, classId: 1, date: -1 });
-
-// Index for querying by date
-ExamSchema.index({ date: 1 });
 
 const Exam = mongoose.models.Exam || mongoose.model<IExam>('Exam', ExamSchema);
 
