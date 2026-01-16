@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { offlineStorage, formatBytes } from "@/lib/offline-storage"
 import { VideoPlayerWithError } from "@/components/video-player-with-error"
+import { formatBytes, offlineStorage } from "@/lib/offline-storage"
 import {
     Download,
     HardDrive,

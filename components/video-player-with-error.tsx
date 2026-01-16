@@ -1,8 +1,8 @@
 "use client"
 
 import { offlineStorage } from "@/lib/offline-storage"
-import { CheckCircle, Download, WifiOff, Maximize2, Minimize2, Monitor } from "lucide-react"
-import { useEffect, useState, useRef } from "react"
+import { CheckCircle, Download, Maximize2, Monitor, WifiOff } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "./ui/button"
 
 type VideoSize = 'small' | 'medium' | 'large' | 'full'
