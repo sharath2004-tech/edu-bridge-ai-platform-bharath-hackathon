@@ -1,7 +1,7 @@
+import { DeleteCourseButton } from "@/components/delete-course-button"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { DeleteCourseButton } from "@/components/delete-course-button"
 import { getSession } from "@/lib/auth"
 import { Course } from "@/lib/models"
 import connectDB from "@/lib/mongodb"
