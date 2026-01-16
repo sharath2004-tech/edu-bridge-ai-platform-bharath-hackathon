@@ -19,6 +19,10 @@ export default function SuperAdminSchoolsPage() {
   const [selectedSchool, setSelectedSchool] = useState<any>(null)
   const [creatingAdmin, setCreatingAdmin] = useState(false)
   const [adminCredentials, setAdminCredentials] = useState<any>(null)
+  const [assignTeachersDialog, setAssignTeachersDialog] = useState(false)
+  const [schoolTeachers, setSchoolTeachers] = useState<any[]>([])
+  const [schoolClasses, setSchoolClasses] = useState<any[]>([])
+  const [loadingAssignments, setLoadingAssignments] = useState(false)
   const { toast } = useToast()
   const [adminForm, setAdminForm] = useState({
     name: '',
@@ -91,6 +95,69 @@ export default function SuperAdminSchoolsPage() {
       sendEmail: true
     })
     setIsCreateAdminOpen(true)
+  }
+
+  const openAssignTeachersDialog = async (school: any) => {
+    setSelectedSchool(school)
+    setAssignTeachersDialog(true)
+    setLoadingAssignments(true)
+    
+    try {
+      // Fetch teachers for this school
+      const teachersRes = await fetch(`/api/super-admin/users?role=teacher&schoolId=${school._id}`)
+      const teachersData = await teachersRes.json()
+      
+      // Fetch classes for this school
+      const classesRes = await fetch(`/api/super-admin/classes?schoolId=${school._id}`)
+      const classesData = await classesRes.json()
+      
+      if (teachersData.success) setSchoolTeachers(teachersData.users || [])
+      if (classesData.success) setSchoolClasses(classesData.classes || [])
+    } catch (error) {
+      console.error('Error loading assignments:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to load teachers and classes',
+        variant: 'destructive'
+      })
+    } finally {
+      setLoadingAssignments(false)
+    }
+  }
+
+  const assignTeacherToClass = async (teacherId: string, classId: string) => {
+    try {
+      const res = await fetch('/api/super-admin/assign-teacher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teacherId, classId })
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        toast({
+          title: 'Success',
+          description: 'Teacher assigned to class successfully'
+        })
+        // Refresh teachers list
+        const teachersRes = await fetch(`/api/super-admin/users?role=teacher&schoolId=${selectedSchool._id}`)
+        const teachersData = await teachersRes.json()
+        if (teachersData.success) setSchoolTeachers(teachersData.users || [])
+      } else {
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to assign teacher',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to assign teacher',
+        variant: 'destructive'
+      })
+    }
   }
 
   const handleCreateAdmin = async (e: React.FormEvent) => {
@@ -276,6 +343,14 @@ export default function SuperAdminSchoolsPage() {
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
                     Create Admin
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => openAssignTeachersDialog(school)}
+                  >
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Assign Teachers
                   </Button>
                 </div>
               </div>

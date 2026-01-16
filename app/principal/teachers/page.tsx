@@ -1,20 +1,25 @@
 "use client"
 
 import { PaginationControls } from '@/components/pagination-controls'
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { usePagination } from '@/hooks/use-pagination'
-import { Edit, Plus, Search, Trash2 } from "lucide-react"
+import { BookOpen, Edit, Plus, Search, Trash2, UserPlus } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 interface Teacher {
   _id: string
   name: string
   email: string
   phone?: string
+  subjectSpecialization?: string
   assignedClasses?: string[]
-  assignedSubjects?: string[]
+  subjects?: string[]
   createdAt: string
 }
 
@@ -23,6 +28,10 @@ export default function TeachersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [assignDialog, setAssignDialog] = useState(false)
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
+  const [classes, setClasses] = useState<any[]>([])
+  const [loadingClasses, setLoadingClasses] = useState(false)
 
   useEffect(() => {
     fetchTeachers()
@@ -39,6 +48,51 @@ export default function TeachersPage() {
       console.error('Error fetching teachers:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const openAssignDialog = async (teacher: Teacher) => {
+    setSelectedTeacher(teacher)
+    setAssignDialog(true)
+    setLoadingClasses(true)
+    
+    try {
+      const res = await fetch('/api/principal/classes')
+      if (res.ok) {
+        const data = await res.json()
+        setClasses(data.classes || [])
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error)
+      toast.error('Failed to load classes')
+    } finally {
+      setLoadingClasses(false)
+    }
+  }
+
+  const assignTeacherToClass = async (classId: string) => {
+    if (!selectedTeacher) return
+    
+    try {
+      const res = await fetch('/api/principal/assign-teacher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          teacherId: selectedTeacher._id, 
+          classId 
+        })
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        toast.success('Teacher assigned to class successfully')
+        fetchTeachers() // Refresh the list
+      } else {
+        toast.error(data.error || 'Failed to assign teacher')
+      }
+    } catch (error) {
+      toast.error('Failed to assign teacher')
     }
   }
 
@@ -95,8 +149,21 @@ export default function TeachersPage() {
                 <div>
                   <h3 className="font-semibold">{teacher.name}</h3>
                   <p className="text-sm text-muted-foreground">{teacher.email}</p>
+                  {teacher.subjectSpecialization && (
+                    <Badge variant="outline" className="mt-2">
+                      {teacher.subjectSpecialization}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => openAssignDialog(teacher)}
+                    title="Assign Classes"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                  </Button>
                   <Button variant="ghost" size="sm">
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -110,31 +177,25 @@ export default function TeachersPage() {
                 <p className="text-sm text-muted-foreground mb-2">{teacher.phone}</p>
               )}
 
-              {teacher.assignedClasses && teacher.assignedClasses.length > 0 && (
-                <div className="mb-2">
-                  <p className="text-xs font-medium mb-1">Classes:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {teacher.assignedClasses.map((cls) => (
-                      <span key={cls} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {cls}
-                      </span>
-                    ))}
+              {/* Show count instead of ObjectIDs */}
+              <div className="flex gap-4 mt-3">
+                {teacher.assignedClasses && teacher.assignedClasses.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm">
+                      <strong>{teacher.assignedClasses.length}</strong> classes
+                    </span>
                   </div>
-                </div>
-              )}
-
-              {teacher.assignedSubjects && teacher.assignedSubjects.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium mb-1">Subjects:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {teacher.assignedSubjects.map((subject) => (
-                      <span key={subject} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {subject}
-                      </span>
-                    ))}
+                )}
+                {teacher.subjects && teacher.subjects.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-green-600" />
+                    <span className="text-sm">
+                      <strong>{teacher.subjects.length}</strong> subjects
+                    </span>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </Card>
           ))
         )}
@@ -165,6 +226,60 @@ export default function TeachersPage() {
           </Card>
         </div>
       )}
+
+      {/* Assign Classes Dialog */}
+      <Dialog open={assignDialog} onOpenChange={setAssignDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Classes to {selectedTeacher?.name}</DialogTitle>
+            <DialogDescription>
+              Select a class to assign to this teacher
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {loadingClasses ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                <p className="text-sm text-muted-foreground mt-2">Loading classes...</p>
+              </div>
+            ) : classes.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No classes found in this school
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {classes.map((cls) => {
+                  const isAssigned = selectedTeacher?.assignedClasses?.includes(cls._id);
+                  return (
+                    <div
+                      key={cls._id}
+                      className="flex items-center justify-between p-3 border rounded hover:bg-gray-50"
+                    >
+                      <div>
+                        <p className="font-medium">{cls.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {cls.section} - Grade {cls.grade}
+                        </p>
+                      </div>
+                      {isAssigned ? (
+                        <Badge variant="default">Assigned</Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => assignTeacherToClass(cls._id)}
+                        >
+                          Assign
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
