@@ -24,10 +24,10 @@
       "url": "/student/dashboard"
     },
     {
-      "name": "Downloads",
-      "short_name": "Downloads",
-      "description": "View offline content",
-      "url": "/student/downloads"
+      "name": "Offline Videos",
+      "short_name": "Offline",
+      "description": "View offline videos",
+      "url": "/student/offline-videos"
     }
   ]
 }
