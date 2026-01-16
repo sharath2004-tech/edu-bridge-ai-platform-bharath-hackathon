@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { getSession } from "@/lib/auth"
+import { getThumbnailUrl } from "@/lib/cloudinary"
 import { Course, Section } from "@/lib/models"
 import connectDB from "@/lib/mongodb"
 import { Clock, FolderOpen, Search, Star, Video } from "lucide-react"
@@ -126,11 +127,17 @@ export default async function CoursesPage() {
               style={{ animationDelay: `${i * 0.05}s` }}
             >
               {course.thumbnail ? (
-                <div className="h-32 overflow-hidden">
+                <div className="h-32 overflow-hidden bg-muted">
                   <img 
-                    src={course.thumbnail} 
+                    src={getThumbnailUrl(course.thumbnail)} 
                     alt={course.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                    onError={(e) => {
+                      console.error('Failed to load thumbnail:', course.thumbnail)
+                      // Hide image and show parent background on error
+                      e.currentTarget.style.display = 'none'
+                    }}
                   />
                 </div>
               ) : (
