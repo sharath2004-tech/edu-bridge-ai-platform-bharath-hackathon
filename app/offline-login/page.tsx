@@ -63,14 +63,19 @@ export default function OfflineLoginPage() {
       return
     }
 
-    // Redirect to appropriate dashboard
-    const dashboardUrl = OfflineAuth.getDashboardUrl(cachedSession.role)
-    
+    console.log('🚀 Offline login - Redirecting to offline videos')
+    console.log('Session:', cachedSession)
+
+    // For offline access, use window.location.href for better reliability
     if (cachedSession.role === 'student') {
       // Students go to offline videos
-      router.push('/student/offline-videos')
+      console.log('Navigating to: /student/offline-videos')
+      window.location.href = '/student/offline-videos'
     } else {
-      router.push(dashboardUrl)
+      // Other roles go to their dashboard
+      const dashboardUrl = OfflineAuth.getDashboardUrl(cachedSession.role)
+      console.log('Navigating to:', dashboardUrl)
+      window.location.href = dashboardUrl
     }
   }
 
@@ -130,10 +135,20 @@ export default function OfflineLoginPage() {
               )}
             </div>
 
-            <Button onClick={handleOfflineLogin} className="w-full gap-2" size="lg">
-              <Video className="w-5 h-5" />
-              Continue Offline
-            </Button>
+            <div className="space-y-2">
+              <Button onClick={handleOfflineLogin} className="w-full gap-2" size="lg">
+                <Video className="w-5 h-5" />
+                Continue Offline
+              </Button>
+              
+              {/* Direct link as fallback */}
+              <a href="/student/offline-videos" className="block">
+                <Button variant="outline" className="w-full gap-2">
+                  <Video className="w-4 h-4" />
+                  Go to Offline Videos (Direct Link)
+                </Button>
+              </a>
+            </div>
 
             <p className="text-xs text-muted-foreground">
               Cached session expires: {new Date(cachedSession.expiresAt).toLocaleDateString()}
