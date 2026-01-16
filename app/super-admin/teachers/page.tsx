@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { usePagination } from '@/hooks/use-pagination'
 import { BookOpen, GraduationCap, Mail, Phone, Users } from 'lucide-react'
@@ -18,6 +19,9 @@ export default function SuperAdminTeachersPage() {
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null)
   const [viewProfileDialog, setViewProfileDialog] = useState(false)
   const [viewClassesDialog, setViewClassesDialog] = useState(false)
+  const [editDialog, setEditDialog] = useState(false)
+  const [editForm, setEditForm] = useState<any>({})
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams({ role: 'teacher' })
@@ -150,7 +154,16 @@ export default function SuperAdminTeachersPage() {
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    toast.info('Edit functionality coming soon!')
+                    setSelectedTeacher(teacher)
+                    setEditForm({
+                      name: teacher.name,
+                      email: teacher.email,
+                      phone: teacher.phone || '',
+                      subjectSpecialization: teacher.subjectSpecialization || '',
+                      teacherRole: teacher.teacherRole || 'Teacher',
+                      isActive: teacher.isActive
+                    })
+                    setEditDialog(true)
                   }}
                 >
                   Edit
@@ -224,23 +237,168 @@ export default function SuperAdminTeachersPage() {
 
       {/* View Classes Dialog */}
       <Dialog open={viewClassesDialog} onOpenChange={setViewClassesDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Assigned Classes</DialogTitle>
-            <DialogDescription>Classes taught by {selectedTeacher?.name}</DialogDescription>
+            <DialogTitle>Teacher Information</DialogTitle>
+            <DialogDescription>Details for {selectedTeacher?.name}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            {selectedTeacher?.assignedClasses && selectedTeacher.assignedClasses.length > 0 ? (
-              selectedTeacher.assignedClasses.map((cls: any, idx: number) => (
-                <div key={idx} className="p-3 border rounded-lg">
-                  <p className="font-medium">{cls.className}-{cls.section}</p>
-                  <p className="text-sm text-muted-foreground">{cls.subject}</p>
+          <div className="space-y-4">
+            {/* Basic Info */}
+            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+              <div>
+                <p className="text-xs text-muted-foreground">School</p>
+                <p className="text-sm font-medium">{selectedTeacher?.schoolId?.name || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Subject</p>
+                <p className="text-sm font-medium">{selectedTeacher?.subjectSpecialization || 'N/A'}</p>
+              </div>
+            </div>
+
+            {/* Classes Section */}
+            <div>
+              <h4 className="font-semibold mb-2 flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Assigned Classes
+                {selectedTeacher?.assignedClasses?.length > 0 && (
+                  <Badge variant="secondary" className="ml-auto">
+                    {selectedTeacher.assignedClasses.length} classes
+                  </Badge>
+                )}
+              </h4>
+              {selectedTeacher?.assignedClasses && selectedTeacher.assignedClasses.length > 0 ? (
+                <div className="text-sm text-muted-foreground bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg p-4">
+                  <p className="mb-2">⚠️ Class details will be loaded from the database</p>
+                  <p className="text-xs">Total: {selectedTeacher.assignedClasses.length} class assignments</p>
                 </div>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No classes assigned yet</p>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8 bg-muted/30 rounded-lg">
+                  No classes assigned yet
+                </p>
+              )}
+            </div>
+
+            {/* Subjects Section */}
+            {selectedTeacher?.subjects && selectedTeacher.subjects.length > 0 && (
+              <div>
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Teaching Subjects
+                  <Badge variant="secondary" className="ml-auto">
+                    {selectedTeacher.subjects.length} subjects
+                  </Badge>
+                </h4>
+                <div className="text-sm text-muted-foreground bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg p-4">
+                  <p className="mb-2">⚠️ Subject details will be loaded from the database</p>
+                  <p className="text-xs">Total: {selectedTeacher.subjects.length} subject assignments</p>
+                </div>
+              </div>
             )}
+
+            {/* Note */}
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3">
+              <p className="text-xs text-blue-800 dark:text-blue-300">
+                <strong>Note:</strong> Class and subject names are stored as references. The detailed view showing actual class names and subjects is coming soon.
+              </p>
+            </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Teacher Dialog */}
+      <Dialog open={editDialog} onOpenChange={setEditDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Teacher</DialogTitle>
+            <DialogDescription>Update teacher information</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={async (e) => {
+            e.preventDefault()
+            setUpdating(true)
+            try {
+              const res = await fetch(`/api/super-admin/users`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: selectedTeacher._id,
+                  ...editForm
+                })
+              })
+              const data = await res.json()
+              if (data.success) {
+                toast.success('Teacher updated successfully!')
+                setEditDialog(false)
+                // Refresh teachers list
+                const params = new URLSearchParams({ role: 'teacher' })
+                if (schoolFilter !== 'all') params.set('schoolId', schoolFilter)
+                const refreshRes = await fetch(`/api/super-admin/users?${params}`)
+                const refreshData = await refreshRes.json()
+                if (refreshData.success) setTeachers(refreshData.users)
+              } else {
+                toast.error(data.error || 'Failed to update teacher')
+              }
+            } catch (error) {
+              toast.error('Failed to update teacher')
+            } finally {
+              setUpdating(false)
+            }
+          }} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={editForm.name || ''}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Email</label>
+              <Input
+                type="email"
+                value={editForm.email || ''}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Phone</label>
+              <Input
+                value={editForm.phone || ''}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Subject Specialization</label>
+              <Input
+                value={editForm.subjectSpecialization || ''}
+                onChange={(e) => setEditForm({ ...editForm, subjectSpecialization: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Role</label>
+              <Input
+                value={editForm.teacherRole || ''}
+                onChange={(e) => setEditForm({ ...editForm, teacherRole: e.target.value })}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={editForm.isActive}
+                onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
+                className="h-4 w-4"
+              />
+              <label className="text-sm font-medium">Active</label>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button type="button" variant="outline" onClick={() => setEditDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updating}>
+                {updating ? 'Updating...' : 'Update'}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
