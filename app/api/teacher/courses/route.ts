@@ -25,6 +25,8 @@ export async function POST(request: NextRequest) {
       duration,
       lessons,
       status,
+      thumbnail,
+      sections,
     } = body
 
     if (!title || !description || !category) {
@@ -50,6 +52,8 @@ export async function POST(request: NextRequest) {
       rating: 0,
       reviews: [],
       tags: [],
+      thumbnail: thumbnail || '',
+      sections: sections || [],
     })
 
     return NextResponse.json(
