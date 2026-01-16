@@ -26,12 +26,29 @@ function LoginForm() {
   const [showSchools, setShowSchools] = useState(false)
   const [schools, setSchools] = useState<any[]>([])
   const [error, setError] = useState("")
+  const [isOffline, setIsOffline] = useState(false)
 
   useEffect(() => {
     if (errorParam === 'unauthorized') {
       setError('You do not have permission to access that page.')
     }
     fetchSchools()
+    
+    // Check offline status only on client
+    if (typeof navigator !== 'undefined') {
+      setIsOffline(!navigator.onLine)
+      
+      const handleOnline = () => setIsOffline(false)
+      const handleOffline = () => setIsOffline(true)
+      
+      window.addEventListener('online', handleOnline)
+      window.addEventListener('offline', handleOffline)
+      
+      return () => {
+        window.removeEventListener('online', handleOnline)
+        window.removeEventListener('offline', handleOffline)
+      }
+    }
   }, [errorParam])
 
   const fetchSchools = async () => {
@@ -116,7 +133,7 @@ function LoginForm() {
       console.error('Login error:', err)
       
       // If network error and offline, redirect to offline login
-      if (!navigator.onLine) {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
         window.location.href = '/offline-login'
         return
       }
@@ -311,7 +328,7 @@ function LoginForm() {
           </div>
 
           {/* Offline Access Button */}
-          {!navigator.onLine && (
+          {isOffline && (
             <div className="pt-4 border-t">
               <Link href="/offline-login">
                 <Button variant="secondary" className="w-full gap-2">
