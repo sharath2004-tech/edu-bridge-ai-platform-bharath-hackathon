@@ -332,15 +332,26 @@ Monitor School Performance → Generate Reports
 
 ### 🎬 Video Upload Restrictions
 
-#### File Size Limits
+#### Upload Methods by File Size
 - **Small Files (<4MB)**: Upload through Vercel API
   - Recommended for short videos or demos
   - Instant processing and availability
+  - Goes through server for validation
   
 - **Large Files (≥4MB)**: Direct upload to Bunny.net CDN
   - Maximum size: 500MB per video (Bunny.net limit)
-  - Automatic routing for seamless experience
+  - Bypasses Vercel's 4.5MB body size limit (free tier)
+  - Automatic routing from browser directly to CDN
   - Progress tracking available
+
+**Why Two Upload Methods?**  
+Vercel's free tier has a 4.5MB request body limit. To support large video uploads (up to 500MB), files ≥4MB are uploaded directly from the user's browser to Bunny.net CDN using signed URLs, completely bypassing Vercel.
+
+#### Download & Offline Access
+- ✅ **All videos** (any size) can be downloaded for offline viewing
+- ✅ Videos are served from Bunny.net CDN (no size restrictions on downloads)
+- ✅ Students can download and watch offline regardless of video file size
+- 💾 Browser storage limits apply (~5-10GB depending on browser)
 
 #### Supported Video Formats
 - ✅ MP4 (recommended)

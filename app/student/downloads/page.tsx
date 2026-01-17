@@ -200,6 +200,20 @@ export default function DownloadsPage() {
         />
       </div>
 
+      {/* Storage Info */}
+      <Card className="p-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+        <div className="flex gap-3">
+          <HardDrive className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-blue-700 dark:text-blue-300">
+            <p className="font-semibold mb-1">💾 Unlimited Download Sizes</p>
+            <p>
+              All course content can be downloaded for offline access, regardless of file size. 
+              Your browser's storage capacity (typically 5-10GB) is the only limit.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Downloads List */}
       <div className="space-y-3">
         {filteredDownloads.length === 0 ? (
