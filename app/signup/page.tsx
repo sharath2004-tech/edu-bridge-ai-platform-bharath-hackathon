@@ -244,10 +244,21 @@ export default function SignUpPage() {
                 required
                 className="bg-muted/50"
               />
+              <p className="text-xs text-muted-foreground">Use your school email address for authenticity</p>
+            </div>
+
+            {/* Password Requirements */}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs animate-slideInLeft" style={{ animationDelay: "0.3s" }}>
+              <p className="font-medium text-blue-900 mb-1">Password Requirements:</p>
+              <ul className="list-disc list-inside text-blue-800 space-y-0.5">
+                <li>Minimum 6 characters (8+ recommended)</li>
+                <li>Mix of uppercase, lowercase, and numbers recommended</li>
+                <li>Avoid common passwords like 123456, password, etc.</li>
+              </ul>
             </div>
 
             {/* Info Message - Students Only */}
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 animate-slideInLeft" style={{ animationDelay: "0.3s" }}>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 animate-slideInLeft" style={{ animationDelay: "0.4s" }}>
               <p className="font-semibold mb-1">Student Registration</p>
               <p className="text-xs">Teachers and principals must be added by school administrators. Only students can self-register.</p>
             </div>

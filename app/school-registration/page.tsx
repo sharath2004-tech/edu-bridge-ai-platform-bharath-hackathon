@@ -343,6 +343,17 @@ export default function SchoolRegistrationPage() {
                     )}
                   </div>
 
+                  {/* Requirements Info */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
+                    <p className="font-medium text-blue-900 mb-1">📋 Registration Requirements:</p>
+                    <ul className="list-disc list-inside text-blue-800 space-y-0.5">
+                      <li>Valid school registration number required</li>
+                      <li>Admin email must be from a real, working domain</li>
+                      <li>No disposable/temporary email services allowed</li>
+                      <li>School details will be verified before approval</li>
+                    </ul>
+                  </div>
+
                   {/* School Type & Board */}
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
@@ -637,6 +648,9 @@ export default function SchoolRegistrationPage() {
                           className="pl-10"
                         />
                       </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ⚠️ Must be from a real domain (no temp emails)
+                      </p>
                       {errors.adminEmail && (
                         <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />

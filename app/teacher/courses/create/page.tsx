@@ -258,6 +258,46 @@ export default function CreateCoursePage() {
             </div>
           </div>
 
+          {/* Video Upload Guidelines */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-xs">
+            <p className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              📹 Video Upload Guidelines
+            </p>
+            <div className="grid md:grid-cols-2 gap-3 text-blue-800">
+              <div>
+                <p className="font-semibold mb-1">File Size:</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  <li>Small (&lt;4MB): Upload directly</li>
+                  <li>Large (≥4MB): Direct CDN upload (up to 500MB)</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-semibold mb-1">Supported Formats:</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  <li>MP4 (recommended)</li>
+                  <li>WebM, MOV, AVI</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-semibold mb-1">Quality:</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  <li>720p or 1080p recommended</li>
+                  <li>1-5 Mbps bitrate</li>
+                  <li>24-30 fps frame rate</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-semibold mb-1">Storage Quota:</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  <li>25GB total storage</li>
+                  <li>25GB/month bandwidth</li>
+                  <li>~500 videos capacity</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Category *</label>
@@ -404,7 +444,10 @@ export default function CreateCoursePage() {
                         </Button>
                       </label>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Video, Audio, PDF, Word, PowerPoint (Max 50MB)
+                        📹 Videos: MP4/WebM/MOV/AVI | Small (&lt;4MB) or Large (up to 500MB)
+                      </p>
+                      <p className="text-xs text-blue-600 mt-0.5">
+                        💡 Files ≥4MB upload directly to CDN for best performance
                       </p>
                     </div>
                     {lessonFileNames[idx] && (
