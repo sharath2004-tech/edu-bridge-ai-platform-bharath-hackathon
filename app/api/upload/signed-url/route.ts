@@ -1,6 +1,5 @@
 import { getSession } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
 
 /**
  * Generate a signed URL for direct client-side upload to Bunny.net
