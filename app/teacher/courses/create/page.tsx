@@ -266,10 +266,10 @@ export default function CreateCoursePage() {
             </p>
             <div className="grid md:grid-cols-2 gap-3 text-blue-800">
               <div>
-                <p className="font-semibold mb-1">File Size:</p>
+                <p className="font-semibold mb-1">Upload Methods:</p>
                 <ul className="list-disc list-inside space-y-0.5">
-                  <li>Small (&lt;4MB): Upload directly</li>
-                  <li>Large (≥4MB): Direct CDN upload (up to 500MB)</li>
+                  <li>Small (&lt;4MB): Via Vercel</li>
+                  <li>Large (≥4MB): Direct to CDN (up to 500MB)</li>
                 </ul>
               </div>
               <div>
@@ -295,6 +295,17 @@ export default function CreateCoursePage() {
                   <li>~500 videos capacity</li>
                 </ul>
               </div>
+            </div>
+            
+            {/* Info Note */}
+            <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-green-900">
+              <p className="font-semibold mb-1 flex items-center gap-1">
+                ℹ️ Automatic Upload Routing
+              </p>
+              <p className="leading-relaxed">
+                Files ≥4MB automatically upload directly to CDN, bypassing Vercel's 4.5MB limit. 
+                <strong>Students can download videos of any size</strong> for offline viewing!
+              </p>
             </div>
           </div>
 

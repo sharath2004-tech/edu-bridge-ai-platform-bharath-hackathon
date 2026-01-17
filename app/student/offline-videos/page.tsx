@@ -186,6 +186,20 @@ export default function DownloadsPage() {
         </div>
       </Card>
 
+      {/* Storage Info */}
+      <Card className="p-4 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+        <div className="flex gap-3">
+          <HardDrive className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-green-700 dark:text-green-300">
+            <p className="font-semibold mb-1">💾 No Download Size Limits</p>
+            <p>
+              Videos of <strong>any size</strong> can be downloaded for offline viewing. 
+              Your browser typically allows 5-10GB of storage. Manage downloads below to optimize space.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Search */}
       {downloads.length > 0 && (
         <div className="relative">
