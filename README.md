@@ -307,6 +307,149 @@ Monitor School Performance → Generate Reports
 
 ---
 
+## ⚠️ Platform Restrictions & Requirements
+
+### 📧 Email Validation Rules
+
+#### For All Users
+- **Format**: Must be valid email format (user@domain.com)
+- **School Email**: Recommended to use school domain for authenticity
+- **Unique**: Each email can only be registered once per role
+- **Case Insensitive**: Emails are stored in lowercase
+
+#### For Super Admin & Principal Registration
+- **Valid Domain Required**: Must have a real, working email domain
+- **No Disposable Emails**: Temporary/disposable email services are not allowed
+- **Verification**: Email must be accessible for receiving notifications
+- **Examples of Valid Emails**:
+  - ✅ `admin@schoolname.edu`
+  - ✅ `principal@institution.org`
+  - ✅ `admin@gmail.com` (verified Gmail accounts)
+- **Examples of Invalid Emails**:
+  - ❌ `admin@tempmail.com` (disposable)
+  - ❌ `test@test.com` (non-existent domain)
+  - ❌ `invalid-email` (incorrect format)
+
+### 🎬 Video Upload Restrictions
+
+#### File Size Limits
+- **Small Files (<4MB)**: Upload through Vercel API
+  - Recommended for short videos or demos
+  - Instant processing and availability
+  
+- **Large Files (≥4MB)**: Direct upload to Bunny.net CDN
+  - Maximum size: 500MB per video (Bunny.net limit)
+  - Automatic routing for seamless experience
+  - Progress tracking available
+
+#### Supported Video Formats
+- ✅ MP4 (recommended)
+- ✅ WebM
+- ✅ MOV
+- ✅ AVI
+- ❌ Unsupported formats will be rejected
+
+#### Video Quality Guidelines
+- **Resolution**: Recommended 720p or 1080p
+- **Bitrate**: 1-5 Mbps for optimal streaming
+- **Frame Rate**: 24-30 fps
+- **Compression**: Use H.264 codec for best compatibility
+
+#### Storage Quotas (Bunny.net Free Tier)
+- **Storage**: 25GB total (approximately 500 videos)
+- **Bandwidth**: 25GB/month (approximately 1,000 video views)
+- **Upgrade**: Available for $1/month per 100GB
+
+### 👤 User Registration Restrictions
+
+#### Student Registration
+- **Require Valid Roll Number**: Must be unique within class
+- **Require Parent Contact**: Valid phone number mandatory
+- **Age Restriction**: Typically 5-20 years (configurable)
+- **Class Assignment**: Must belong to an existing class
+
+#### Teacher Registration
+- **Subject Specialization**: Required field
+- **Qualification Verification**: Optional but recommended
+- **Background Check**: School's responsibility
+- **Contact Verification**: Valid phone number required
+
+#### School Registration
+- **Required Information**:
+  - School name (min 3 characters)
+  - Official school email
+  - Board registration number
+  - Valid address with zip code
+  - Principal contact details
+- **Approval Process**: Super Admin must manually approve
+- **Unique School Code**: Auto-generated, cannot be duplicated
+- **Documentation**: May require proof of registration
+
+### 🔐 Password Requirements
+
+- **Minimum Length**: 6 characters
+- **Recommended**: 8+ characters with mix of uppercase, lowercase, numbers
+- **Not Allowed**: Common passwords (123456, password, etc.)
+- **Expiration**: No automatic expiration (can be configured)
+
+### 📊 Data Limits
+
+#### Attendance
+- **Bulk Operations**: Maximum 100 students per operation
+- **Date Range**: Can view/edit up to 1 year of historical data
+- **Status Options**: Present (P), Absent (A), Late (L)
+
+#### Marks Entry
+- **Range**: 0-100 (configurable per school)
+- **Subjects**: Maximum 15 subjects per class
+- **Exams**: Maximum 10 exam types per academic year
+- **Historical Data**: Unlimited storage
+
+#### Classes & Sections
+- **Classes per School**: Unlimited
+- **Students per Class**: Recommended maximum 50 for performance
+- **Sections**: A-Z (26 sections maximum)
+
+### 🌐 Browser Requirements
+
+#### Minimum Browser Versions
+- **Chrome**: 90+
+- **Firefox**: 88+
+- **Safari**: 14+
+- **Edge**: 90+
+- **Mobile**: iOS 14+, Android 10+
+
+#### Required Features
+- ✅ JavaScript enabled
+- ✅ Cookies enabled
+- ✅ LocalStorage support (for offline features)
+- ✅ IndexedDB support (for video caching)
+
+### 📱 Offline Mode Restrictions
+
+- **Initial Login**: Must login online at least once
+- **Session Duration**: 7 days offline before re-authentication required
+- **Video Storage**: Limited by browser storage (5-10GB typically)
+- **Sync Required**: Upload operations require internet connection
+- **Data Freshness**: Offline data may be up to 7 days old
+
+### 🚫 Content Restrictions
+
+#### Prohibited Content
+- ❌ Copyrighted material without permission
+- ❌ Inappropriate or offensive content
+- ❌ Harmful or dangerous instructional content
+- ❌ Personal student information in public courses
+- ❌ Malware or malicious files
+
+#### Content Moderation
+- AI-powered content scanning (optional)
+- Manual review by school administrators
+- Reporting system for inappropriate content
+- Automatic takedown for policy violations
+
+---
+
 ## 📸 Screenshots
 
 ### Landing Page

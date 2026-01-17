@@ -119,11 +119,15 @@ export default function ChangePasswordPage() {
               )}
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-                <p className="font-semibold mb-1">🔒 Security Requirements:</p>
+                <p className="font-semibold mb-1 flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  🔒 Password Requirements
+                </p>
                 <ul className="text-xs space-y-1 ml-4 list-disc">
-                  <li>Minimum 6 characters</li>
-                  <li>Different from temporary password</li>
-                  <li>Use a strong, unique password</li>
+                  <li>Minimum 6 characters (8+ recommended)</li>
+                  <li>Mix of uppercase, lowercase, and numbers recommended</li>
+                  <li>Must be different from current password</li>
+                  <li>Avoid common passwords (123456, password, etc.)</li>
                 </ul>
               </div>
 
