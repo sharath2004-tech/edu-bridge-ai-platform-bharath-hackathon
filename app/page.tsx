@@ -1,10 +1,10 @@
+import OnboardingButton from "@/components/onboarding-button"
+import OnboardingWizard from "@/components/onboarding-wizard"
 import { Button } from "@/components/ui/button"
+import { getSession } from "@/lib/auth"
 import { ArrowRight, BookOpen, GraduationCap, Users, Zap } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { getSession } from "@/lib/auth"
-import OnboardingWizard from "@/components/onboarding-wizard"
-import OnboardingButton from "@/components/onboarding-button"
 
 export default async function Home() {
   // Check if user is already logged in
