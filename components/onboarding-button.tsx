@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { HelpCircle } from 'lucide-react'
+import { useState } from 'react'
 import OnboardingWizard from './onboarding-wizard'
 
 export default function OnboardingButton() {
