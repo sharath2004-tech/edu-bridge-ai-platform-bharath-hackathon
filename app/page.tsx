@@ -3,6 +3,8 @@ import { ArrowRight, BookOpen, GraduationCap, Users, Zap } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
+import OnboardingWizard from "@/components/onboarding-wizard"
+import OnboardingButton from "@/components/onboarding-button"
 
 export default async function Home() {
   // Check if user is already logged in
@@ -28,6 +30,9 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+      {/* Onboarding Wizard */}
+      <OnboardingWizard />
+      
       {/* Navigation */}
       <nav className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -38,6 +43,7 @@ export default async function Home() {
             <span className="font-semibold text-lg">EduBridge AI</span>
           </div>
           <div className="flex items-center gap-3">
+            <OnboardingButton />
             <Link href="/school-registration">
               <Button variant="ghost" className="hidden sm:inline-flex">Register School</Button>
             </Link>
