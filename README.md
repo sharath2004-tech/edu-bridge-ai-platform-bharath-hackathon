@@ -18,7 +18,9 @@
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
+- [Recent Updates](#-recent-updates)
 - [Key Features](#-key-features)
+- [User Workflows](#-user-workflows)
 - [Technology Stack](#-technology-stack)
 - [Screenshots](#-screenshots)
 - [Getting Started](#-getting-started)
@@ -30,6 +32,35 @@
 - [Deployment](#-deployment)
 - [Contributing](#-contributing)
 - [License](#-license)
+
+---
+
+## 🆕 Recent Updates
+
+### Latest Features (January 2026)
+
+#### 🎓 Interactive Onboarding System
+- **First-Time Experience**: Automatic welcome wizard on first visit
+- **Two Paths**: Demo mode with credentials or guided school registration
+- **Replayable**: "Take a Tour" button in navigation to restart anytime
+- **User-Friendly**: Step-by-step slides explaining platform features
+
+#### 👥 Teacher Assignment System
+- **Flexible Assignment**: Assign teachers to multiple classes
+- **Role-Based**: Super Admin (all schools) and Principal (their school)
+- **Clean Interface**: Shows summary instead of raw database IDs
+- **Interactive Dialog**: Easy-to-use assignment interface
+
+#### 🎬 Enhanced Video Upload
+- **Direct CDN Upload**: Large files (>4MB) upload directly to Bunny.net
+- **Bypass Limits**: Avoids Vercel's 4.5MB body size limit
+- **Progress Tracking**: Real-time upload progress for all file sizes
+- **Automatic Routing**: Smart selection between server and direct upload
+
+#### 🔐 Simplified Authentication
+- **Removed OAuth**: Removed Google and GitHub login buttons
+- **Streamlined Flow**: Clean email/password authentication only
+- **Consistent Experience**: Same login flow across all roles
 
 ---
 
@@ -60,13 +91,44 @@ EduBridge AI provides:
 
 ## ✨ Key Features
 
+### � Interactive Onboarding System
+- **Welcome Wizard** - First-time users see an interactive tour
+- **Two Learning Paths**:
+  - 🎬 **Demo Mode**: Explore with pre-loaded Green Valley High School data
+  - 🚀 **Create New School**: Guided registration process
+- **Demo Credentials**: Instant access to all user roles (Super Admin, Principal, Teacher, Student)
+- **"Take a Tour" Button**: Reopen onboarding anytime from navigation
+- **Progressive Slides**: Step-by-step guide explaining platform features
+- **Copy Credentials**: One-click copy for easy demo access
+
+![Onboarding Wizard](./docs/images/onboarding-wizard.png)
+
 ### 🏫 Multi-School Management
 - Support for unlimited schools on a single platform
 - Complete data isolation via `schoolId` filtering
 - Unique school codes for easy identification
 - School-specific branding and configuration
+- **Manual Approval System**: Super Admin reviews and approves new schools
+- **Teacher Assignment**: Assign teachers to multiple classes easily
 
 ![Multi-School Dashboard](./docs/images/multi-school-dashboard.png)
+
+### 👥 Advanced Teacher Management
+- **Assign Teachers to Classes**: Principals and Super Admins can assign teachers
+- **Multi-Class Support**: Teachers can manage multiple classes
+- **Clean UI**: Shows teacher summary (X classes, Y subjects) instead of raw data
+- **Assignment Dialog**: Interactive interface for class assignments
+- **Role-Based Access**: Super Admin manages all schools, Principals manage their school
+
+### 🎬 Smart Video Upload System
+- **Bunny.net CDN Integration**: Fast, reliable video hosting
+- **Large File Support**: Direct upload for files >4MB bypassing Vercel limits
+- **Automatic Routing**: Small files through server, large files direct to CDN
+- **Progress Tracking**: Real-time upload progress for both methods
+- **Video Optimization**: Automatic optimization for streaming
+- **Offline Download**: Students can download videos for offline viewing
+
+![Video Upload](./docs/images/video-upload.png)
 
 ### 🤖 AI-Powered Learning Assistant
 - **Context-Aware Chatbot** powered by Cohere AI
@@ -139,7 +201,56 @@ Four distinct user roles with granular permissions:
 
 ---
 
-## 🛠 Technology Stack
+## � User Workflows
+
+### 🏫 School Registration Flow
+```
+New School → Fill Registration Form → Super Admin Reviews
+   ↓
+Super Admin Approves/Rejects in Platform
+   ↓
+Principal Receives Access → Sets Up School → Adds Teachers & Students
+```
+
+### 👩‍🏫 Teacher Workflow
+```
+Login → Create Course → Upload Videos (Auto-routed to CDN)
+   ↓
+Students Enroll → Download Videos for Offline
+   ↓
+Mark Attendance → Grade Assignments → Track Progress
+```
+
+### 👨‍🎓 Student Workflow
+```
+Login → Browse Courses → Download Videos (IndexedDB)
+   ↓
+Learn Offline → Take Quizzes → Submit Assignments
+   ↓
+View Marks → Check Attendance → Track Progress
+```
+
+### 🔵 Super Admin Workflow
+```
+Review Pending Schools → Approve/Reject
+   ↓
+Manage All Schools → Assign Teachers to Classes
+   ↓
+Monitor Platform Analytics → View Multi-School Reports
+```
+
+### 👨‍💼 Principal Workflow
+```
+Manage School → Create Classes → Add Teachers
+   ↓
+Assign Teachers to Classes → Enroll Students
+   ↓
+Monitor School Performance → Generate Reports
+```
+
+---
+
+## �🛠 Technology Stack
 
 ### Frontend
 - **Framework**: Next.js 16 (App Router)
@@ -152,9 +263,11 @@ Four distinct user roles with granular permissions:
 ### Backend
 - **Runtime**: Node.js
 - **API**: Next.js API Routes (RESTful)
-- **Authentication**: JWT with HTTP-only cookies
+- **Authentication**: JWT with HTTP-only cookies (no OAuth)
 - **Database**: MongoDB (Atlas)
 - **ODM**: Mongoose
+- **CDN**: Bunny.net for video storage and delivery
+- **File Upload**: Multi-strategy (server + direct CDN)
 
 ### AI & Intelligence
 - **AI Provider**: Cohere AI
@@ -163,6 +276,7 @@ Four distinct user roles with granular permissions:
   - Educational chatbot
   - Content generation
   - Personalized recommendations
+  - Learning path recommendations
 
 ### DevOps & Tools
 - **Package Manager**: pnpm
@@ -242,9 +356,20 @@ Four distinct user roles with granular permissions:
    # Cohere AI API Key
    COHERE_API_KEY=your-cohere-api-key
 
+   # Bunny.net CDN Configuration (for video uploads)
+   BUNNY_STORAGE_ZONE=your-storage-zone-name
+   BUNNY_API_KEY=your-bunny-api-key
+   BUNNY_CDN_HOSTNAME=your-cdn-hostname.b-cdn.net
+
    # Next.js Configuration
    NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
+
+   **Bunny.net Setup** (Optional for video features):
+   1. Sign up at [bunny.net](https://bunny.net) (25GB free tier)
+   2. Create a Storage Zone
+   3. Copy Storage Zone name, API Key, and CDN hostname
+   4. Add to `.env.local`
 
 4. **Seed the database** (Optional but recommended)
    ```bash
@@ -272,23 +397,32 @@ Four distinct user roles with granular permissions:
 
 ## 🔑 Default Login Credentials
 
-After seeding the database, use these credentials:
+After seeding the database, use these credentials to explore different roles:
 
-### Super Admin
+### 🔵 Super Admin
 - **Email**: `superadmin@edubridge.com`
 - **Password**: `superadmin123`
+- **Access**: Manage all schools, approve registrations, platform-wide analytics
 
-### Principal (Green Valley High School)
+### 👨‍💼 Principal (Green Valley High School)
+- **School Code**: `GVHS2025`
 - **Email**: `robert.anderson@greenvalley.edu`
 - **Password**: `principal123`
+- **Access**: Manage school, teachers, students, assign classes
 
-### Teacher (Green Valley High School)
+### 👩‍🏫 Teacher (Green Valley High School)
+- **School Code**: `GVHS2025`
 - **Email**: `sarah.johnson@greenvalley.edu`
 - **Password**: `teacher123`
+- **Access**: Create courses, upload videos, grade students, mark attendance
 
-### Student
-- **Email**: `student1.9th.A@student.edu`
+### 👨‍🎓 Student (Green Valley High School)
+- **School Code**: `GVHS2025`
+- **Email**: `student1.9th.a@student.edu`
 - **Password**: `student123`
+- **Access**: Watch videos offline, take quizzes, view marks and attendance
+
+**💡 Tip**: Use the "Take a Tour" button on the homepage to see all credentials and platform features!
 
 ---
 
