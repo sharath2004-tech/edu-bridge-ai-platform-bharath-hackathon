@@ -10,7 +10,9 @@
   [![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
   [![Cohere AI](https://img.shields.io/badge/Cohere-AI-purple?style=for-the-badge)](https://cohere.ai/)
   
-  **[🚀 Deploy Now](https://vercel.com/new/clone?repository-url=https://github.com/sharath2004-tech/edu-bridge-ai-platform)** | [Features](#-features) • [Demo](#-demo) • [Installation](#-installation) • [Usage](#-usage) • [Architecture](#-architecture) • [API](#-api-documentation)
+  ### 🌐 **[Live Demo](https://edu-bridge-ai-platform-bharath-hack.vercel.app/)** 
+  
+  **[🚀 Deploy Now](https://vercel.com/new/clone?repository-url=https://github.com/sharath2004-tech/edu-bridge-ai-platform-bharath-hackathon)** | [Features](#-key-features) • [Workflows](#-user-workflows) • [Installation](#-getting-started) • [API](#-api-routes) • [Demo Credentials](#-default-login-credentials)
 </div>
 
 ---
@@ -86,6 +88,24 @@ EduBridge AI provides:
 - ✅ **Smart Automation** - Attendance in 30 seconds, auto-calculated grades
 - ✅ **Multi-School Support** - True multi-tenancy with data isolation
 - ✅ **Real-Time Analytics** - Track performance, attendance, and progress
+
+### 🌐 Live Platform
+
+**Experience EduBridge AI**: [https://edu-bridge-ai-platform-bharath-hack.vercel.app/](https://edu-bridge-ai-platform-bharath-hack.vercel.app/)
+
+**Quick Start**:
+1. Click the link above
+2. Click "Take a Tour" button for guided onboarding
+3. Choose "Try Demo School" for instant access
+4. Login with demo credentials (provided in tour)
+
+**Features to Try**:
+- 🎓 Interactive onboarding wizard
+- 👥 Multi-role dashboards (Super Admin, Principal, Teacher, Student)
+- 🎬 Video upload and offline viewing
+- 📊 Real-time analytics and reports
+- 🤖 AI-powered chatbot assistance
+- 👨‍🏫 Teacher-class assignment system
 
 ---
 
