@@ -52,6 +52,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check file size - Vercel has a 4.5MB limit on Hobby plan
+    const maxSize = 4 * 1024 * 1024 // 4MB to be safe
+    if (file.size > maxSize) {
+      console.warn(`⚠️ File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB (max: ${(maxSize / 1024 / 1024).toFixed(2)}MB)`)
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'File too large for direct upload', 
+          useDirectUpload: true,
+          message: `File size ${(file.size / 1024 / 1024).toFixed(2)}MB exceeds ${(maxSize / 1024 / 1024).toFixed(2)}MB limit. Please use direct upload.`
+        },
+        { status: 413 }
+      )
+    }
+
     console.log(`📤 Uploading to Bunny.net: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB, Type: ${file.type}`)
 
     // Convert file to buffer
