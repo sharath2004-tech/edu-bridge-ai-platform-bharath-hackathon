@@ -10,10 +10,26 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session || !['teacher', 'admin', 'principal'].includes(session.role)) {
+    
+    console.log('🔐 Upload session check:', { 
+      hasSession: !!session, 
+      role: session?.role,
+      email: session?.email 
+    })
+    
+    if (!session) {
+      console.error('❌ No session found')
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: 'Not authenticated. Please log in.' },
         { status: 401 }
+      )
+    }
+    
+    if (!['teacher', 'admin', 'principal', 'super-admin'].includes(session.role)) {
+      console.error('❌ Unauthorized role:', session.role)
+      return NextResponse.json(
+        { success: false, error: `Unauthorized role: ${session.role}. Only teachers, admins, and principals can upload files.` },
+        { status: 403 }
       )
     }
 
