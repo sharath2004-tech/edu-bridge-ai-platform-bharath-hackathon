@@ -100,13 +100,13 @@ export default function AdminDashboard() {
           return (
             <Card
               key={i}
-              className={`p-4 border-0 bg-gradient-to-br ${metric.color} hover:shadow-md transition-all animate-slideInLeft`}
-              style={{ animationDelay: `${i * 0.1}s` }}
+              className={`p-4 border-0 bg-gradient-to-br ${metric.color} hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group animate-slideInUp`}
+              style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'both' }}
             >
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">{metric.label}</p>
-                  <p className="text-2xl font-bold mb-2">{metric.value}</p>
+                  <p className="text-2xl font-bold mb-2 animate-countUp">{metric.value}</p>
                   <div className="flex items-center gap-1">
                     {isPositive ? (
                       <ArrowUp className="w-3 h-3 text-emerald-600" />
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
                     </span>
                   </div>
                 </div>
-                <div className="p-2 bg-white/10 rounded-lg">
+                <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 group-hover:scale-110 transition-all duration-300">
                   <Icon className="w-5 h-5" />
                 </div>
               </div>

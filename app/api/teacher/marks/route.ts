@@ -1,7 +1,9 @@
 import { getSession } from '@/lib/auth'
 import Mark from '@/lib/models/Mark'
+import { User, Exam, Subject } from '@/lib/models'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
+import { notifyStudentsAboutMarks } from '@/lib/notification-helper'
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,6 +82,34 @@ export async function POST(request: NextRequest) {
     }))
 
     await Mark.bulkWrite(operations)
+
+    // Notify students about their marks update
+    if (marks.length > 0 && session.schoolId) {
+      const studentIds = [...new Set(marks.map(m => m.studentId))]
+      const examId = marks[0].examId
+      const subjectId = marks[0].subjectId
+
+      // Get exam, subject, and teacher names for notification
+      const [exam, subject, teacher] = await Promise.all([
+        Exam?.findById(examId).select('name').lean().catch(() => null),
+        Subject?.findById(subjectId).select('name').lean().catch(() => null),
+        User.findById(session.userId || session.id).select('name').lean()
+      ])
+
+      const examName = (exam as any)?.name || 'Exam'
+      const subjectName = (subject as any)?.name || 'Subject'
+      const teacherName = (teacher as any)?.name || 'Your teacher'
+
+      await notifyStudentsAboutMarks(
+        session.schoolId,
+        studentIds,
+        examName,
+        subjectName,
+        teacherName,
+        (session.userId || session.id),
+        examId
+      )
+    }
 
     return NextResponse.json({
       success: true,

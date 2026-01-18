@@ -89,9 +89,9 @@ export default function TeacherDashboard() {
           </h1>
           <p className="text-muted-foreground">Manage your courses and track student progress</p>
         </div>
-        <Button className="gap-2" asChild>
+        <Button className="gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg group" asChild>
           <Link href="/teacher/courses/create">
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
             Create Course
           </Link>
         </Button>
@@ -109,15 +109,15 @@ export default function TeacherDashboard() {
           return (
             <Card
               key={i}
-              className={`p-4 border-0 bg-gradient-to-br ${stat.color} hover:shadow-md transition-all group animate-slideInLeft`}
-              style={{ animationDelay: `${i * 0.1}s` }}
+              className={`p-4 border-0 bg-gradient-to-br ${stat.color} hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group animate-slideInUp`}
+              style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'both' }}
             >
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-                  <p className="text-2xl font-bold">{stat.value}</p>
+                  <p className="text-2xl font-bold animate-countUp">{stat.value}</p>
                 </div>
-                <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 transition-all">
+                <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 group-hover:scale-110 transition-all duration-300">
                   <Icon className="w-5 h-5" />
                 </div>
               </div>

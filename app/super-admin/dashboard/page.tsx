@@ -77,8 +77,8 @@ export default function SuperAdminDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-start justify-between">
+    <div className="space-y-8 animate-fadeIn">
+      <div className="flex items-start justify-between animate-slideInBottom" style={{ animationFillMode: 'both' }}>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Super Admin Dashboard</h1>
           <p className="text-muted-foreground mt-2">
@@ -87,12 +87,12 @@ export default function SuperAdminDashboard() {
         </div>
         {stats && stats.pendingSchools > 0 && (
           <Link href="/super-admin/pending-schools">
-            <Card className="cursor-pointer hover:shadow-lg transition-all border-orange-200 bg-orange-50 hover:bg-orange-100">
+            <Card className="cursor-pointer hover:shadow-xl transition-all duration-500 border-orange-200 bg-orange-50 hover:bg-orange-100 hover:scale-105 animate-pulse-glow">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center relative">
                     <Clock className="h-5 w-5 text-orange-600" />
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-600 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-600 text-white text-xs rounded-full flex items-center justify-center font-bold animate-bounce-subtle">
                       {stats.pendingSchools}
                     </span>
                   </div>
@@ -109,52 +109,52 @@ export default function SuperAdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group animate-slideInUp" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Schools</CardTitle>
-            <Building2 className="h-4 w-4 text-blue-600" />
+            <Building2 className="h-4 w-4 text-blue-600 transition-transform duration-300 group-hover:scale-125" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalSchools || 0}</div>
+            <div className="text-2xl font-bold animate-countUp">{stats?.totalSchools || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {stats?.activeSchools || 0} active • {stats?.pendingSchools || 0} pending
             </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group animate-slideInUp" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Principals</CardTitle>
-            <UserCheck className="h-4 w-4 text-purple-600" />
+            <UserCheck className="h-4 w-4 text-purple-600 transition-transform duration-300 group-hover:scale-125" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalPrincipals || 0}</div>
+            <div className="text-2xl font-bold animate-countUp">{stats?.totalPrincipals || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               School administrators
             </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group animate-slideInUp" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Teachers</CardTitle>
-            <GraduationCap className="h-4 w-4 text-green-600" />
+            <GraduationCap className="h-4 w-4 text-green-600 transition-transform duration-300 group-hover:scale-125" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalTeachers || 0}</div>
+            <div className="text-2xl font-bold animate-countUp">{stats?.totalTeachers || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Across all schools
             </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group animate-slideInUp" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            <Users className="h-4 w-4 text-orange-600" />
+            <Users className="h-4 w-4 text-orange-600 transition-transform duration-300 group-hover:scale-125" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalStudents || 0}</div>
+            <div className="text-2xl font-bold animate-countUp">{stats?.totalStudents || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Enrolled students
             </p>

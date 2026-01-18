@@ -356,7 +356,7 @@ function LoginForm() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full animate-slideInLeft"
+              className="w-full animate-slideInLeft transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
               style={{ animationDelay: "0.4s" }}
             >
               {isLoading ? "Signing in..." : "Sign In"}
@@ -365,9 +365,9 @@ function LoginForm() {
 
           {/* Offline Access Button */}
           {isOffline && (
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t animate-fadeIn">
               <Link href="/offline-login">
-                <Button variant="secondary" className="w-full gap-2">
+                <Button variant="secondary" className="w-full gap-2 transition-all duration-300 hover:scale-[1.02]">
                   <WifiOff className="w-4 h-4" />
                   Access Offline Content
                 </Button>

@@ -186,15 +186,15 @@ export default function SignUpPage() {
     <main className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex items-center justify-center p-4 animate-fadeIn">
       <Link
         href="/"
-        className="absolute top-6 left-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        className="absolute top-6 left-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-105"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
         <span className="text-sm">Back</span>
       </Link>
 
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
+        <div className="text-center mb-8 animate-slideInBottom" style={{ animationFillMode: 'both' }}>
+          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4 transition-all duration-300 hover:scale-110 hover:rotate-12">
             <span className="text-primary-foreground font-bold text-xl">EB</span>
           </div>
           <h1 className="text-2xl font-bold mb-2">Join EduBridge AI</h1>

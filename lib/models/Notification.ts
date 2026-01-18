@@ -2,17 +2,19 @@ import mongoose, { Document, Schema } from 'mongoose'
 
 export interface INotification extends Document {
   _id: string
-  userId: mongoose.Types.ObjectId // Teacher/Admin who receives the notification
+  userId: mongoose.Types.ObjectId // User who receives the notification
   schoolId: mongoose.Types.ObjectId
-  type: 'student_registration' | 'attendance_alert' | 'marks_update' | 'general'
+  type: 'student_registration' | 'attendance_alert' | 'marks_update' | 'course_added' | 'course_updated' | 'quiz_added' | 'assignment' | 'announcement' | 'general'
   title: string
   message: string
-  relatedUser?: mongoose.Types.ObjectId // The student who triggered this notification
+  relatedUser?: mongoose.Types.ObjectId // The user who triggered this notification (e.g., teacher)
   relatedClass?: mongoose.Types.ObjectId // The class involved
+  relatedCourse?: mongoose.Types.ObjectId // The course involved
+  relatedExam?: mongoose.Types.ObjectId // The exam involved
   data?: any // Additional data (student info, class info, etc.)
   isRead: boolean
   actionRequired: boolean
-  actionUrl?: string // URL to take action (e.g., approve student)
+  actionUrl?: string // URL to take action
   createdAt: Date
   readAt?: Date
 }
@@ -35,7 +37,7 @@ const NotificationSchema = new Schema<INotification>(
     },
     type: {
       type: String,
-      enum: ['student_registration', 'attendance_alert', 'marks_update', 'general'],
+      enum: ['student_registration', 'attendance_alert', 'marks_update', 'course_added', 'course_updated', 'quiz_added', 'assignment', 'announcement', 'general'],
       required: true,
       index: true,
     },
@@ -54,6 +56,14 @@ const NotificationSchema = new Schema<INotification>(
     relatedClass: {
       type: Schema.Types.ObjectId,
       ref: 'Class',
+    },
+    relatedCourse: {
+      type: Schema.Types.ObjectId,
+      ref: 'Course',
+    },
+    relatedExam: {
+      type: Schema.Types.ObjectId,
+      ref: 'Exam',
     },
     data: {
       type: Schema.Types.Mixed,
