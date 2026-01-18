@@ -1,7 +1,8 @@
 import { getSession } from '@/lib/auth'
-import { Course } from '@/lib/models'
+import { Course, User } from '@/lib/models'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
+import { notifyTeacherAssignedStudents } from '@/lib/notification-helper'
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,6 +56,22 @@ export async function POST(request: NextRequest) {
       thumbnail: thumbnail || '',
       sections: sections || [],
     })
+
+    // Notify students in teacher's assigned classes about the new course
+    if (status === 'published' && session.schoolId) {
+      const teacher = await User.findById(session.id).select('name')
+      const teacherName = teacher?.name || 'Your teacher'
+      
+      await notifyTeacherAssignedStudents(
+        session.schoolId,
+        session.id,
+        'course_added',
+        '📚 New Course Available!',
+        `${teacherName} has added a new course: "${title}"`,
+        `/student/courses/${course._id}`,
+        course._id.toString()
+      )
+    }
 
     return NextResponse.json(
       { success: true, data: course },

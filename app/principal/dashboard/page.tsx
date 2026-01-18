@@ -131,9 +131,9 @@ export default function PrincipalDashboardPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       {/* Header */}
-      <div>
+      <div className="animate-slideInBottom" style={{ animationFillMode: 'both' }}>
         <h1 className="text-3xl font-bold">Principal Dashboard</h1>
         <p className="text-muted-foreground mt-1">
           Manage your school, teachers, and students
@@ -143,15 +143,15 @@ export default function PrincipalDashboardPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat, index) => (
-          <Card key={index} className="p-6">
+          <Card key={index} className="p-6 hover:shadow-xl transition-all duration-500 hover:-translate-y-1 group animate-slideInUp" style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'both' }}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{stat.title}</p>
-                <p className="text-3xl font-bold mt-2">
+                <p className="text-3xl font-bold mt-2 animate-countUp">
                   {isLoading ? "..." : stat.value}
                 </p>
               </div>
-              <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+              <div className={`p-3 rounded-lg ${stat.bgColor} transition-all duration-300 group-hover:scale-110`}>
                 <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
             </div>
@@ -160,17 +160,17 @@ export default function PrincipalDashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div>
+      <div className="animate-slideInBottom" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
         <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {quickActions.map((action, index) => (
-            <Card key={index} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            <Card key={index} className="p-6 hover:shadow-xl transition-all duration-500 hover:-translate-y-1 cursor-pointer group animate-slideInUp" style={{ animationDelay: `${0.4 + index * 0.1}s`, animationFillMode: 'both' }}>
               <a href={action.href} className="flex items-start gap-4">
-                <div className={`p-3 rounded-lg bg-muted`}>
+                <div className={`p-3 rounded-lg bg-muted transition-all duration-300 group-hover:scale-110`}>
                   <action.icon className={`w-6 h-6 ${action.color}`} />
                 </div>
                 <div>
-                  <h3 className="font-semibold">{action.title}</h3>
+                  <h3 className="font-semibold group-hover:text-primary transition-colors duration-300">{action.title}</h3>
                   <p className="text-sm text-muted-foreground mt-1">
                     {action.description}
                   </p>

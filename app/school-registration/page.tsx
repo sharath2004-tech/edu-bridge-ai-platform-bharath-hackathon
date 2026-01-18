@@ -232,19 +232,19 @@ export default function SchoolRegistrationPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 md:p-8">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 md:p-8 animate-fadeIn">
       <Link
         href="/"
-        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all duration-300 mb-6 hover:scale-105 group"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
         <span className="text-sm">Back to Home</span>
       </Link>
 
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+        <div className="text-center mb-8 animate-slideInBottom" style={{ animationFillMode: 'both' }}>
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-all duration-500 hover:scale-110 hover:rotate-6 hover:shadow-xl">
             <Building2 className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">School Registration</h1>
@@ -253,7 +253,7 @@ export default function SchoolRegistrationPage() {
 
         {/* Progress Steps */}
         {step !== 4 && (
-          <div className="mb-8">
+          <div className="mb-8 animate-slideInUp" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
             <div className="flex items-center justify-between max-w-2xl mx-auto">
               {[
                 { num: 1, label: "School Info" },
@@ -262,17 +262,17 @@ export default function SchoolRegistrationPage() {
               ].map((item, idx) => (
                 <div key={item.num} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-500 ${
                       step >= item.num 
-                        ? 'bg-primary text-white shadow-lg' 
-                        : 'bg-gray-200 text-gray-500'
+                        ? 'bg-primary text-white shadow-lg scale-100' 
+                        : 'bg-gray-200 text-gray-500 scale-90'
                     }`}>
-                      {step > item.num ? <CheckCircle className="w-5 h-5" /> : item.num}
+                      {step > item.num ? <CheckCircle className="w-5 h-5 animate-scaleIn" /> : item.num}
                     </div>
                     <span className="text-xs mt-2 font-medium hidden md:block">{item.label}</span>
                   </div>
                   {idx < 2 && (
-                    <div className={`flex-1 h-1 mx-2 rounded transition-all ${
+                    <div className={`flex-1 h-1 mx-2 rounded transition-all duration-500 ${
                       step > item.num ? 'bg-primary' : 'bg-gray-200'
                     }`} />
                   )}

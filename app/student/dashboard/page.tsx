@@ -98,15 +98,15 @@ export default function StudentDashboard() {
           return (
             <Card
               key={i}
-              className={`p-4 border-0 bg-gradient-to-br ${stat.color} hover:shadow-md transition-all group animate-slideInLeft`}
-              style={{ animationDelay: `${i * 0.1}s` }}
+              className={`p-4 border-0 bg-gradient-to-br ${stat.color} hover:shadow-xl transition-all duration-500 group animate-slideInUp hover:-translate-y-1`}
+              style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'both' }}
             >
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-                  <p className="text-2xl font-bold">{stat.value}</p>
+                  <p className="text-2xl font-bold animate-countUp">{stat.value}</p>
                 </div>
-                <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 transition-all">
+                <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 group-hover:scale-110 transition-all duration-300">
                   <Icon className="w-5 h-5" />
                 </div>
               </div>

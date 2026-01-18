@@ -34,3 +34,7 @@ export type { IChatMessage } from './ChatMessage';
 export { default as Gamification } from './Gamification';
 export type { IGamification } from './Gamification';
 
+// Notification Model
+export { default as Notification } from './Notification';
+export type { INotification } from './Notification';
+
