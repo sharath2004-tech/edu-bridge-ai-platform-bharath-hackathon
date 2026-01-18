@@ -1,9 +1,9 @@
 import { getSession } from '@/lib/auth'
+import { Exam, Subject, User } from '@/lib/models'
 import Mark from '@/lib/models/Mark'
-import { User, Exam, Subject } from '@/lib/models'
 import connectDB from '@/lib/mongodb'
-import { NextRequest, NextResponse } from 'next/server'
 import { notifyStudentsAboutMarks } from '@/lib/notification-helper'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
