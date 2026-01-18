@@ -1,5 +1,4 @@
 import OnboardingButton from "@/components/onboarding-button"
-import OnboardingWizard from "@/components/onboarding-wizard"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { getSession } from "@/lib/auth"
@@ -46,9 +45,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      {/* Onboarding Wizard */}
-      <OnboardingWizard />
-      
       {/* Navigation */}
       <nav className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -156,14 +152,23 @@ export default async function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {[
-            { value: "1K+", label: "Active Students" },
-            { value: "3", label: "Schools" },
-            { value: "95%", label: "Success Rate" },
-            { value: "24/7", label: "AI Support" },
+            { value: "1K+", label: "Active Students", icon: "👨‍🎓", color: "from-blue-500 to-cyan-500" },
+            { value: "3", label: "Schools", icon: "🏫", color: "from-purple-500 to-pink-500" },
+            { value: "95%", label: "Success Rate", icon: "📈", color: "from-green-500 to-emerald-500" },
+            { value: "24/7", label: "AI Support", icon: "🤖", color: "from-orange-500 to-amber-500" },
           ].map((stat, i) => (
-            <div key={i} className="text-center animate-fadeIn" style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stat.value}</div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
+            <div 
+              key={i} 
+              className="group relative text-center p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 animate-slideInUp"
+              style={{ animationDelay: `${i * 0.15}s`, animationFillMode: 'both' }}
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-500`}></div>
+              <div className="text-3xl mb-3 group-hover:scale-125 transition-transform duration-300">{stat.icon}</div>
+              <div className={`text-3xl md:text-4xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300`}>
+                {stat.value}
+              </div>
+              <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
+              <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 bg-gradient-to-r ${stat.color} group-hover:w-1/2 transition-all duration-500 rounded-full`}></div>
             </div>
           ))}
         </div>
