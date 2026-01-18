@@ -1,6 +1,6 @@
-import mongoose from 'mongoose'
+import { User } from '@/lib/models'
 import Notification from '@/lib/models/Notification'
-import { User, Class } from '@/lib/models'
+import mongoose from 'mongoose'
 
 interface NotificationData {
   userId: string | mongoose.Types.ObjectId

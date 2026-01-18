@@ -1,8 +1,8 @@
 import { getSession } from '@/lib/auth'
 import { Course, User } from '@/lib/models'
 import connectDB from '@/lib/mongodb'
-import { NextRequest, NextResponse } from 'next/server'
 import { notifyTeacherAssignedStudents } from '@/lib/notification-helper'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {

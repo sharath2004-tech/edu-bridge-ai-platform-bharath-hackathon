@@ -1,16 +1,16 @@
 "use client"
 
-import { Bell, Search, User, LogOut, Settings, ChevronRight, Check, Loader2 } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
+import { Bell, Check, ChevronRight, Loader2, LogOut, Search, Settings, User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
 
 interface Notification {
   _id: string
