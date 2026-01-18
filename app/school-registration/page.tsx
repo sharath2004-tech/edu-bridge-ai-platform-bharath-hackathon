@@ -5,16 +5,16 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    AlertCircle,
-    ArrowLeft,
-    Building2,
-    CheckCircle,
-    Lock,
-    Mail,
-    MapPin,
-    Phone,
-    Upload,
-    User
+  AlertCircle,
+  ArrowLeft,
+  Building2,
+  CheckCircle,
+  Lock,
+  Mail,
+  MapPin,
+  Phone,
+  Upload,
+  User
 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
@@ -347,10 +347,9 @@ export default function SchoolRegistrationPage() {
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
                     <p className="font-medium text-blue-900 mb-1">📋 Registration Requirements:</p>
                     <ul className="list-disc list-inside text-blue-800 space-y-0.5">
-                      <li>Valid school registration number required</li>
-                      <li>Admin email must be from a real, working domain</li>
-                      <li>No disposable/temporary email services allowed</li>
-                      <li>School details will be verified before approval</li>
+                      <li>Admin email must be from a real. Credintials will be sent to mail. </li>
+                      <li>No disposable/temporary email services allowed.</li>
+                      <li>School details will be verified before approval.</li>
                     </ul>
                   </div>
 
