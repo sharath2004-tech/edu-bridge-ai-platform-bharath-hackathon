@@ -1,8 +1,24 @@
 import OnboardingButton from "@/components/onboarding-button"
 import OnboardingWizard from "@/components/onboarding-wizard"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { getSession } from "@/lib/auth"
-import { ArrowRight, BookOpen, GraduationCap, Users, Zap } from "lucide-react"
+import {
+  ArrowRight,
+  BookOpen,
+  Brain,
+  CheckCircle2,
+  Download,
+  GraduationCap,
+  LineChart,
+  MessageSquare,
+  MonitorPlay,
+  Shield,
+  Sparkles,
+  Target,
+  Trophy,
+  Users
+} from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
@@ -136,31 +152,356 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Key Features</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">Everything you need for modern learning</p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6">
+      {/* Stats Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {[
-            { icon: BookOpen, title: "AI Content", desc: "Personalized learning paths powered by AI" },
-            { icon: Zap, title: "Offline First", desc: "Learn anywhere without internet connection" },
-            { icon: Users, title: "Peer Sharing", desc: "Collaborate and share knowledge with peers" },
-          ].map((feature, i) => (
-            <div
-              key={i}
-              className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-colors group"
-            >
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <feature.icon className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">{feature.desc}</p>
+            { value: "1K+", label: "Active Students" },
+            { value: "3", label: "Schools" },
+            { value: "95%", label: "Success Rate" },
+            { value: "24/7", label: "AI Support" },
+          ].map((stat, i) => (
+            <div key={i} className="text-center animate-fadeIn" style={{ animationDelay: `${i * 0.1}s` }}>
+              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stat.value}</div>
+              <div className="text-sm text-muted-foreground">{stat.label}</div>
             </div>
           ))}
         </div>
       </section>
+
+      {/* Features Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="text-center mb-12">
+          <div className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+            Powerful Features
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything You Need to Excel</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Our comprehensive platform combines AI technology with proven educational methods
+          </p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            { 
+              icon: Brain, 
+              title: "AI-Powered Learning", 
+              desc: "Personalized study paths that adapt to your learning style and pace",
+              color: "text-purple-500"
+            },
+            { 
+              icon: Download, 
+              title: "Offline Access", 
+              desc: "Download content and learn anywhere, even without internet connection",
+              color: "text-blue-500"
+            },
+            { 
+              icon: MessageSquare, 
+              title: "AI Chatbot Tutor", 
+              desc: "24/7 intelligent assistant to answer questions and provide explanations",
+              color: "text-green-500"
+            },
+            { 
+              icon: MonitorPlay, 
+              title: "Video Lessons", 
+              desc: "High-quality video content with interactive elements and quizzes",
+              color: "text-orange-500"
+            },
+            { 
+              icon: Trophy, 
+              title: "Gamification", 
+              desc: "Earn points, badges, and climb leaderboards to stay motivated",
+              color: "text-yellow-500"
+            },
+            { 
+              icon: LineChart, 
+              title: "Real-time Analytics", 
+              desc: "Track progress with detailed insights and performance metrics",
+              color: "text-cyan-500"
+            },
+            { 
+              icon: Users, 
+              title: "Collaborative Learning", 
+              desc: "Connect with peers, share knowledge, and study together",
+              color: "text-pink-500"
+            },
+            { 
+              icon: Target, 
+              title: "Adaptive Testing", 
+              desc: "Smart quizzes that adjust difficulty based on your performance",
+              color: "text-indigo-500"
+            },
+            { 
+              icon: Shield, 
+              title: "Safe & Secure", 
+              desc: "Enterprise-grade security with data encryption and privacy protection",
+              color: "text-red-500"
+            },
+          ].map((feature, i) => (
+            <Card
+              key={i}
+              className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border group"
+            >
+              <div className={`w-12 h-12 bg-muted rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                <feature.icon className={`w-6 h-6 ${feature.color}`} />
+              </div>
+              <h3 className="font-semibold mb-2 text-lg">{feature.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="bg-muted/30 py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Get started in three simple steps
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "01",
+                title: "Create Your Account",
+                desc: "Sign up as a student, teacher, or school administrator in seconds"
+              },
+              {
+                step: "02",
+                title: "Choose Your Path",
+                desc: "Select courses and let our AI create a personalized learning journey"
+              },
+              {
+                step: "03",
+                title: "Start Learning",
+                desc: "Access content, take quizzes, and track your progress in real-time"
+              },
+            ].map((step, i) => (
+              <div key={i} className="relative">
+                <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                  <div className="text-5xl font-bold text-primary/20 mb-4">{step.step}</div>
+                  <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
+                  <p className="text-muted-foreground">{step.desc}</p>
+                </div>
+                {i < 2 && (
+                  <div className="hidden md:block absolute top-1/2 -right-4 transform translate-x-1/2 -translate-y-1/2">
+                    <ArrowRight className="w-8 h-8 text-primary/30" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <div className="inline-block px-3 py-1 bg-secondary/20 text-secondary rounded-full text-sm font-medium border border-secondary/30">
+              Why Choose EduBridge AI
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold">
+              Transform Your Learning Experience
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              EduBridge AI combines cutting-edge artificial intelligence with proven educational methodologies 
+              to deliver a learning experience that&apos;s both effective and engaging.
+            </p>
+            <div className="space-y-4">
+              {[
+                "Personalized learning paths powered by advanced AI",
+                "Access to thousands of curated educational resources",
+                "Real-time progress tracking and detailed analytics",
+                "Gamified experience to boost motivation",
+                "Collaborative tools for peer-to-peer learning",
+                "Comprehensive support for teachers and administrators"
+              ].map((benefit, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground">{benefit}</span>
+                </div>
+              ))}
+            </div>
+            <div className="pt-4">
+              <Link href="/signup">
+                <Button size="lg" className="gap-2">
+                  Get Started Free <Sparkles className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-3xl"></div>
+            <Card className="relative p-8 border-border">
+              <div className="space-y-6">
+                <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold mb-1">AI-Powered Insights</div>
+                    <div className="text-sm text-muted-foreground">Intelligent recommendations</div>
+                  </div>
+                  <div className="text-2xl font-bold text-primary">98%</div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
+                  <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
+                    <Trophy className="w-6 h-6 text-green-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold mb-1">Student Success Rate</div>
+                    <div className="text-sm text-muted-foreground">Above average scores</div>
+                  </div>
+                  <div className="text-2xl font-bold text-green-500">95%</div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
+                  <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                    <Users className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold mb-1">Active Community</div>
+                    <div className="text-sm text-muted-foreground">Students & teachers</div>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-500">10K+</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="bg-muted/30 py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Users Say</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Hear from students and educators who have transformed their learning experience
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Priya Sharma",
+                role: "Class 12 Student",
+                content: "EduBridge AI helped me improve my grades significantly. The AI tutor is available 24/7 and explains concepts in a way that's easy to understand.",
+                rating: 5
+              },
+              {
+                name: "Rajesh Kumar",
+                role: "Mathematics Teacher",
+                content: "As a teacher, this platform has revolutionized how I track student progress and customize learning materials. The analytics are incredibly detailed.",
+                rating: 5
+              },
+              {
+                name: "Anita Desai",
+                role: "School Principal",
+                content: "We've seen a 30% improvement in overall student performance since implementing EduBridge AI. The offline feature is perfect for our remote students.",
+                rating: 5
+              },
+            ].map((testimonial, i) => (
+              <Card key={i} className="p-6 border-border hover:shadow-lg transition-shadow">
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: testimonial.rating }).map((_, j) => (
+                    <span key={j} className="text-yellow-500">⭐</span>
+                  ))}
+                </div>
+                <p className="text-muted-foreground mb-6 leading-relaxed">
+                  &quot;{testimonial.content}&quot;
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <span className="text-primary font-semibold">{testimonial.name.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold">{testimonial.name}</div>
+                    <div className="text-sm text-muted-foreground">{testimonial.role}</div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 rounded-3xl p-12 md:p-16 text-center text-primary-foreground relative overflow-hidden">
+          <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)]"></div>
+          <div className="relative">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              Ready to Start Your Learning Journey?
+            </h2>
+            <p className="text-lg mb-8 text-primary-foreground/90 max-w-2xl mx-auto">
+              Join thousands of students and educators already transforming education with AI
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/signup">
+                <Button size="lg" variant="secondary" className="gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  Start Free Trial
+                </Button>
+              </Link>
+              <Link href="/school-registration">
+                <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
+                  Register Your School
+                </Button>
+              </Link>
+            </div>
+            <p className="text-sm mt-6 text-primary-foreground/80">
+              No credit card required • Free forever for students • 14-day trial for schools
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-muted/30 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <span className="font-semibold text-lg">EduBridge AI</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Empowering education through artificial intelligence and innovative technology.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Platform</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/login" className="hover:text-foreground transition-colors">Login</Link></li>
+                <li><Link href="/signup" className="hover:text-foreground transition-colors">Sign Up</Link></li>
+                <li><Link href="/school-registration" className="hover:text-foreground transition-colors">Register School</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-foreground transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Community</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Legal</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Cookie Policy</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} EduBridge AI. All rights reserved. Built with ❤️ for education.</p>
+          </div>
+        </div>
+      </footer>
     </main>
   )
 }
