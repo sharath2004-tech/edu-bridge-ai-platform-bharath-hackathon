@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { getSession } from "@/lib/auth"
 import { Course, Section } from "@/lib/models"
 import connectDB from "@/lib/mongodb"
-import { Clock, FolderOpen, Search, Star, Video } from "lucide-react"
+import { Clock, Search, Star } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
@@ -74,28 +74,6 @@ export default async function CoursesPage() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Uploaded Materials Banner */}
-      <Card className="p-6 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/30">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-primary/20 rounded-lg">
-            <Video className="w-8 h-8 text-primary" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg mb-2">Looking for Uploaded Videos & Materials?</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Your teachers upload videos, PDFs, and other materials in <strong>My Sections</strong>. 
-              Access all uploaded content there!
-            </p>
-            <Link href="/student/sections">
-              <Button className="gap-2">
-                <FolderOpen className="w-4 h-4" />
-                View Uploaded Materials
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </Card>
-      
       <div>
         <h1 className="text-3xl font-bold mb-2">All Courses</h1>
         <p className="text-muted-foreground">Explore and enroll in courses that match your interests</p>
