@@ -221,7 +221,6 @@ export default function TeacherDashboard() {
               {[
                 { label: "Mark Attendance", href: "/teacher/attendance" },
                 { label: "View Students", href: "/teacher/students" },
-                { label: "Upload Content", href: "/teacher/content" },
                 { label: "Create Course", href: "/teacher/courses/create" }
               ].map((action, i) => (
                 <Link
