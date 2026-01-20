@@ -1,5 +1,6 @@
 "use client"
 
+import { OfflineVideoRefreshPopup } from "@/components/offline-video-refresh-popup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -118,7 +119,9 @@ export default function DownloadsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <>
+      <OfflineVideoRefreshPopup />
+      <div className="space-y-6 animate-fadeIn">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -292,6 +295,7 @@ export default function DownloadsPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
