@@ -198,20 +198,7 @@ export default function StudentDashboard() {
             </div>
           </Card>
 
-          {/* My Sections - Quick Access */}
-          <Card className="p-4 border border-primary/30 bg-primary/5">
-            <div className="flex items-center gap-2 mb-3">
-              <FolderOpen className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold">My Sections</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mb-3">Access course materials uploaded by your teachers</p>
-            <Link href="/student/sections">
-              <Button size="sm" className="w-full gap-2">
-                <FolderOpen className="w-4 h-4" />
-                View Sections
-              </Button>
-            </Link>
-          </Card>
+
 
           {/* Recommended */}
           <Card className="p-4 border border-accent/30 bg-accent/5">
