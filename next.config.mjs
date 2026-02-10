@@ -22,8 +22,6 @@ const nextConfig = {
   },
   // Optimize production builds
   compress: true,
-  // Disable swcMinify if having issues
-  swcMinify: true,
 }
 
 export default nextConfig
