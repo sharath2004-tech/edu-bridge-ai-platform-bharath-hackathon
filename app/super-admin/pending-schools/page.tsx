@@ -4,9 +4,11 @@ import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { usePagination } from '@/hooks/use-pagination'
 import {
     AlertCircle,
+    ArrowUpDown,
     Building2,
     CheckCircle,
     Clock,
@@ -45,13 +47,45 @@ export default function PendingSchoolsPage() {
   const [schools, setSchools] = useState<School[]>([])
   const [loading, setLoading] = useState(true)
   const [processingId, setProcessingId] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
     fetchPendingSchools()
   }, [])
 
+  const sortedSchools = [...schools].sort((a, b) => {
+    let aVal: string | number, bVal: string | number
+    
+    switch (sortBy) {
+      case 'name':
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+        break
+      case 'code':
+        aVal = a.code?.toLowerCase() || ''
+        bVal = b.code?.toLowerCase() || ''
+        break
+      case 'createdAt':
+        aVal = new Date(a.createdAt || 0).getTime()
+        bVal = new Date(b.createdAt || 0).getTime()
+        break
+      default:
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+    }
+    
+    if (typeof aVal === 'string' && typeof bVal === 'string') {
+      return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+    }
+    if (typeof aVal === 'number' && typeof bVal === 'number') {
+      return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
+    }
+    return 0
+  })
+
   const pagination = usePagination({
-    items: schools,
+    items: sortedSchools,
     itemsPerPage: 10
   })
 
@@ -160,9 +194,28 @@ export default function PendingSchoolsPage() {
             Review and approve new school registrations
           </p>
         </div>
-        <Badge variant="secondary" className="h-8 px-3">
-          {schools.length} Pending
-        </Badge>
+        <div className="flex gap-3 items-center">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="code">Code</SelectItem>
+              <SelectItem value="createdAt">Created Date</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+          <Badge variant="secondary" className="h-8 px-3">
+            {schools.length} Pending
+          </Badge>
+        </div>
       </div>
 
       {schools.length === 0 ? (

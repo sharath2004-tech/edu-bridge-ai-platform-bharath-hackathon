@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { usePagination } from '@/hooks/use-pagination'
-import { Download, Search } from 'lucide-react'
+import { ArrowUpDown, Download, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -24,6 +24,8 @@ export default function SuperAdminStudentsPage() {
   const [editDialog, setEditDialog] = useState(false)
   const [editForm, setEditForm] = useState<any>({})
   const [updating, setUpdating] = useState(false)
+  const [sortBy, setSortBy] = useState('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
     const params = new URLSearchParams({ role: 'student' })
@@ -40,8 +42,36 @@ export default function SuperAdminStudentsPage() {
       .catch(() => setLoading(false))
   }, [schoolFilter, classFilter, searchQuery])
 
+  const sortedStudents = [...students].sort((a, b) => {
+    let aVal, bVal
+    
+    switch (sortBy) {
+      case 'name':
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+        break
+      case 'rollNo':
+        aVal = a.rollNo?.toLowerCase() || ''
+        bVal = b.rollNo?.toLowerCase() || ''
+        break
+      case 'school':
+        aVal = a.schoolId?.name?.toLowerCase() || ''
+        bVal = b.schoolId?.name?.toLowerCase() || ''
+        break
+      case 'class':
+        aVal = a.classId ? `${a.classId.className}-${a.classId.section}` : ''
+        bVal = b.classId ? `${b.classId.className}-${b.classId.section}` : ''
+        break
+      default:
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+    }
+    
+    return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+  })
+
   const pagination = usePagination({
-    items: students,
+    items: sortedStudents,
     itemsPerPage: 20
   })
 
@@ -123,6 +153,24 @@ export default function SuperAdminStudentsPage() {
                 <SelectItem value="all">All Classes</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="rollNo">Roll No</SelectItem>
+                <SelectItem value="school">School</SelectItem>
+                <SelectItem value="class">Class</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            >
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
           </div>
         </CardHeader>
         <CardContent>

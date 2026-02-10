@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { usePagination } from '@/hooks/use-pagination'
 import { useToast } from '@/hooks/use-toast'
-import { Download, Mail, Plus, Search, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Download, Mail, Plus, Search, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function SuperAdminUsersPage() {
@@ -27,6 +27,8 @@ export default function SuperAdminUsersPage() {
   const [userToDelete, setUserToDelete] = useState<any>(null)
   const [creating, setCreating] = useState(false)
   const [credentials, setCredentials] = useState<any>(null)
+  const [sortBy, setSortBy] = useState('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const { toast } = useToast()
 
   const [newUser, setNewUser] = useState({
@@ -58,8 +60,36 @@ export default function SuperAdminUsersPage() {
       .catch(() => setLoading(false))
   }
 
+  const sortedUsers = [...users].sort((a, b) => {
+    let aVal, bVal
+    
+    switch (sortBy) {
+      case 'name':
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+        break
+      case 'email':
+        aVal = a.email?.toLowerCase() || ''
+        bVal = b.email?.toLowerCase() || ''
+        break
+      case 'role':
+        aVal = a.role?.toLowerCase() || ''
+        bVal = b.role?.toLowerCase() || ''
+        break
+      case 'school':
+        aVal = a.schoolId?.name?.toLowerCase() || ''
+        bVal = b.schoolId?.name?.toLowerCase() || ''
+        break
+      default:
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+    }
+    
+    return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+  })
+
   const pagination = usePagination({
-    items: users,
+    items: sortedUsers,
     itemsPerPage: 15
   })
 
@@ -185,6 +215,24 @@ export default function SuperAdminUsersPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="email">Email</SelectItem>
+              <SelectItem value="role">Role</SelectItem>
+              <SelectItem value="school">School</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
           <Button 
             variant="outline"
             onClick={() => {

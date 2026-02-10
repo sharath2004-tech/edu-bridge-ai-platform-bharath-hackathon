@@ -3,6 +3,7 @@ import Subject from '@/lib/models/Subject'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
+// Fixed: Import School and User models to register them with Mongoose
 export async function GET(request: NextRequest) {
   try {
     await connectDB()

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { usePagination } from '@/hooks/use-pagination'
-import { BookOpen, GraduationCap, Mail, Phone, Users } from 'lucide-react'
+import { ArrowUpDown, BookOpen, GraduationCap, Mail, Phone, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -22,6 +22,8 @@ export default function SuperAdminTeachersPage() {
   const [editDialog, setEditDialog] = useState(false)
   const [editForm, setEditForm] = useState<any>({})
   const [updating, setUpdating] = useState(false)
+  const [sortBy, setSortBy] = useState('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
     const params = new URLSearchParams({ role: 'teacher' })
@@ -36,8 +38,32 @@ export default function SuperAdminTeachersPage() {
       .catch(() => setLoading(false))
   }, [schoolFilter])
 
+  const sortedTeachers = [...teachers].sort((a, b) => {
+    let aVal, bVal
+    
+    switch (sortBy) {
+      case 'name':
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+        break
+      case 'school':
+        aVal = a.schoolId?.name?.toLowerCase() || ''
+        bVal = b.schoolId?.name?.toLowerCase() || ''
+        break
+      case 'subject':
+        aVal = a.subjectSpecialization?.toLowerCase() || ''
+        bVal = b.subjectSpecialization?.toLowerCase() || ''
+        break
+      default:
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+    }
+    
+    return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+  })
+
   const pagination = usePagination({
-    items: teachers,
+    items: sortedTeachers,
     itemsPerPage: 12
   })
 
@@ -54,14 +80,33 @@ export default function SuperAdminTeachersPage() {
             {teachers.length} teachers across all schools
           </p>
         </div>
-        <Select value={schoolFilter} onValueChange={setSchoolFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filter by school" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Schools</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-3">
+          <Select value={schoolFilter} onValueChange={setSchoolFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by school" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Schools</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="school">School</SelectItem>
+              <SelectItem value="subject">Subject</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6">

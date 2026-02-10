@@ -5,13 +5,15 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { BookOpen, Calendar, Users } from 'lucide-react'
+import { ArrowUpDown, BookOpen, Calendar, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function SuperAdminClassesPage() {
   const [classes, setClasses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [schoolFilter, setSchoolFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('className')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
     const params = new URLSearchParams()
@@ -26,6 +28,33 @@ export default function SuperAdminClassesPage() {
       .catch(() => setLoading(false))
   }, [schoolFilter])
 
+  const sortedClasses = [...classes].sort((a, b) => {
+    let aVal, bVal
+    
+    switch (sortBy) {
+      case 'className':
+        aVal = `${a.className}-${a.section}`.toLowerCase()
+        bVal = `${b.className}-${b.section}`.toLowerCase()
+        break
+      case 'school':
+        aVal = a.schoolId?.name?.toLowerCase() || ''
+        bVal = b.schoolId?.name?.toLowerCase() || ''
+        break
+      case 'strength':
+        aVal = a.strength || 0
+        bVal = b.strength || 0
+        break
+      default:
+        aVal = `${a.className}-${a.section}`.toLowerCase()
+        bVal = `${b.className}-${b.section}`.toLowerCase()
+    }
+    
+    if (typeof aVal === 'string') {
+      return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+    }
+    return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
+  })
+
   if (loading) {
     return <div className="p-8">Loading classes...</div>
   }
@@ -39,14 +68,33 @@ export default function SuperAdminClassesPage() {
             {classes.length} classes across all schools
           </p>
         </div>
-        <Select value={schoolFilter} onValueChange={setSchoolFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filter by school" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Schools</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-3">
+          <Select value={schoolFilter} onValueChange={setSchoolFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by school" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Schools</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="className">Class Name</SelectItem>
+              <SelectItem value="school">School</SelectItem>
+              <SelectItem value="strength">Strength</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -64,7 +112,7 @@ export default function SuperAdminClassesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {classes.map((classItem) => (
+              {sortedClasses.map((classItem) => (
                 <TableRow key={classItem._id}>
                   <TableCell>
                     <div className="flex items-center gap-2">

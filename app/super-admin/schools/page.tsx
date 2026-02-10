@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { usePagination } from '@/hooks/use-pagination'
 import { useToast } from '@/hooks/use-toast'
-import { Building2, Calendar, CheckCircle, ExternalLink, Mail, MapPin, Phone, UserPlus, XCircle } from 'lucide-react'
+import { ArrowUpDown, Building2, Calendar, CheckCircle, ExternalLink, Mail, MapPin, Phone, UserPlus, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function SuperAdminSchoolsPage() {
@@ -23,6 +24,8 @@ export default function SuperAdminSchoolsPage() {
   const [schoolTeachers, setSchoolTeachers] = useState<any[]>([])
   const [schoolClasses, setSchoolClasses] = useState<any[]>([])
   const [loadingAssignments, setLoadingAssignments] = useState(false)
+  const [sortBy, setSortBy] = useState('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const { toast } = useToast()
   const [adminForm, setAdminForm] = useState({
     name: '',
@@ -46,8 +49,42 @@ export default function SuperAdminSchoolsPage() {
       .catch(() => setLoading(false))
   }
 
+  const sortedSchools = [...schools].sort((a, b) => {
+    let aVal: string | number, bVal: string | number
+    
+    switch (sortBy) {
+      case 'name':
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+        break
+      case 'code':
+        aVal = a.code?.toLowerCase() || ''
+        bVal = b.code?.toLowerCase() || ''
+        break
+      case 'students':
+        aVal = a.studentCount || 0
+        bVal = b.studentCount || 0
+        break
+      case 'createdAt':
+        aVal = new Date(a.createdAt || 0).getTime()
+        bVal = new Date(b.createdAt || 0).getTime()
+        break
+      default:
+        aVal = a.name?.toLowerCase() || ''
+        bVal = b.name?.toLowerCase() || ''
+    }
+    
+    if (typeof aVal === 'string' && typeof bVal === 'string') {
+      return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+    }
+    if (typeof aVal === 'number' && typeof bVal === 'number') {
+      return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
+    }
+    return 0
+  })
+
   const pagination = usePagination({
-    items: schools,
+    items: sortedSchools,
     itemsPerPage: 10
   })
 
@@ -224,16 +261,36 @@ export default function SuperAdminSchoolsPage() {
             Manage all registered schools on the platform
           </p>
         </div>
-        <Button onClick={() => {
-          toast({
-            title: 'School Registration',
-            description: 'School registration is available at /school-registration'
-          })
-          window.open('/school-registration', '_blank')
-        }}>
-          <Building2 className="mr-2 h-4 w-4" />
-          Add New School
-        </Button>
+        <div className="flex gap-3">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="code">Code</SelectItem>
+              <SelectItem value="students">Students</SelectItem>
+              <SelectItem value="createdAt">Created Date</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+          <Button onClick={() => {
+            toast({
+              title: 'School Registration',
+              description: 'School registration is available at /school-registration'
+            })
+            window.open('/school-registration', '_blank')
+          }}>
+            <Building2 className="mr-2 h-4 w-4" />
+            Add New School
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6">
