@@ -1,5 +1,4 @@
 import dbConnect from '@/lib/mongodb';
-import mongoose from 'mongoose';
 
 export interface SchoolAnalytics {
   schoolId: string;
