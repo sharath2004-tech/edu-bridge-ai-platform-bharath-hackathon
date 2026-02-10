@@ -2,6 +2,10 @@ import { AnalyticsChat } from '@/components/analytics-chat';
 import { Card } from '@/components/ui/card';
 import { getSchoolAnalyticsData, SchoolAnalytics } from '@/lib/analytics-data';
 
+// Force dynamic rendering to avoid build-time DB access
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AnalyticsPage() {
   let schoolData: SchoolAnalytics[] = [];
   let error: string | null = null;

@@ -1,4 +1,5 @@
 import dbConnect from '@/lib/mongodb';
+import mongoose from 'mongoose';
 
 export interface SchoolAnalytics {
   schoolId: string;
@@ -14,7 +15,14 @@ export interface SchoolAnalytics {
 
 export async function getSchoolAnalyticsData(): Promise<SchoolAnalytics[]> {
   try {
-    const { db } = await dbConnect();
+    const mongoose = await dbConnect();
+    const db = mongoose.connection.db;
+    
+    // Check if db exists
+    if (!db) {
+      console.error('Database connection not available');
+      return [];
+    }
 
     // Fetch all schools
     const schools = await db.collection('schools').find({}).toArray();
@@ -72,9 +80,15 @@ export async function getSchoolAnalyticsData(): Promise<SchoolAnalytics[]> {
 
 export async function getDetailedSchoolAnalytics(schoolId: string) {
   try {
-    const { db } = await dbConnect();
+    const mongoose = await dbConnect();
+    const db = mongoose.connection.db;
+    
+    // Check if db exists
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
 
-    const school = await db.collection('schools').findOne({ _id: schoolId });
+    const school = await db.collection('schools').findOne({ _id: new mongoose.Types.ObjectId(schoolId) });
     
     if (!school) {
       throw new Error('School not found');
