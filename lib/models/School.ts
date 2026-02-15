@@ -1,7 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface ISchool extends Document {
-  _id: string;
   name: string;
   code: string; // Unique school code for registration
   email: string;

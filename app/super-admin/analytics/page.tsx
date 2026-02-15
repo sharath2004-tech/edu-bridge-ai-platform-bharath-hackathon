@@ -1,5 +1,6 @@
 'use client'
 
+import { SuperAdminAnalyticsChat } from '@/components/super-admin-analytics-chat'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, Building2, GraduationCap, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -229,6 +230,9 @@ export default function SuperAdminAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Super Admin Analytics Chatbot */}
+      <SuperAdminAnalyticsChat />
     </div>
   )
 }

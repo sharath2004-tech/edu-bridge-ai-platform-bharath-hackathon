@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ISubject extends Document {
-  _id: string;
   schoolId: mongoose.Types.ObjectId;
   classId: mongoose.Types.ObjectId;
   subjectName: string;

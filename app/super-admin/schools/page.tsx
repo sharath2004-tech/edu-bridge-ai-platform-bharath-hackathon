@@ -1,6 +1,7 @@
 'use client'
 
 import { PaginationControls } from '@/components/pagination-controls'
+import { SuperAdminAnalyticsChat } from '@/components/super-admin-analytics-chat'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -557,6 +558,9 @@ export default function SuperAdminSchoolsPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Super Admin Analytics Chatbot */}
+      <SuperAdminAnalyticsChat />
     </div>
   )
 }

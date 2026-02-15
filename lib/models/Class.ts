@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IClass extends Document {
-  _id: string;
   schoolId: mongoose.Types.ObjectId;
   className: string; // e.g., "LKG", "1st", "2nd", "10th"
   section: string; // e.g., "A", "B", "C"

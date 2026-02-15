@@ -1,7 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose'
 
 export interface IChatMessage extends Document {
-  _id: string
   userId: mongoose.Types.ObjectId
   userName: string
   role: 'user' | 'assistant'
