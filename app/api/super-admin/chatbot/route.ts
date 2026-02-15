@@ -462,11 +462,63 @@ async function generateSuperAdminResponse(
   const isSpecificSchool = /school.*\d+|code|specific school/i.test(messageLower)
   const isPerformance = /performance|score|scorer|marks|grade|exam|result|best student|top student|rank/i.test(messageLower)
   const isSubjectSpecific = /math|science|english|history|geography|physics|chemistry|biology|subject/i.test(messageLower)
+  const isPlatformWide = /across\s+(all\s+)?school|platform|all\s+school|entire\s+platform|overall/i.test(messageLower)
 
   // Build contextual response
   let response = ''
 
   try {
+    // Check for platform-wide performance queries (across all schools)
+    if (isPlatformWide && isPerformance && dbContext) {
+      response += `🌐 **Platform-Wide Performance Data** (Across All Schools)\n\n`
+      
+      if (dbContext.topScorersBySubject && dbContext.topScorersBySubject.length > 0) {
+        response += `🏆 **Top Scorers by Subject:**\n\n`
+        
+        let subjects = dbContext.topScorersBySubject
+        
+        // Filter for specific subject if mentioned
+        if (isSubjectSpecific) {
+          const subjectMatch = messageLower.match(/math|maths|mathematics|science|english|history|geography|physics|chemistry|biology/)
+          if (subjectMatch) {
+            const searchTerm = subjectMatch[0]
+            subjects = subjects.filter((s: any) => 
+              s.subjectName?.toLowerCase().includes(searchTerm)
+            )
+          }
+        }
+        
+        if (subjects.length > 0) {
+          subjects.forEach((subject: any) => {
+            const topScorer = subject.topScorer
+            response += `📖 **${subject.subjectName}**\n`
+            response += `   🥇 **Top Scorer Across All Schools:** ${topScorer.studentName}\n`
+            response += `   🏫 School: ${topScorer.schoolName}\n`
+            response += `   📊 Score: ${topScorer.marksScored}/${topScorer.totalMarks || 'N/A'} (${topScorer.percentage?.toFixed(1) || 'N/A'}%)\n`
+            response += `   🎓 Grade: ${topScorer.grade || 'N/A'}\n`
+            response += `   📈 Platform Average: ${subject.averageScore?.toFixed(1)} marks\n`
+            response += `   👥 Total Students Assessed: ${subject.totalStudents}\n\n`
+          })
+          
+          return response
+        } else {
+          response += `No performance data found for the specified subject.\n\n`
+          response += `This might mean:\n`
+          response += `• The subject hasn't been taught yet\n`
+          response += `• No exams have been conducted for this subject\n`
+          response += `• Try asking "show all subjects" to see available subjects\n`
+          return response
+        }
+      } else {
+        response += `No performance data available yet. This could mean:\n\n`
+        response += `• No exams have been conducted across the platform\n`
+        response += `• Marks haven't been entered into the system\n`
+        response += `• Assessment data is still being processed\n\n`
+        response += `Please check back later or contact system administrators.`
+        return response
+      }
+    }
+    
     // Check for school-specific performance queries first
     const schoolName = extractSchoolName(userMessage)
     const subjectName = extractSubjectName(userMessage)
@@ -516,6 +568,51 @@ async function generateSuperAdminResponse(
         response += `• Using the full official name\n`
         response += `• Checking the list of registered schools\n`
         response += `• Asking "show all schools" to see available schools\n`
+        return response
+      }
+    }
+    
+    // If performance query without specific school, show platform-wide data
+    if (isPerformance && !schoolName && dbContext && !isStatistics) {
+      response += `🌐 **Platform-Wide Top Scorers** (Across All Schools)\n\n`
+      
+      if (dbContext.topScorersBySubject && dbContext.topScorersBySubject.length > 0) {
+        let subjects = dbContext.topScorersBySubject
+        
+        // Filter for specific subject if mentioned
+        if (isSubjectSpecific) {
+          const subjectMatch = messageLower.match(/math|maths|mathematics|science|english|history|geography|physics|chemistry|biology/)
+          if (subjectMatch) {
+            const searchTerm = subjectMatch[0]
+            subjects = subjects.filter((s: any) => 
+              s.subjectName?.toLowerCase().includes(searchTerm)
+            )
+          }
+        }
+        
+        if (subjects.length > 0) {
+          subjects.forEach((subject: any) => {
+            const topScorer = subject.topScorer
+            response += `📖 **${subject.subjectName}**\n`
+            response += `   🥇 Top Scorer: **${topScorer.studentName}**\n`
+            response += `   🏫 School: ${topScorer.schoolName}\n`
+            response += `   📊 Score: ${topScorer.marksScored}/${topScorer.totalMarks || 'N/A'} (${topScorer.percentage?.toFixed(1) || 'N/A'}%)\n`
+            response += `   🎓 Grade: ${topScorer.grade || 'N/A'}\n`
+            response += `   📈 Platform Average: ${subject.averageScore?.toFixed(1)} marks\n`
+            response += `   👥 Students Assessed: ${subject.totalStudents}\n\n`
+          })
+          
+          return response
+        } else {
+          response += `No performance data found for the specified subject.\n\n`
+          return response
+        }
+      } else {
+        response += `⚠️ No performance data available yet.\n\n`
+        response += `This could mean:\n`
+        response += `• No exams have been conducted\n`
+        response += `• Marks haven't been entered into the system\n`
+        response += `• Assessment data is being processed\n`
         return response
       }
     }
@@ -603,66 +700,6 @@ async function generateSuperAdminResponse(
       response += `📚 **Course Information:**\n\n`
       response += `Total Courses: ${dbContext.stats.totalCourses}\n`
       response += `Courses are distributed across ${dbContext.stats.activeSchools} active schools.\n\n`
-    }
-
-    // Performance and exam queries
-    if (isPerformance && dbContext) {
-      response += `🏆 **Student Performance Data:**\n\n`
-
-      // Top scorers by subject
-      if (dbContext.topScorersBySubject && dbContext.topScorersBySubject.length > 0) {
-        response += `**Top Scorers by Subject:**\n\n`
-        
-        // If asking about specific subject, filter for it
-        let subjects = dbContext.topScorersBySubject
-        if (isSubjectSpecific) {
-          // Extract subject name from query
-          const subjectMatch = messageLower.match(/math|maths|mathematics|science|english|history|geography|physics|chemistry|biology/)
-          if (subjectMatch) {
-            const searchTerm = subjectMatch[0]
-            subjects = subjects.filter((s: any) => 
-              s.subjectName?.toLowerCase().includes(searchTerm)
-            )
-          }
-        }
-
-        if (subjects.length > 0) {
-          subjects.forEach((subject: any) => {
-            const topScorer = subject.topScorer
-            response += `📖 **${subject.subjectName}**\n`
-            response += `   🥇 Top Scorer: **${topScorer.studentName}** from ${topScorer.schoolName}\n`
-            response += `   📊 Score: ${topScorer.marksScored}/${topScorer.totalMarks || 'N/A'} (${topScorer.percentage?.toFixed(1) || 'N/A'}%) - Grade: ${topScorer.grade || 'N/A'}\n`
-            response += `   📈 Class Average: ${subject.averageScore?.toFixed(1)} marks\n`
-            response += `   👥 Total Students Assessed: ${subject.totalStudents}\n\n`
-          })
-        } else {
-          response += `No performance data found for the specified subject.\n\n`
-        }
-      }
-
-      // Subject performance overview
-      if (dbContext.subjectPerformance && dbContext.subjectPerformance.length > 0) {
-        response += `**Subject Performance Overview:**\n\n`
-        dbContext.subjectPerformance.slice(0, 10).forEach((subject: any, idx: number) => {
-          response += `${idx + 1}. ${subject.subjectName}: ${subject.averagePercentage?.toFixed(1)}% avg`
-          response += ` (${subject.totalExams} exams, Highest: ${subject.highestScore}, Lowest: ${subject.lowestScore})\n`
-        })
-        response += `\n`
-      }
-
-      // Recent exam results
-      if (dbContext.recentMarks && dbContext.recentMarks.length > 0) {
-        response += `**Recent Exam Results:**\n`
-        dbContext.recentMarks.slice(0, 10).forEach((mark: any) => {
-          const studentName = mark.studentId?.name || 'Unknown Student'
-          const subjectName = mark.subjectId?.subjectName || 'Unknown Subject'
-          const schoolName = mark.schoolId?.name || 'Unknown School'
-          response += `• ${studentName} - ${subjectName}: ${mark.marksScored}/${mark.totalMarks || 'N/A'}`
-          response += ` (${mark.percentage?.toFixed(1) || 'N/A'}%) - ${mark.grade || 'N/A'}\n`
-          response += `  🏫 ${schoolName}\n`
-        })
-        response += `\n`
-      }
     }
 
     // If no specific data matched, use AI to generate response
