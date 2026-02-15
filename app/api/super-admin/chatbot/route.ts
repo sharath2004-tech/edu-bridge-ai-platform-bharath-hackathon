@@ -4,6 +4,7 @@ import ChatMessage from '@/lib/models/ChatMessage'
 import Course from '@/lib/models/Course'
 import Mark from '@/lib/models/Mark'
 import School from '@/lib/models/School'
+import Subject from '@/lib/models/Subject'
 import User from '@/lib/models/User'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
@@ -316,6 +317,133 @@ async function fetchDatabaseContext() {
   }
 }
 
+// Helper to extract school name from query
+function extractSchoolName(message: string): string | null {
+  const messageLower = message.toLowerCase()
+  
+  // Common patterns: "from [school name]", "at [school name]", "[school name] which/what"
+  const patterns = [
+    /from\s+([a-z\s]+?)\s+(?:school|high|university|college)/i,
+    /at\s+([a-z\s]+?)\s+(?:school|high|university|college)/i,
+    /in\s+([a-z\s]+?)\s+(?:school|high|university|college)/i,
+    /([a-z\s]+?)\s+(?:school|high|university|college)\s+(?:which|what|who|show)/i
+  ]
+  
+  for (const pattern of patterns) {
+    const match = message.match(pattern)
+    if (match && match[1]) {
+      return match[1].trim()
+    }
+  }
+  
+  return null
+}
+
+// Helper to extract subject name from query
+function extractSubjectName(message: string): string | null {
+  const subjectMap: { [key: string]: string } = {
+    'math': 'math',
+    'maths': 'math',
+    'mathematics': 'math',
+    'science': 'science',
+    'physics': 'physics',
+    'chemistry': 'chemistry',
+    'biology': 'biology',
+    'english': 'english',
+    'history': 'history',
+    'geography': 'geography',
+    'computer': 'computer',
+    'it': 'computer'
+  }
+  
+  const messageLower = message.toLowerCase()
+  for (const [key, value] of Object.entries(subjectMap)) {
+    if (messageLower.includes(key)) {
+      return value
+    }
+  }
+  
+  return null
+}
+
+// Get school-specific performance data
+async function getSchoolSpecificPerformance(schoolName: string, subjectName?: string) {
+  try {
+    // Find school by name (case-insensitive, partial match)
+    const school = await School.findOne({
+      name: { $regex: schoolName, $options: 'i' }
+    }).lean()
+    
+    if (!school) {
+      return null
+    }
+    
+    // Build aggregation pipeline
+    const matchStage: any = { schoolId: school._id }
+    
+    // If subject specified, find and filter by it
+    if (subjectName) {
+      const subject = await Subject.findOne({
+        schoolId: school._id,
+        subjectName: { $regex: subjectName, $options: 'i' }
+      }).lean()
+      
+      if (subject) {
+        matchStage.subjectId = subject._id
+      }
+    }
+    
+    const topScorers = await Mark.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student'
+        }
+      },
+      {
+        $lookup: {
+          from: 'subjects',
+          localField: 'subjectId',
+          foreignField: '_id',
+          as: 'subject'
+        }
+      },
+      { $unwind: '$student' },
+      { $unwind: '$subject' },
+      { $sort: { marksScored: -1 } },
+      {
+        $group: {
+          _id: '$subjectId',
+          subjectName: { $first: '$subject.subjectName' },
+          topScorer: {
+            $first: {
+              studentName: '$student.name',
+              marksScored: '$marksScored',
+              totalMarks: '$totalMarks',
+              percentage: '$percentage',
+              grade: '$grade'
+            }
+          },
+          averageScore: { $avg: '$marksScored' },
+          totalStudents: { $sum: 1 }
+        }
+      },
+      { $sort: { subjectName: 1 } }
+    ])
+    
+    return {
+      school,
+      topScorers
+    }
+  } catch (error) {
+    console.error('Error fetching school-specific performance:', error)
+    return null
+  }
+}
+
 // Generate AI response with database context
 async function generateSuperAdminResponse(
   userMessage: string,
@@ -339,6 +467,59 @@ async function generateSuperAdminResponse(
   let response = ''
 
   try {
+    // Check for school-specific performance queries first
+    const schoolName = extractSchoolName(userMessage)
+    const subjectName = extractSubjectName(userMessage)
+    
+    if (schoolName && isPerformance) {
+      const schoolData = await getSchoolSpecificPerformance(schoolName, subjectName || undefined)
+      
+      if (schoolData && schoolData.topScorers.length > 0) {
+        response += `🏫 **${schoolData.school.name}** Performance Data:\n\n`
+        
+        if (subjectName && schoolData.topScorers.length === 1) {
+          // Specific subject query
+          const scorer = schoolData.topScorers[0]
+          response += `📖 **${scorer.subjectName}** - Top Scorer:\n\n`
+          response += `🥇 **${scorer.topScorer.studentName}**\n`
+          response += `   📊 Score: ${scorer.topScorer.marksScored}/${scorer.topScorer.totalMarks || 'N/A'}`
+          response += ` (${scorer.topScorer.percentage?.toFixed(1) || 'N/A'}%)\n`
+          response += `   🎓 Grade: ${scorer.topScorer.grade || 'N/A'}\n`
+          response += `   📈 Class Average: ${scorer.averageScore?.toFixed(1)} marks\n`
+          response += `   👥 Total Students: ${scorer.totalStudents}\n\n`
+        } else {
+          // Multiple subjects
+          response += `🏆 **Top Scorers by Subject:**\n\n`
+          schoolData.topScorers.forEach((scorer: any) => {
+            response += `📖 **${scorer.subjectName}**\n`
+            response += `   🥇 ${scorer.topScorer.studentName}: ${scorer.topScorer.marksScored}/${scorer.topScorer.totalMarks || 'N/A'}`
+            response += ` (${scorer.topScorer.percentage?.toFixed(1) || 'N/A'}%) - Grade: ${scorer.topScorer.grade || 'N/A'}\n`
+            response += `   📈 Average: ${scorer.averageScore?.toFixed(1)} | Students: ${scorer.totalStudents}\n\n`
+          })
+        }
+        
+        return response
+      } else if (schoolData && schoolData.topScorers.length === 0) {
+        response += `I found **${schoolData.school.name}**, but there are no exam records available`
+        if (subjectName) {
+          response += ` for ${subjectName}`
+        }
+        response += `. This could mean:\n\n`
+        response += `• No exams have been conducted yet\n`
+        response += `• Marks haven't been entered into the system\n`
+        response += `• The subject name might be different in the database\n\n`
+        response += `Please check with the school administrator or try asking about all subjects.`
+        return response
+      } else {
+        response += `I couldn't find a school matching "${schoolName}". `
+        response += `Please check the school name or try:\n\n`
+        response += `• Using the full official name\n`
+        response += `• Checking the list of registered schools\n`
+        response += `• Asking "show all schools" to see available schools\n`
+        return response
+      }
+    }
+    
     // Statistics queries
     if (isStatistics && dbContext) {
       response += `📊 **Platform Statistics Overview:**\n\n`
