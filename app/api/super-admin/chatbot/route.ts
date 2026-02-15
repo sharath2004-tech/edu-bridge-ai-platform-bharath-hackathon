@@ -2,7 +2,9 @@ import { getSession } from '@/lib/auth'
 import { chatbotCache } from '@/lib/chatbot-cache'
 import ChatMessage from '@/lib/models/ChatMessage'
 import Course from '@/lib/models/Course'
+import Mark from '@/lib/models/Mark'
 import School from '@/lib/models/School'
+import Subject from '@/lib/models/Subject'
 import User from '@/lib/models/User'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
@@ -110,7 +112,10 @@ async function fetchDatabaseContext() {
       schools,
       recentStudents,
       recentTeachers,
-      schoolStats
+      schoolStats,
+      topScorersBySubject,
+      recentMarks,
+      subjectPerformance
     ] = await Promise.all([
       School.countDocuments({ isActive: true }),
       School.countDocuments({ isActive: true }),
@@ -181,6 +186,105 @@ async function fetchDatabaseContext() {
         {
           $limit: 20
         }
+      ]),
+      // Top scorers by subject
+      Mark.aggregate([
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'studentId',
+            foreignField: '_id',
+            as: 'student'
+          }
+        },
+        {
+          $lookup: {
+            from: 'subjects',
+            localField: 'subjectId',
+            foreignField: '_id',
+            as: 'subject'
+          }
+        },
+        {
+          $lookup: {
+            from: 'schools',
+            localField: 'schoolId',
+            foreignField: '_id',
+            as: 'school'
+          }
+        },
+        {
+          $unwind: '$student'
+        },
+        {
+          $unwind: '$subject'
+        },
+        {
+          $unwind: '$school'
+        },
+        {
+          $sort: { marksScored: -1 }
+        },
+        {
+          $group: {
+            _id: '$subjectId',
+            subjectName: { $first: '$subject.subjectName' },
+            topScorer: {
+              $first: {
+                studentName: '$student.name',
+                schoolName: '$school.name',
+                marksScored: '$marksScored',
+                totalMarks: '$totalMarks',
+                percentage: '$percentage',
+                grade: '$grade'
+              }
+            },
+            averageScore: { $avg: '$marksScored' },
+            totalStudents: { $sum: 1 }
+          }
+        },
+        {
+          $sort: { subjectName: 1 }
+        },
+        {
+          $limit: 20
+        }
+      ]),
+      // Recent marks
+      Mark.find()
+        .populate('studentId', 'name')
+        .populate('subjectId', 'subjectName')
+        .populate('schoolId', 'name')
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .lean(),
+      // Subject performance overview
+      Mark.aggregate([
+        {
+          $lookup: {
+            from: 'subjects',
+            localField: 'subjectId',
+            foreignField: '_id',
+            as: 'subject'
+          }
+        },
+        {
+          $unwind: '$subject'
+        },
+        {
+          $group: {
+            _id: '$subjectId',
+            subjectName: { $first: '$subject.subjectName' },
+            averageScore: { $avg: '$marksScored' },
+            averagePercentage: { $avg: '$percentage' },
+            totalExams: { $sum: 1 },
+            highestScore: { $max: '$marksScored' },
+            lowestScore: { $min: '$marksScored' }
+          }
+        },
+        {
+          $sort: { averagePercentage: -1 }
+        }
       ])
     ])
 
@@ -197,7 +301,10 @@ async function fetchDatabaseContext() {
       schools,
       recentStudents,
       recentTeachers,
-      schoolStats
+      schoolStats,
+      topScorersBySubject,
+      recentMarks,
+      subjectPerformance
     }
 
     // Cache the result
@@ -226,6 +333,8 @@ async function generateSuperAdminResponse(
   const isComparison = /compare|comparison|versus|vs|difference|top|best|worst|ranking/i.test(messageLower)
   const isStatistics = /how many|total|count|number of|statistics|stats|overview/i.test(messageLower)
   const isSpecificSchool = /school.*\d+|code|specific school/i.test(messageLower)
+  const isPerformance = /performance|score|scorer|marks|grade|exam|result|best student|top student|rank/i.test(messageLower)
+  const isSubjectSpecific = /math|science|english|history|geography|physics|chemistry|biology|subject/i.test(messageLower)
 
   // Build contextual response
   let response = ''
@@ -316,6 +425,66 @@ async function generateSuperAdminResponse(
       response += `Courses are distributed across ${dbContext.stats.activeSchools} active schools.\n\n`
     }
 
+    // Performance and exam queries
+    if (isPerformance && dbContext) {
+      response += `🏆 **Student Performance Data:**\n\n`
+
+      // Top scorers by subject
+      if (dbContext.topScorersBySubject && dbContext.topScorersBySubject.length > 0) {
+        response += `**Top Scorers by Subject:**\n\n`
+        
+        // If asking about specific subject, filter for it
+        let subjects = dbContext.topScorersBySubject
+        if (isSubjectSpecific) {
+          // Extract subject name from query
+          const subjectMatch = messageLower.match(/math|maths|mathematics|science|english|history|geography|physics|chemistry|biology/)
+          if (subjectMatch) {
+            const searchTerm = subjectMatch[0]
+            subjects = subjects.filter((s: any) => 
+              s.subjectName?.toLowerCase().includes(searchTerm)
+            )
+          }
+        }
+
+        if (subjects.length > 0) {
+          subjects.forEach((subject: any) => {
+            const topScorer = subject.topScorer
+            response += `📖 **${subject.subjectName}**\n`
+            response += `   🥇 Top Scorer: **${topScorer.studentName}** from ${topScorer.schoolName}\n`
+            response += `   📊 Score: ${topScorer.marksScored}/${topScorer.totalMarks || 'N/A'} (${topScorer.percentage?.toFixed(1) || 'N/A'}%) - Grade: ${topScorer.grade || 'N/A'}\n`
+            response += `   📈 Class Average: ${subject.averageScore?.toFixed(1)} marks\n`
+            response += `   👥 Total Students Assessed: ${subject.totalStudents}\n\n`
+          })
+        } else {
+          response += `No performance data found for the specified subject.\n\n`
+        }
+      }
+
+      // Subject performance overview
+      if (dbContext.subjectPerformance && dbContext.subjectPerformance.length > 0) {
+        response += `**Subject Performance Overview:**\n\n`
+        dbContext.subjectPerformance.slice(0, 10).forEach((subject: any, idx: number) => {
+          response += `${idx + 1}. ${subject.subjectName}: ${subject.averagePercentage?.toFixed(1)}% avg`
+          response += ` (${subject.totalExams} exams, Highest: ${subject.highestScore}, Lowest: ${subject.lowestScore})\n`
+        })
+        response += `\n`
+      }
+
+      // Recent exam results
+      if (dbContext.recentMarks && dbContext.recentMarks.length > 0) {
+        response += `**Recent Exam Results:**\n`
+        dbContext.recentMarks.slice(0, 10).forEach((mark: any) => {
+          const studentName = mark.studentId?.name || 'Unknown Student'
+          const subjectName = mark.subjectId?.subjectName || 'Unknown Subject'
+          const schoolName = mark.schoolId?.name || 'Unknown School'
+          response += `• ${studentName} - ${subjectName}: ${mark.marksScored}/${mark.totalMarks || 'N/A'}`
+          response += ` (${mark.percentage?.toFixed(1) || 'N/A'}%) - ${mark.grade || 'N/A'}\n`
+          response += `  🏫 ${schoolName}\n`
+        })
+        response += `\n`
+      }
+    }
+
     // If no specific data matched, use AI to generate response
     if (!response) {
       response = await generateAIResponse(userMessage, language, dbContext)
@@ -352,6 +521,21 @@ Top Schools by Student Count:
 ${dbContext.schoolStats?.slice(0, 5).map((s: any, i: number) => 
   `${i + 1}. ${s.name} (${s.code}): ${s.studentCount} students, ${s.teacherCount} teachers`
 ).join('\n')}
+
+Top Scorers by Subject:
+${dbContext.topScorersBySubject?.slice(0, 10).map((s: any) => 
+  `• ${s.subjectName}: ${s.topScorer?.studentName} from ${s.topScorer?.schoolName} - ${s.topScorer?.marksScored}/${s.topScorer?.totalMarks} (${s.topScorer?.percentage?.toFixed(1)}%) Grade: ${s.topScorer?.grade}`
+).join('\n') || 'No performance data available'}
+
+Subject Performance Overview:
+${dbContext.subjectPerformance?.slice(0, 10).map((s: any) => 
+  `• ${s.subjectName}: Avg ${s.averagePercentage?.toFixed(1)}% (${s.totalExams} exams, Best: ${s.highestScore}, Worst: ${s.lowestScore})`
+).join('\n') || 'No subject data available'}
+
+Recent Student Names for Reference:
+${dbContext.recentStudents?.slice(0, 10).map((st: any) => 
+  `• ${st.name} - ${st.schoolId?.name || 'Unknown School'}`
+).join('\n') || 'No student data'}
 ` : ''
 
     const systemPrompt = `You are an AI assistant for EduBridge platform super administrators. You help analyze and monitor the educational platform data.
@@ -360,15 +544,19 @@ Current Platform Data:
 ${contextSummary}
 
 Your role:
-- Provide data-driven insights and analytics
-- Compare schools, students, teachers, and performance metrics
-- Answer questions about platform statistics
-- Identify trends and patterns
+- Provide data-driven insights and analytics about students, schools, teachers, and academic performance
+- Answer questions about student performance, exam scores, top scorers, and subject-wise rankings
+- Compare schools, students, teachers, and performance metrics across subjects
+- Identify top performing students by subject with their names, schools, and scores
+- Analyze subject performance trends and averages
+- Answer questions about platform statistics and enrollment
+- Identify trends, patterns, and areas needing improvement
 - Suggest improvements based on data
-- Always include specific numbers, school names, and student data when relevant
+- Always include specific numbers, school names, student names, and performance data when relevant
+- For questions about "top scorer" or "best student", refer to the Top Scorers by Subject data provided
 
 Language: ${language}
-Be professional, analytical, and provide actionable insights.`
+Be professional, analytical, and provide actionable insights with specific data points.`
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
