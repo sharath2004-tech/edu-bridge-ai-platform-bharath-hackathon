@@ -1,7 +1,7 @@
 # EduBridge AI Platform
 
 <div align="center">
-  <img src="./docs/images/logo.png" alt="EduBridge AI Logo" width="200"/>
+  <img src="./docs/images/logo.jpg" alt="EduBridge AI Logo" width="200"/>
   
   ### AI-Powered Multi-Tenant Educational Management System
   
