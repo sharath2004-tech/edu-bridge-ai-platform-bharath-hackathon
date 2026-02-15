@@ -1,5 +1,6 @@
 import { getSession } from '@/lib/auth'
 import { generatePassword, sendAdminCredentials, sendStudentCredentials, sendTeacherCredentials } from '@/lib/email'
+import Class from '@/lib/models/Class'
 import School from '@/lib/models/School'
 import User from '@/lib/models/User'
 import connectDB from '@/lib/mongodb'
@@ -19,6 +20,15 @@ export async function GET(request: NextRequest) {
     console.log('Connecting to database...')
     await connectDB()
     console.log('Database connected successfully')
+
+    // Ensure models are loaded
+    console.log('Loading models...')
+    await Promise.all([
+      School.init(),
+      Class.init(),
+      User.init()
+    ])
+    console.log('Models initialized')
 
     const { searchParams } = new URL(request.url)
     const role = searchParams.get('role')
@@ -86,16 +96,30 @@ export async function GET(request: NextRequest) {
 
     // Transform users to ensure safe data structure
     const transformedUsers = users.map((user: any) => {
+      // Debug: Log first user's schoolId type
+      if (users.indexOf(user) === 0) {
+        console.log('First user schoolId type:', typeof user.schoolId)
+        console.log('First user schoolId value:', user.schoolId)
+        console.log('First user classId type:', typeof user.classId)
+        console.log('First user classId value:', user.classId)
+      }
+
       // Handle schoolId - could be populated object, ObjectId, or null
       let schoolInfo = { name: 'N/A', code: 'N/A' }
       if (user.schoolId) {
-        if (typeof user.schoolId === 'object' && user.schoolId.name) {
-          // Successfully populated
+        if (typeof user.schoolId === 'object' && !user.schoolId._id && user.schoolId.name) {
+          // Successfully populated (plain object with name)
           schoolInfo = {
             name: user.schoolId.name,
             code: user.schoolId.code || 'N/A'
           }
-        } else if (typeof user.schoolId === 'string' || user.schoolId._id) {
+        } else if (user.schoolId._id && user.schoolId.name) {
+          // Successfully populated (mongoose document with _id and name)
+          schoolInfo = {
+            name: user.schoolId.name,
+            code: user.schoolId.code || 'N/A'
+          }
+        } else {
           // Failed to populate - has ObjectId but no school found
           schoolInfo = {
             name: 'Unknown School',
@@ -107,13 +131,19 @@ export async function GET(request: NextRequest) {
       // Handle classId - could be populated object, ObjectId, or null
       let classInfo = { className: 'N/A', section: 'N/A' }
       if (user.classId) {
-        if (typeof user.classId === 'object' && user.classId.className) {
-          // Successfully populated
+        if (typeof user.classId === 'object' && !user.classId._id && user.classId.className) {
+          // Successfully populated (plain object with className)
           classInfo = {
             className: user.classId.className,
             section: user.classId.section || 'N/A'
           }
-        } else if (typeof user.classId === 'string' || user.classId._id) {
+        } else if (user.classId._id && user.classId.className) {
+          // Successfully populated (mongoose document with _id and className)
+          classInfo = {
+            className: user.classId.className,
+            section: user.classId.section || 'N/A'
+          }
+        } else {
           // Failed to populate - has ObjectId but no class found
           classInfo = {
             className: 'Unknown Class',
