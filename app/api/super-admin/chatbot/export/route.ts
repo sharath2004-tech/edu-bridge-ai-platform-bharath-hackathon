@@ -1,8 +1,8 @@
 import { getSession } from '@/lib/auth'
-import connectDB from '@/lib/mongodb'
 import Course from '@/lib/models/Course'
 import School from '@/lib/models/School'
 import User from '@/lib/models/User'
+import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
 /**

@@ -1,8 +1,8 @@
 "use client"
 
+import { SuperAdminAnalyticsChat } from '@/components/super-admin-analytics-chat'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { SuperAdminAnalyticsChat } from '@/components/super-admin-analytics-chat'
 import { Building2, Clock, GraduationCap, MapPin, UserCheck, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'

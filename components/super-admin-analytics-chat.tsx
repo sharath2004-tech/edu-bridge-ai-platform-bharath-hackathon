@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { BarChart3, Bot, Download, MessageCircle, RefreshCw, Send, Sparkles, User, X } from "lucide-react"
+import { BarChart3, Bot, Download, RefreshCw, Send, Sparkles, User, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface Message {
