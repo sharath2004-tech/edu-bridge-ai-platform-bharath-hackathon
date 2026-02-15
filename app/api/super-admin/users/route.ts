@@ -16,13 +16,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    console.log('Connecting to database...')
     await connectDB()
+    console.log('Database connected successfully')
 
     const { searchParams } = new URL(request.url)
     const role = searchParams.get('role')
     const schoolId = searchParams.get('schoolId')
     const classId = searchParams.get('classId')
     const search = searchParams.get('search')
+
+    console.log('Query params:', { role, schoolId, classId, search })
 
     // Build query
     const query: any = {}
@@ -47,13 +51,38 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    const users = await User.find(query)
-      .populate('schoolId', 'name code')
-      .populate('classId', 'className section')
-      .select('-password -__v')
-      .sort({ createdAt: -1 })
-      .limit(1000)
-      .lean()
+    console.log('Built query:', JSON.stringify(query))
+    console.log('Fetching users from database...')
+
+    let users
+    try {
+      users = await User.find(query)
+        .populate({
+          path: 'schoolId',
+          select: 'name code',
+          strictPopulate: false
+        })
+        .populate({
+          path: 'classId',
+          select: 'className section',
+          strictPopulate: false
+        })
+        .select('-password -__v')
+        .sort({ createdAt: -1 })
+        .limit(1000)
+        .lean()
+      console.log(`Successfully fetched ${users.length} users`)
+    } catch (populateError: any) {
+      console.error('Error with populate:', populateError)
+      console.error('Falling back to query without populate')
+      // Fallback: fetch without populate
+      users = await User.find(query)
+        .select('-password -__v')
+        .sort({ createdAt: -1 })
+        .limit(1000)
+        .lean()
+      console.log(`Fallback: fetched ${users.length} users without populate`)
+    }
 
     return NextResponse.json({
       success: true,
@@ -62,8 +91,10 @@ export async function GET(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Error fetching users:', error)
+    console.error('Error stack:', error.stack)
+    console.error('Error name:', error.name)
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error.message || 'Failed to fetch users' },
       { status: 500 }
     )
   }
