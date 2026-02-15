@@ -1,5 +1,6 @@
 'use client'
 
+import { TableLoadingSkeleton } from '@/components/modern-loading'
 import { PaginationControls } from '@/components/pagination-controls'
 import { SuperAdminAnalyticsChat } from '@/components/super-admin-analytics-chat'
 import { Badge } from '@/components/ui/badge'
@@ -77,14 +78,34 @@ export default function SuperAdminStudentsPage() {
   })
 
   if (loading) {
-    return <div className="p-8">Loading students...</div>
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="h-10 w-56 bg-muted rounded animate-pulse"></div>
+            <div className="h-5 w-72 bg-muted rounded animate-pulse"></div>
+          </div>
+          <div className="flex gap-3">
+            <div className="h-10 w-[200px] bg-muted rounded animate-pulse"></div>
+            <div className="h-10 w-[180px] bg-muted rounded animate-pulse"></div>
+            <div className="h-10 w-[100px] bg-muted rounded animate-pulse"></div>
+            <div className="h-10 w-[100px] bg-muted rounded animate-pulse"></div>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <TableLoadingSkeleton rows={15} columns={7} />
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">All Students</h1>
+          <h1 className="text-3xl font-bold tracking-tight">All Students</h1>
           <p className="text-muted-foreground mt-2">
             {students.length} students across all schools
           </p>

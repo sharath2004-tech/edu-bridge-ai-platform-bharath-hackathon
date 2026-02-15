@@ -1,5 +1,6 @@
 'use client'
 
+import { TableLoadingSkeleton } from '@/components/modern-loading'
 import { PaginationControls } from '@/components/pagination-controls'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -202,7 +203,21 @@ export default function SuperAdminUsersPage() {
   }
 
   if (loading) {
-    return <div className="p-8">Loading users...</div>
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="h-8 w-48 bg-muted rounded animate-pulse"></div>
+            <div className="h-4 w-64 bg-muted rounded animate-pulse"></div>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <TableLoadingSkeleton rows={10} columns={6} />
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

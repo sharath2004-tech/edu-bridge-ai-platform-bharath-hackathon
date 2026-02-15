@@ -1,5 +1,6 @@
 'use client'
 
+import { CardLoadingSkeleton } from '@/components/modern-loading'
 import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -64,18 +65,33 @@ export default function SuperAdminTeachersPage() {
 
   const pagination = usePagination({
     items: sortedTeachers,
-    itemsPerPage: 12
+    itemsPerPage: 15
   })
 
   if (loading) {
-    return <div className="p-8">Loading teachers...</div>
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="h-10 w-56 bg-muted rounded animate-pulse"></div>
+            <div className="h-5 w-72 bg-muted rounded animate-pulse"></div>
+          </div>
+          <div className="flex gap-3">
+            <div className="h-10 w-[200px] bg-muted rounded animate-pulse"></div>
+            <div className="h-10 w-[180px] bg-muted rounded animate-pulse"></div>
+            <div className="h-10 w-[100px] bg-muted rounded animate-pulse"></div>
+          </div>
+        </div>
+        <CardLoadingSkeleton count={12} />
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">All Teachers</h1>
+          <h1 className="text-3xl font-bold tracking-tight">All Teachers</h1>
           <p className="text-muted-foreground mt-2">
             {teachers.length} teachers across all schools
           </p>
