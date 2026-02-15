@@ -84,10 +84,55 @@ export async function GET(request: NextRequest) {
       console.log(`Fallback: fetched ${users.length} users without populate`)
     }
 
+    // Transform users to ensure safe data structure
+    const transformedUsers = users.map((user: any) => {
+      // Handle schoolId - could be populated object, ObjectId, or null
+      let schoolInfo = { name: 'N/A', code: 'N/A' }
+      if (user.schoolId) {
+        if (typeof user.schoolId === 'object' && user.schoolId.name) {
+          // Successfully populated
+          schoolInfo = {
+            name: user.schoolId.name,
+            code: user.schoolId.code || 'N/A'
+          }
+        } else if (typeof user.schoolId === 'string' || user.schoolId._id) {
+          // Failed to populate - has ObjectId but no school found
+          schoolInfo = {
+            name: 'Unknown School',
+            code: 'DELETED'
+          }
+        }
+      }
+
+      // Handle classId - could be populated object, ObjectId, or null
+      let classInfo = { className: 'N/A', section: 'N/A' }
+      if (user.classId) {
+        if (typeof user.classId === 'object' && user.classId.className) {
+          // Successfully populated
+          classInfo = {
+            className: user.classId.className,
+            section: user.classId.section || 'N/A'
+          }
+        } else if (typeof user.classId === 'string' || user.classId._id) {
+          // Failed to populate - has ObjectId but no class found
+          classInfo = {
+            className: 'Unknown Class',
+            section: 'N/A'
+          }
+        }
+      }
+
+      return {
+        ...user,
+        schoolId: schoolInfo,
+        classId: classInfo
+      }
+    })
+
     return NextResponse.json({
       success: true,
-      users,
-      count: users.length
+      users: transformedUsers,
+      count: transformedUsers.length
     })
   } catch (error: any) {
     console.error('Error fetching users:', error)
