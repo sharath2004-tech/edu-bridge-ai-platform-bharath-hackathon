@@ -145,9 +145,8 @@ India's education system is struggling with systemic challenges that prevent mil
 - **District Level**: Policy recommendations backed by aggregated data
 - **AI-Driven**: Machine learning identifies patterns and predicts outcomes
 
-#### 3. **AI + Government Integration**
-- **UDISE+ Sync**: Direct integration with government education databases
-- **NEP 2020 Compliance**: Automated tracking of National Education Policy goals
+#### 3. **AI Integration**
+
 - **Real-Time Pipelines**: Data flows to ministry dashboards instantly
 - **Interoperability**: API-first architecture for ecosystem integration
 
