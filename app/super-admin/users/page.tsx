@@ -417,6 +417,7 @@ export default function SuperAdminUsersPage() {
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="super-admin">Super Admin</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="principal">Principal</SelectItem>
                 <SelectItem value="teacher">Teacher</SelectItem>
                 <SelectItem value="student">Student</SelectItem>
