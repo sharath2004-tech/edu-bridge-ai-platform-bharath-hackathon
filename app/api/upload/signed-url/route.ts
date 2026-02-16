@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     
     // Determine folder based on file type
     const folder = fileType.startsWith('video/') ? 'videos' : fileType.startsWith('image/') ? 'images' : 'files'
-    const filePath = `edu-bridge/${folder}/${uniqueFileName}`
+    const filePath = `${folder}/${uniqueFileName}`
 
     // Construct the upload URL
     const uploadUrl = `https://storage.bunnycdn.com/${process.env.BUNNY_STORAGE_ZONE}/${filePath}`

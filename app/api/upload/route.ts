@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     // Determine folder based on file type
     const fileType = file.type.split('/')[0]
     const folder = fileType === 'video' ? 'videos' : fileType === 'image' ? 'images' : 'files'
-    const filePath = `edu-bridge/${folder}/${fileName}`
+    const filePath = `${folder}/${fileName}`
 
     console.log(`🔄 Uploading to path: ${filePath}`)
 
