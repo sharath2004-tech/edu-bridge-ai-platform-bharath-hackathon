@@ -1,12 +1,12 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import RacingGame from '@/components/lab/games/RacingGame'
+import TugOfWar from '@/components/lab/games/TugOfWar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import TugOfWar from '@/components/lab/games/TugOfWar'
-import RacingGame from '@/components/lab/games/RacingGame'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowLeft, Brain, Car, Gamepad2, Trophy } from 'lucide-react'
 import { useState } from 'react'
-import { Trophy, Gamepad2, Brain, Zap, ArrowLeft, Car } from 'lucide-react'
 
 // Sample quiz questions
 const sampleQuestions = [

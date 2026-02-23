@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useState, useEffect, useCallback } from 'react'
 import { Trophy, Users, Zap } from 'lucide-react'
+import { useCallback, useState } from 'react'
 
 interface TugOfWarProps {
   questions: QuizQuestion[]

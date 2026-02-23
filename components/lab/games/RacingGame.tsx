@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useState, useEffect, useCallback } from 'react'
-import { Trophy, Flag, Zap } from 'lucide-react'
+import { Flag, Trophy, Zap } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface RacingGameProps {
   questions: QuizQuestion[]
