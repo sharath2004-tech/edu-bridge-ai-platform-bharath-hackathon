@@ -89,7 +89,11 @@ export function BusAttendanceComponent() {
         // Pre-fill attendance map with today's records
         const attendanceMap = new Map()
         data.records.forEach((record: any) => {
-          attendanceMap.set(record.studentId._id || record.studentId, record.status)
+          // Skip records with null/undefined studentId (deleted students)
+          if (record.studentId) {
+            const studentId = typeof record.studentId === 'object' ? record.studentId._id : record.studentId
+            attendanceMap.set(studentId, record.status)
+          }
         })
         setAttendance(attendanceMap)
       }

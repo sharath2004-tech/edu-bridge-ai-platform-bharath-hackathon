@@ -20,33 +20,47 @@ export async function POST(req: NextRequest) {
 
     await connectDB()
     
-    const { name, email, role, phone, sendEmail, assignedClasses, parentEmail, transportMode, busId } = await req.json()
+    const body = await req.json()
+    const { name, email, role, phone, sendEmail, assignedClasses, parentEmail, transportMode, busId } = body
     
-    console.log('Creating user - Request data:', { name, email, role, parentEmail, transportMode, busId })
+    console.log('=== USER CREATION REQUEST ===')
+    console.log('Full request body:', JSON.stringify(body, null, 2))
+    console.log('Session:', { role: session.role, schoolId: session.schoolId })
+    console.log('Parsed fields:', { name, email, role, parentEmail, transportMode, busId })
     
     if (!name || !email || !role) {
+      console.log('❌ Validation failed: Missing required fields', { name: !!name, email: !!email, role: !!role })
       return NextResponse.json({ success: false, error: 'Name, email, and role are required' }, { status: 400 })
     }
     
     // Validate student-specific fields
     if (role === 'student') {
+      console.log('📝 Validating student-specific fields...')
       if (!parentEmail) {
+        console.log('❌ Validation failed: Missing parent email')
         return NextResponse.json({ success: false, error: 'Parent email is required for students' }, { status: 400 })
       }
       if (transportMode === 'bus' && !busId) {
+        console.log('❌ Validation failed: Missing bus ID for bus transport mode')
         return NextResponse.json({ success: false, error: 'Bus ID is required when transport mode is bus' }, { status: 400 })
       }
       
       // Validate bus exists and belongs to the school
       if (transportMode === 'bus' && busId) {
+        console.log('🚌 Validating bus...', { busId, transportMode })
         const bus = await Bus.findById(busId)
         if (!bus) {
+          console.log('❌ Bus validation failed: Bus not found')
           return NextResponse.json({ success: false, error: 'Invalid bus ID - bus not found' }, { status: 400 })
         }
         if (bus.schoolId.toString() !== session.schoolId) {
+          console.log('❌ Bus validation failed: School mismatch', { 
+            busSchoolId: bus.schoolId.toString(), 
+            sessionSchoolId: session.schoolId 
+          })
           return NextResponse.json({ success: false, error: 'Bus does not belong to your school' }, { status: 400 })
         }
-        console.log('Bus validation passed:', { busId, busNumber: bus.busNumber, routeName: bus.routeName })
+        console.log('✅ Bus validation passed:', { busId, busNumber: bus.busNumber, routeName: bus.routeName })
       }
     }
     

@@ -147,7 +147,10 @@ export default function AdminUsersPage() {
           email: '',
           role: 'student',
           phone: '',
-          sendEmail: true
+          sendEmail: true,
+          parentEmail: '',
+          transportMode: 'own-vehicle',
+          busId: ''
         })
         setSelectedClasses([])
         fetchUsers()

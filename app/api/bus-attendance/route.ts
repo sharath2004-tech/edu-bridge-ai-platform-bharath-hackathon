@@ -55,9 +55,12 @@ export async function GET(req: NextRequest) {
       .sort({ date: -1, markedAt: -1 })
       .limit(200);
 
+    // Filter out records where student was deleted (studentId is null after populate)
+    const validRecords = attendanceRecords.filter(record => record.studentId !== null);
+
     return NextResponse.json({
       success: true,
-      records: attendanceRecords,
+      records: validRecords,
     });
   } catch (error) {
     console.error('Error fetching bus attendance:', error);
