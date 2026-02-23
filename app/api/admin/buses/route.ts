@@ -31,10 +31,9 @@ export async function GET(req: NextRequest) {
     const busesWithStudents = await Promise.all(
       buses.map(async (bus) => {
         const studentCount = await User.countDocuments({
-          schoolId: bus.schoolId,
           role: 'student',
           transportMode: 'bus',
-          busId: bus.busNumber,
+          busId: bus._id,
           isActive: true
         })
         return {
@@ -61,6 +60,13 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession()
+    
+    console.log('Bus creation - Session:', { 
+      role: session?.role, 
+      schoolId: session?.schoolId,
+      hasSession: !!session 
+    })
+    
     if (!session || !['admin', 'principal', 'super-admin'].includes(session.role)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
@@ -71,7 +77,10 @@ export async function POST(req: NextRequest) {
 
     await connectDB()
 
-    const { busNumber, routeName, capacity, driverName, driverPhone, schoolId } = await req.json()
+    const body = await req.json()
+    console.log('Bus creation - Request body:', body)
+    
+    const { busNumber, routeName, capacity, driverName, driverPhone, schoolId } = body
 
     if (!busNumber || !routeName || !capacity) {
       return NextResponse.json(
@@ -82,6 +91,8 @@ export async function POST(req: NextRequest) {
 
     // Use provided schoolId for super-admin, otherwise use session schoolId
     const targetSchoolId = session.role === 'super-admin' && schoolId ? schoolId : session.schoolId
+    
+    console.log('Bus creation - Target schoolId:', targetSchoolId)
 
     if (!targetSchoolId) {
       return NextResponse.json(
@@ -103,7 +114,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const bus = await Bus.create({
+    const busData = {
       schoolId: targetSchoolId,
       busNumber: busNumber.toUpperCase(),
       routeName,
@@ -111,7 +122,13 @@ export async function POST(req: NextRequest) {
       driverName: driverName || undefined,
       driverPhone: driverPhone || undefined,
       isActive: true
-    })
+    }
+    
+    console.log('Bus creation - Creating bus with data:', busData)
+    
+    const bus = await Bus.create(busData)
+    
+    console.log('Bus creation - Success:', bus._id)
 
     return NextResponse.json({
       success: true,
@@ -119,7 +136,8 @@ export async function POST(req: NextRequest) {
       bus
     }, { status: 201 })
   } catch (error: any) {
-    console.error('Error creating bus:', error)
+    console.error('Error creating bus - Full error:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to create bus' },
       { status: 500 }
@@ -167,7 +185,7 @@ export async function DELETE(req: NextRequest) {
     // Check if any students are assigned to this bus
     const studentCount = await User.countDocuments({
       transportMode: 'bus',
-      busId: bus.busNumber,
+      busId: busId,
       isActive: true
     })
 
