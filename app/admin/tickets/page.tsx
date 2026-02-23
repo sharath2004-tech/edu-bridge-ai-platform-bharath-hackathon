@@ -393,12 +393,10 @@ export default function AdminTicketsPage() {
                     {getPriorityBadge(selectedTicket.priority)}
                   </div>
                 </DialogTitle>
-                <DialogDescription>
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <Badge variant="outline">{selectedTicket.category}</Badge>
-                    <span>Student: {selectedTicket.studentId.name}</span>
-                    <span>Created: {new Date(selectedTicket.createdAt).toLocaleString()}</span>
-                  </div>
+                <DialogDescription className="flex items-center gap-4 flex-wrap">
+                  <Badge variant="outline">{selectedTicket.category}</Badge>
+                  <span>Student: {selectedTicket.studentId.name}</span>
+                  <span>Created: {new Date(selectedTicket.createdAt).toLocaleString()}</span>
                 </DialogDescription>
               </DialogHeader>
 
