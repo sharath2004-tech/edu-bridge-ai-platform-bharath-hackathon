@@ -25,7 +25,7 @@ export interface IUser extends Document {
   parentEmail?: string; // Parent email for notifications
   // Transportation fields
   transportMode?: 'bus' | 'own-vehicle'; // How student commutes to school
-  busId?: string; // Bus number/identifier if using bus
+  busId?: mongoose.Types.ObjectId; // Reference to Bus model if using bus
   // Legacy fields (for backward compatibility)
   className?: string; // e.g., '10-A'
   section?: string; // e.g., 'A', 'B', 'C', 'D', 'E'
@@ -161,8 +161,8 @@ const UserSchema = new Schema<IUser>(
       default: 'own-vehicle',
     },
     busId: {
-      type: String,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: 'Bus',
       index: true,
     },
     // Legacy fields (backward compatibility)
