@@ -1,6 +1,6 @@
 import { getSession } from '@/lib/auth'
 import { generatePassword, sendAdminCredentials, sendStudentCredentials, sendTeacherCredentials, sendTransportCredentials } from '@/lib/email'
-import { User } from '@/lib/models'
+import { Bus, User } from '@/lib/models'
 import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
 import bcrypt from 'bcrypt'
@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
     
     const { name, email, role, phone, sendEmail, assignedClasses, parentEmail, transportMode, busId } = await req.json()
     
+    console.log('Creating user - Request data:', { name, email, role, parentEmail, transportMode, busId })
+    
     if (!name || !email || !role) {
       return NextResponse.json({ success: false, error: 'Name, email, and role are required' }, { status: 400 })
     }
@@ -33,6 +35,18 @@ export async function POST(req: NextRequest) {
       }
       if (transportMode === 'bus' && !busId) {
         return NextResponse.json({ success: false, error: 'Bus ID is required when transport mode is bus' }, { status: 400 })
+      }
+      
+      // Validate bus exists and belongs to the school
+      if (transportMode === 'bus' && busId) {
+        const bus = await Bus.findById(busId)
+        if (!bus) {
+          return NextResponse.json({ success: false, error: 'Invalid bus ID - bus not found' }, { status: 400 })
+        }
+        if (bus.schoolId.toString() !== session.schoolId) {
+          return NextResponse.json({ success: false, error: 'Bus does not belong to your school' }, { status: 400 })
+        }
+        console.log('Bus validation passed:', { busId, busNumber: bus.busNumber, routeName: bus.routeName })
       }
     }
     

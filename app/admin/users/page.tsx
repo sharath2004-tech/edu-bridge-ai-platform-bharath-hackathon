@@ -119,6 +119,8 @@ export default function AdminUsersPage() {
         }
       }
       
+      console.log('Creating user with payload:', payload)
+      
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -126,6 +128,8 @@ export default function AdminUsersPage() {
       })
 
       const data = await res.json()
+      
+      console.log('User creation response:', { status: res.status, data })
 
       if (data.success) {
         toast({

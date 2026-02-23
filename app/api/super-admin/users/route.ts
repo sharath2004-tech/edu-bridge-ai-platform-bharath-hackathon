@@ -1,5 +1,6 @@
 import { getSession } from '@/lib/auth'
 import { generatePassword, sendAdminCredentials, sendStudentCredentials, sendTeacherCredentials, sendTransportCredentials } from '@/lib/email'
+import Bus from '@/lib/models/Bus'
 import Class from '@/lib/models/Class'
 import School from '@/lib/models/School'
 import User from '@/lib/models/User'
@@ -205,6 +206,18 @@ export async function POST(request: NextRequest) {
       }
       if (transportMode === 'bus' && !busId) {
         return NextResponse.json({ success: false, error: 'Bus ID is required when transport mode is bus' }, { status: 400 })
+      }
+      
+      // Validate bus exists and belongs to the school
+      if (transportMode === 'bus' && busId && schoolId) {
+        const bus = await Bus.findById(busId)
+        if (!bus) {
+          return NextResponse.json({ success: false, error: 'Invalid bus ID - bus not found' }, { status: 400 })
+        }
+        if (bus.schoolId.toString() !== schoolId) {
+          return NextResponse.json({ success: false, error: 'Bus does not belong to the selected school' }, { status: 400 })
+        }
+        console.log('Bus validation passed:', { busId, busNumber: bus.busNumber, routeName: bus.routeName })
       }
     }
 
