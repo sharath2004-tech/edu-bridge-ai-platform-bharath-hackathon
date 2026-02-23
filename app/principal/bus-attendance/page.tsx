@@ -1,5 +1,5 @@
-import { getSession } from '@/lib/auth'
 import { BusAttendanceComponent } from '@/components/bus-attendance'
+import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
 export default async function BusAttendancePage() {

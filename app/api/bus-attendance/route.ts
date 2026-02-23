@@ -1,10 +1,10 @@
 import { getSession } from '@/lib/auth';
+import { sendBusAttendanceNotification } from '@/lib/email';
 import BusAttendance from '@/lib/models/BusAttendance';
 import User from '@/lib/models/User';
 import connectDB from '@/lib/mongodb';
-import { NextRequest, NextResponse } from 'next/server';
-import { sendBusAttendanceNotification } from '@/lib/email';
 import mongoose from 'mongoose';
+import { NextRequest, NextResponse } from 'next/server';
 
 // GET - Fetch bus attendance records
 export async function GET(req: NextRequest) {
