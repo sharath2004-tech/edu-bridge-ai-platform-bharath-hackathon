@@ -20,10 +20,20 @@ export async function POST(req: NextRequest) {
 
     await connectDB()
     
-    const { name, email, role, phone, sendEmail, assignedClasses } = await req.json()
+    const { name, email, role, phone, sendEmail, assignedClasses, parentEmail, transportMode, busId } = await req.json()
     
     if (!name || !email || !role) {
       return NextResponse.json({ success: false, error: 'Name, email, and role are required' }, { status: 400 })
+    }
+    
+    // Validate student-specific fields
+    if (role === 'student') {
+      if (!parentEmail) {
+        return NextResponse.json({ success: false, error: 'Parent email is required for students' }, { status: 400 })
+      }
+      if (transportMode === 'bus' && !busId) {
+        return NextResponse.json({ success: false, error: 'Bus ID is required when transport mode is bus' }, { status: 400 })
+      }
     }
     
     // Admin can only create principal, teacher, transport, or student
@@ -55,6 +65,16 @@ export async function POST(req: NextRequest) {
     if (role === 'teacher' && assignedClasses && Array.isArray(assignedClasses) && assignedClasses.length > 0) {
       userData.assignedClasses = assignedClasses
       console.log('Creating teacher with assigned classes:', assignedClasses)
+    }
+
+    // Add transportation fields for students
+    if (role === 'student') {
+      userData.parentEmail = parentEmail
+      userData.transportMode = transportMode || 'own-vehicle'
+      if (transportMode === 'bus' && busId) {
+        userData.busId = busId
+      }
+      console.log('Creating student with transportation:', { transportMode, busId })
     }
 
     const user = await User.create(userData)

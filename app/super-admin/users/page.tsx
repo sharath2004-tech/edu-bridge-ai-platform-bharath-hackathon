@@ -30,6 +30,7 @@ export default function SuperAdminUsersPage() {
   const [credentials, setCredentials] = useState<any>(null)
   const [sortBy, setSortBy] = useState('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [buses, setBuses] = useState<any[]>([])
   const { toast } = useToast()
 
   const [newUser, setNewUser] = useState({
@@ -38,13 +39,23 @@ export default function SuperAdminUsersPage() {
     role: 'student',
     schoolId: '',
     phone: '',
-    sendEmail: true
+    sendEmail: true,
+    // Student transportation fields
+    parentEmail: '',
+    transportMode: 'own-vehicle' as 'bus' | 'own-vehicle',
+    busId: ''
   })
 
   useEffect(() => {
     fetchUsers()
     fetchSchools()
   }, [roleFilter, schoolFilter, searchQuery])
+
+  useEffect(() => {
+    if (isCreateDialogOpen && newUser.role === 'student' && newUser.schoolId) {
+      fetchBusesForSchool(newUser.schoolId)
+    }
+  }, [isCreateDialogOpen, newUser.role, newUser.schoolId])
 
   const fetchUsers = () => {
     const params = new URLSearchParams()
@@ -102,6 +113,23 @@ export default function SuperAdminUsersPage() {
       })
   }
 
+  const fetchBusesForSchool = async (schoolId: string) => {
+    try {
+      const res = await fetch('/api/admin/buses')
+      const data = await res.json()
+      if (data.success) {
+        // Filter buses by school and only show active ones
+        const schoolBuses = data.buses.filter((bus: any) => 
+          bus.schoolId._id === schoolId && bus.isActive
+        )
+        setBuses(schoolBuses)
+      }
+    } catch (error) {
+      console.error('Failed to fetch buses:', error)
+      setBuses([])
+    }
+  }
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreating(true)
@@ -132,7 +160,10 @@ export default function SuperAdminUsersPage() {
           role: 'student',
           schoolId: '',
           phone: '',
-          sendEmail: true
+          sendEmail: true,
+          parentEmail: '',
+          transportMode: 'own-vehicle',
+          busId: ''
         })
         fetchUsers()
       } else {
@@ -365,6 +396,73 @@ export default function SuperAdminUsersPage() {
                       placeholder="10-digit mobile number"
                     />
                   </div>
+
+                  {/* Student Transportation Fields */}
+                  {newUser.role === 'student' && (
+                    <>
+                      <div>
+                        <Label htmlFor="parentEmail">Parent Email *</Label>
+                        <Input
+                          id="parentEmail"
+                          type="email"
+                          value={newUser.parentEmail}
+                          onChange={(e) => setNewUser({ ...newUser, parentEmail: e.target.value })}
+                          placeholder="parent@example.com"
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          For bus attendance notifications
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="transportMode">Transportation Mode *</Label>
+                        <Select 
+                          value={newUser.transportMode} 
+                          onValueChange={(value: 'bus' | 'own-vehicle') => setNewUser({ ...newUser, transportMode: value, busId: value === 'own-vehicle' ? '' : newUser.busId })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="own-vehicle">Own Vehicle</SelectItem>
+                            <SelectItem value="bus">School Bus</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {newUser.transportMode === 'bus' && (
+                        <div>
+                          <Label htmlFor="busId">Bus Route *</Label>
+                          {!newUser.schoolId ? (
+                            <p className="text-sm text-muted-foreground p-3 border rounded-lg">
+                              Please select a school first
+                            </p>
+                          ) : buses.length === 0 ? (
+                            <p className="text-sm text-muted-foreground p-3 border rounded-lg">
+                              No active buses available for this school. Add buses from Bus Management.
+                            </p>
+                          ) : (
+                            <Select 
+                              value={newUser.busId} 
+                              onValueChange={(value) => setNewUser({ ...newUser, busId: value })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select bus route" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {buses.map((bus: any) => (
+                                  <SelectItem key={bus._id} value={bus._id}>
+                                    {bus.busNumber} - {bus.routeName} (Capacity: {bus.capacity})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
                   
                   <div className="flex items-center space-x-2">
                     <input

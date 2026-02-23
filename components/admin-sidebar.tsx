@@ -26,6 +26,7 @@ const menuItems = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/classes", label: "Classes", icon: BookOpen },
   { href: "/admin/courses", label: "Courses", icon: BookOpen },
+  { href: "/admin/buses", label: "Bus Management", icon: Bus },
   { href: "/admin/bus-attendance", label: "Bus Attendance", icon: Bus },
   { href: "/admin/quizzes", label: "Quiz Responses", icon: ClipboardList },
   { href: "/admin/chat-history", label: "Chat History", icon: MessageCircle },

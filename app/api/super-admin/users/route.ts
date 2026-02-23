@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
     await connectDB()
 
     const data = await request.json()
-    const { name, email, role, schoolId, phone, sendEmail } = data
+    const { name, email, role, schoolId, phone, sendEmail, parentEmail, transportMode, busId } = data
 
     // Validate required fields
     if (!name || !email || !role) {
@@ -196,6 +196,16 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'Name, email, and role are required' },
         { status: 400 }
       )
+    }
+
+    // Validate student-specific fields
+    if (role === 'student') {
+      if (!parentEmail) {
+        return NextResponse.json({ success: false, error: 'Parent email is required for students' }, { status: 400 })
+      }
+      if (transportMode === 'bus' && !busId) {
+        return NextResponse.json({ success: false, error: 'Bus ID is required when transport mode is bus' }, { status: 400 })
+      }
     }
 
     // Validate role
@@ -245,8 +255,8 @@ export async function POST(request: NextRequest) {
     const generatedPassword = generatePassword(12)
     const hashedPassword = await bcrypt.hash(generatedPassword, 10)
 
-    // Create user
-    const newUser = await User.create({
+    // Build user data
+    const userData: any = {
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
@@ -255,7 +265,21 @@ export async function POST(request: NextRequest) {
       phone: phone || undefined,
       isActive: true,
       mustChangePassword: true // Require password change on first login
-    })
+    }
+
+    // Add transportation fields for students
+    if (role === 'student') {
+      userData.parentEmail = parentEmail
+      userData.transportMode = transportMode || 'own-vehicle'
+      if (transportMode === 'bus' && busId) {
+        userData.busId = busId
+      }
+      console.log('Creating student with transportation:', { transportMode, busId })
+    }
+
+    // Create user
+    const createdUser = await User.create(userData)
+    const newUser = Array.isArray(createdUser) ? createdUser[0] : createdUser
 
     // Send email if requested
     if (sendEmail && email) {

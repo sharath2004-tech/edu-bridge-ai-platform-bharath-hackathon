@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') })
 
 import bcrypt from 'bcrypt'
-import { Attendance, Class, Content, Course, Exam, Mark, School, Section, Subject, User } from '../lib/models'
+import { Attendance, Bus, Class, Content, Course, Exam, Mark, School, Section, Subject, User } from '../lib/models'
 import Notification from '../lib/models/Notification'
 import Timetable from '../lib/models/Timetable'
 import connectDB from '../lib/mongodb'
@@ -31,6 +31,7 @@ async function seedCompleteDatabase() {
     await Content.deleteMany({})
     await Timetable.deleteMany({})
     await Notification.deleteMany({})
+    await Bus.deleteMany({})
 
     console.log('✅ All collections cleared')
 
@@ -578,20 +579,44 @@ async function seedCompleteDatabase() {
     console.log(`   ✓ Created ${allSubjects.length} subjects across all classes`)
 
     // ==================== BUS ROUTES ====================
-    console.log('\n🚌 Defining Bus Routes...')
-    const busRoutes = [
-      { id: 'BUS-001', route: 'North Route - Downtown', capacity: 40 },
-      { id: 'BUS-002', route: 'South Route - Riverside', capacity: 40 },
-      { id: 'BUS-003', route: 'East Route - Hillside', capacity: 35 },
-      { id: 'BUS-004', route: 'West Route - Park Avenue', capacity: 35 },
-      { id: 'BUS-005', route: 'Central Route - Main Street', capacity: 45 },
-      { id: 'BUS-006', route: 'Express Route - Highway', capacity: 30 },
-      { id: 'BUS-007', route: 'Suburban Route - Green Valley', capacity: 38 },
-      { id: 'BUS-008', route: 'Metro Route - City Center', capacity: 42 },
-      { id: 'BUS-009', route: 'Lake Route - Waterfront', capacity: 36 },
-      { id: 'BUS-010', route: 'Mountain Route - Highland', capacity: 34 },
+    console.log('\n🚌 Creating Bus Routes...')
+    const busRoutesData = [
+      { busNumber: 'BUS-001', routeName: 'North Route - Downtown', capacity: 40, driverName: 'Robert Wilson', driverPhone: '+1-555-0201' },
+      { busNumber: 'BUS-002', routeName: 'South Route - Riverside', capacity: 40, driverName: 'Maria Garcia', driverPhone: '+1-555-0202' },
+      { busNumber: 'BUS-003', routeName: 'East Route - Hillside', capacity: 35, driverName: 'James Brown', driverPhone: '+1-555-0203' },
+      { busNumber: 'BUS-004', routeName: 'West Route - Park Avenue', capacity: 35, driverName: 'Patricia Davis', driverPhone: '+1-555-0204' },
+      { busNumber: 'BUS-005', routeName: 'Central Route - Main Street', capacity: 45, driverName: 'Michael Miller', driverPhone: '+1-555-0205' },
+      { busNumber: 'BUS-006', routeName: 'Express Route - Highway', capacity: 30, driverName: 'Linda Rodriguez', driverPhone: '+1-555-0206' },
+      { busNumber: 'BUS-007', routeName: 'Suburban Route - Green Valley', capacity: 38, driverName: 'David Martinez', driverPhone: '+1-555-0207' },
+      { busNumber: 'BUS-008', routeName: 'Metro Route - City Center', capacity: 42, driverName: 'Elizabeth Lopez', driverPhone: '+1-555-0208' },
+      { busNumber: 'BUS-009', routeName: 'Lake Route - Waterfront', capacity: 36, driverName: 'Richard Johnson', driverPhone: '+1-555-0209' },
+      { busNumber: 'BUS-010', routeName: 'Mountain Route - Highland', capacity: 34, driverName: 'Barbara Taylor', driverPhone: '+1-555-0210' },
     ]
-    console.log(`   ✓ Defined ${busRoutes.length} bus routes`)
+
+    // Create buses for each school
+    const allBuses: any[] = []
+    for (const school of [school1, school2, school3]) {
+      for (const busData of busRoutesData) {
+        const bus = await Bus.create({
+          schoolId: school._id,
+          busNumber: busData.busNumber,
+          routeName: busData.routeName,
+          capacity: busData.capacity,
+          driverName: busData.driverName,
+          driverPhone: busData.driverPhone,
+          isActive: true
+        })
+        allBuses.push(bus)
+      }
+    }
+    console.log(`   ✓ Created ${allBuses.length} buses (${busRoutesData.length} per school)`)
+
+    // Group buses by school for easy access
+    const busesBySchool: { [key: string]: any[] } = {
+      [school1._id.toString()]: allBuses.filter(b => b.schoolId.toString() === school1._id.toString()),
+      [school2._id.toString()]: allBuses.filter(b => b.schoolId.toString() === school2._id.toString()),
+      [school3._id.toString()]: allBuses.filter(b => b.schoolId.toString() === school3._id.toString()),
+    }
 
     // ==================== STUDENTS ====================
     console.log('\n👨‍🎓 Creating Students...')
@@ -621,10 +646,11 @@ async function seedCompleteDatabase() {
     let studentCounter = 0
     let busStudentCount = 0
     const busAssignments: { [key: string]: number } = {}
-    busRoutes.forEach(bus => busAssignments[bus.id] = 0)
+    allBuses.forEach(bus => busAssignments[bus._id.toString()] = 0)
     
     for (const classDoc of targetClasses) {
       const studentsInClass = []
+      const schoolBuses = busesBySchool[classDoc.schoolId.toString()]
       
       for (let i = 0; i < 30; i++) {
         studentCounter++
@@ -635,11 +661,11 @@ async function seedCompleteDatabase() {
         
         // 70% of students use bus transportation, 30% use own vehicle
         const useBus = Math.random() < 0.7
-        const selectedBus = useBus ? busRoutes[Math.floor(Math.random() * busRoutes.length)] : null
+        const selectedBus = useBus && schoolBuses ? schoolBuses[Math.floor(Math.random() * schoolBuses.length)] : null
         
         if (useBus && selectedBus) {
           busStudentCount++
-          busAssignments[selectedBus.id]++
+          busAssignments[selectedBus._id.toString()]++
         }
         
         const student = await User.create({
@@ -659,7 +685,7 @@ async function seedCompleteDatabase() {
           isActive: true,
           // Transportation fields
           transportMode: useBus ? 'bus' : 'own-vehicle',
-          busId: selectedBus?.id,
+          busId: selectedBus?._id,
           // Legacy fields for backward compatibility
           className: classDoc.className,
           section: classDoc.section,
@@ -685,9 +711,9 @@ async function seedCompleteDatabase() {
     
     // Show distribution per bus
     console.log('\n🚌 Bus Assignment Statistics:')
-    for (const bus of busRoutes) {
-      const count = busAssignments[bus.id] || 0
-      console.log(`   ${bus.id} (${bus.route}): ${count}/${bus.capacity} students`)
+    for (const bus of allBuses) {
+      const count = busAssignments[bus._id.toString()] || 0
+      console.log(`   ${bus.busNumber} (${bus.routeName}) - School: ${bus.schoolId}: ${count}/${bus.capacity} students`)
     }
 
     // ==================== ASSIGN TEACHERS TO CLASSES ====================

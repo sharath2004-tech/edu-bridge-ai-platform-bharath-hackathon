@@ -27,6 +27,7 @@ export default function AdminUsersPage() {
   const [credentials, setCredentials] = useState<any>(null)
   const [classes, setClasses] = useState<any[]>([])
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])
+  const [buses, setBuses] = useState<any[]>([])
   const { toast } = useToast()
 
   const [newUser, setNewUser] = useState({
@@ -34,7 +35,11 @@ export default function AdminUsersPage() {
     email: '',
     role: 'student',
     phone: '',
-    sendEmail: true
+    sendEmail: true,
+    // Student transportation fields
+    parentEmail: '',
+    transportMode: 'own-vehicle' as 'bus' | 'own-vehicle',
+    busId: ''
   })
 
   useEffect(() => {
@@ -42,8 +47,13 @@ export default function AdminUsersPage() {
   }, [roleFilter, searchQuery])
 
   useEffect(() => {
-    if (isCreateDialogOpen && newUser.role === 'teacher') {
-      fetchClasses()
+    if (isCreateDialogOpen) {
+      if (newUser.role === 'teacher') {
+        fetchClasses()
+      }
+      if (newUser.role === 'student') {
+        fetchBuses()
+      }
     }
   }, [isCreateDialogOpen, newUser.role])
 
@@ -73,6 +83,18 @@ export default function AdminUsersPage() {
     }
   }
 
+  const fetchBuses = async () => {
+    try {
+      const res = await fetch('/api/admin/buses')
+      const data = await res.json()
+      if (data.success) {
+        setBuses(data.buses.filter((bus: any) => bus.isActive) || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch buses:', error)
+    }
+  }
+
   const pagination = usePagination({
     items: users,
     itemsPerPage: 15
@@ -83,10 +105,20 @@ export default function AdminUsersPage() {
     setCreating(true)
 
     try {
-      const payload = {
+      const payload: any = {
         ...newUser,
         ...(newUser.role === 'teacher' && selectedClasses.length > 0 ? { assignedClasses: selectedClasses } : {})
       }
+      
+      // Add student-specific fields
+      if (newUser.role === 'student') {
+        payload.parentEmail = newUser.parentEmail
+        payload.transportMode = newUser.transportMode
+        if (newUser.transportMode === 'bus') {
+          payload.busId = newUser.busId
+        }
+      }
+      
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -206,7 +238,7 @@ export default function AdminUsersPage() {
 
       {/* Create User Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>
@@ -303,6 +335,74 @@ export default function AdminUsersPage() {
                     </p>
                   )}
                 </div>
+              )}
+
+              {/* Student Transportation Fields */}
+              {newUser.role === 'student' && (
+                <>
+                  <div>
+                    <Label htmlFor="parentEmail">Parent Email *</Label>
+                    <Input
+                      id="parentEmail"
+                      type="email"
+                      value={newUser.parentEmail}
+                      onChange={(e) => setNewUser({ ...newUser, parentEmail: e.target.value })}
+                      placeholder="parent@example.com"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      For bus attendance notifications
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="transportMode">Transportation Mode *</Label>
+                    <Select 
+                      value={newUser.transportMode} 
+                      onValueChange={(value: 'bus' | 'own-vehicle') => setNewUser({ ...newUser, transportMode: value, busId: value === 'own-vehicle' ? '' : newUser.busId })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="own-vehicle">Own Vehicle</SelectItem>
+                        <SelectItem value="bus">School Bus</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {newUser.transportMode === 'bus' && (
+                    <div>
+                      <Label htmlFor="busId">Bus Route *</Label>
+                      <Select 
+                        value={newUser.busId} 
+                        onValueChange={(value) => setNewUser({ ...newUser, busId: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select bus route" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {buses.length === 0 ? (
+                            <div className="p-2 text-sm text-muted-foreground">
+                              No active buses available
+                            </div>
+                          ) : (
+                            buses.map((bus: any) => (
+                              <SelectItem key={bus._id} value={bus._id}>
+                                {bus.busNumber} - {bus.routeName} (Capacity: {bus.capacity})
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {buses.length === 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          No buses available. Add buses from Bus Management first.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
               
               <div className="flex items-center space-x-2">
