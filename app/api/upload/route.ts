@@ -2,9 +2,8 @@ import { getSession } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
- * Bunny.net Upload API
- * Better for videos than Cloudinary - no duration limits
- * Setup: https://bunny.net (Sign up and create storage zone)
+ * Bunny CDN Upload API
+ * Upload files to Bunny Storage and return CDN URL
  */
 
 export async function POST(request: NextRequest) {
@@ -33,11 +32,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if Bunny.net is configured
+    // Validate Bunny CDN configuration
     if (!process.env.BUNNY_STORAGE_ZONE || !process.env.BUNNY_API_KEY || !process.env.BUNNY_CDN_HOSTNAME) {
-      console.error('❌ Bunny.net not configured')
+      console.error('❌ Bunny CDN not configured')
       return NextResponse.json(
-        { success: false, error: 'Bunny.net is not configured. Add BUNNY_STORAGE_ZONE, BUNNY_API_KEY, BUNNY_CDN_HOSTNAME to environment variables' },
+        { success: false, error: 'Bunny CDN is not configured. Contact administrator.' },
         { status: 500 }
       )
     }
@@ -67,7 +66,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`📤 Uploading to Bunny.net: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB, Type: ${file.type}`)
+    console.log(`📤 Uploading to Bunny CDN: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)}MB, Type: ${file.type}`)
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer()
@@ -85,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔄 Uploading to path: ${filePath}`)
 
-    // Upload to Bunny.net Storage
+    // Upload to Bunny CDN Storage
     const uploadUrl = `https://storage.bunnycdn.com/${process.env.BUNNY_STORAGE_ZONE}/${filePath}`
     
     const uploadResponse = await fetch(uploadUrl, {
@@ -100,12 +99,12 @@ export async function POST(request: NextRequest) {
 
     if (!uploadResponse.ok) {
       const errorText = await uploadResponse.text()
-      console.error('❌ Bunny.net upload error:', {
+      console.error('❌ Bunny CDN upload error:', {
         status: uploadResponse.status,
         statusText: uploadResponse.statusText,
         error: errorText,
       })
-      throw new Error(`Bunny.net upload failed: ${uploadResponse.statusText}`)
+      throw new Error(`Bunny CDN upload failed: ${uploadResponse.statusText}`)
     }
 
     // Construct CDN URL
@@ -124,7 +123,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error: any) {
-    console.error('❌ Error uploading file to Bunny.net:', {
+    console.error('❌ Error uploading file to Bunny CDN:', {
       message: error.message,
       error: error,
     })

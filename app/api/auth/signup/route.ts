@@ -6,7 +6,19 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   try {
     await connectDB()
-    const { name, email, password, role, schoolId, classId } = await req.json()
+    const { 
+      name, 
+      email, 
+      password, 
+      role, 
+      schoolId, 
+      classId,
+      parentName,
+      parentEmail,
+      parentPhone,
+      transportMode,
+      busId
+    } = await req.json()
     
     if (!name || !email || !password) {
       return NextResponse.json({ 
@@ -86,6 +98,13 @@ export async function POST(req: NextRequest) {
       section: classDoc.section,
       isActive: false, // Inactive until approved
       isPending: true, // Pending approval from class teacher
+      // Parent information
+      parentName: parentName || undefined,
+      parentEmail: parentEmail || undefined,
+      parentPhone: parentPhone || undefined,
+      // Transportation information
+      transportMode: transportMode || 'own-vehicle',
+      busId: (transportMode === 'bus' && busId) ? busId : undefined,
     }
 
     const newUser = await User.create(userData)

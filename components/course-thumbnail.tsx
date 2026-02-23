@@ -16,7 +16,7 @@ export function CourseThumbnail({ thumbnail, title }: CourseThumbnailProps) {
     )
   }
 
-  // Optimize Bunny.net URL
+  // Optimize Bunny CDN URL
   const getOptimizedUrl = (url: string) => {
     if (!url.includes('b-cdn.net')) return url
     

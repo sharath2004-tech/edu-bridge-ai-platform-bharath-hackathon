@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 
 export type Session = { 
   id: string; 
-  role: 'student' | 'teacher' | 'admin' | 'super-admin' | 'principal'; 
+  role: 'student' | 'teacher' | 'admin' | 'super-admin' | 'principal' | 'transport'; 
   name: string; 
   email: string;
   userId?: string;
@@ -22,7 +22,7 @@ function validateSession(data: unknown): Session | null {
   if (typeof session.email !== 'string') return null
   
   // Role validation
-  const validRoles = ['student', 'teacher', 'admin', 'super-admin', 'principal']
+  const validRoles = ['student', 'teacher', 'admin', 'super-admin', 'principal', 'transport']
   if (!validRoles.includes(session.role)) return null
   
   // Email format validation

@@ -454,6 +454,84 @@ async function seedCompleteDatabase() {
     const allTeachers = [...gvhsTeachers, ...srisTeachers, ...owacTeachers]
     console.log(`   ✓ Created ${allTeachers.length} teachers across all schools`)
 
+    // ==================== TRANSPORT STAFF ====================
+    console.log('\n🚌 Creating Transport Staff...')
+    const transportPassword = await bcrypt.hash('transport123', 10)
+
+    const transportStaff = await User.insertMany([
+      // Green Valley High School Transport Staff
+      {
+        name: 'Mr. David Wilson',
+        email: 'david.wilson@greenvalley.edu',
+        password: transportPassword,
+        role: 'transport',
+        schoolId: school1._id,
+        phone: '+1-555-4001',
+        bio: 'Head of transportation department - managing bus routes and attendance',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DavidW',
+        isActive: true,
+      },
+      {
+        name: 'Mrs. Rachel Green',
+        email: 'rachel.green@greenvalley.edu',
+        password: transportPassword,
+        role: 'transport',
+        schoolId: school1._id,
+        phone: '+1-555-4002',
+        bio: 'Transport coordinator - bus attendance and parent communications',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=RachelG',
+        isActive: true,
+      },
+      // Sunrise International School Transport Staff
+      {
+        name: 'Mr. James Carter',
+        email: 'james.carter@sunriseschool.edu',
+        password: transportPassword,
+        role: 'transport',
+        schoolId: school2._id,
+        phone: '+1-555-4003',
+        bio: 'Transportation manager - overseeing bus operations and safety',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JamesC',
+        isActive: true,
+      },
+      {
+        name: 'Ms. Anna Rodriguez',
+        email: 'anna.rodriguez@sunriseschool.edu',
+        password: transportPassword,
+        role: 'transport',
+        schoolId: school2._id,
+        phone: '+1-555-4004',
+        bio: 'Bus attendance coordinator and route supervisor',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=AnnaR',
+        isActive: true,
+      },
+      // Oakwood Academy Transport Staff
+      {
+        name: 'Mr. Patrick O\'Brien',
+        email: 'patrick.obrien@oakwoodacademy.edu',
+        password: transportPassword,
+        role: 'transport',
+        schoolId: school3._id,
+        phone: '+1-555-4005',
+        bio: 'Transport department head - bus scheduling and monitoring',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=PatrickO',
+        isActive: true,
+      },
+      {
+        name: 'Mrs. Lisa Hayes',
+        email: 'lisa.hayes@oakwoodacademy.edu',
+        password: transportPassword,
+        role: 'transport',
+        schoolId: school3._id,
+        phone: '+1-555-4006',
+        bio: 'Bus attendance officer and safety coordinator',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=LisaH',
+        isActive: true,
+      },
+    ])
+
+    console.log(`   ✓ Created ${transportStaff.length} transport staff across all schools`)
+
     // ==================== SUBJECTS ====================
     console.log('\n📖 Creating Subjects...')
 
@@ -499,6 +577,22 @@ async function seedCompleteDatabase() {
 
     console.log(`   ✓ Created ${allSubjects.length} subjects across all classes`)
 
+    // ==================== BUS ROUTES ====================
+    console.log('\n🚌 Defining Bus Routes...')
+    const busRoutes = [
+      { id: 'BUS-001', route: 'North Route - Downtown', capacity: 40 },
+      { id: 'BUS-002', route: 'South Route - Riverside', capacity: 40 },
+      { id: 'BUS-003', route: 'East Route - Hillside', capacity: 35 },
+      { id: 'BUS-004', route: 'West Route - Park Avenue', capacity: 35 },
+      { id: 'BUS-005', route: 'Central Route - Main Street', capacity: 45 },
+      { id: 'BUS-006', route: 'Express Route - Highway', capacity: 30 },
+      { id: 'BUS-007', route: 'Suburban Route - Green Valley', capacity: 38 },
+      { id: 'BUS-008', route: 'Metro Route - City Center', capacity: 42 },
+      { id: 'BUS-009', route: 'Lake Route - Waterfront', capacity: 36 },
+      { id: 'BUS-010', route: 'Mountain Route - Highland', capacity: 34 },
+    ]
+    console.log(`   ✓ Defined ${busRoutes.length} bus routes`)
+
     // ==================== STUDENTS ====================
     console.log('\n👨‍🎓 Creating Students...')
     const studentPassword = await bcrypt.hash('student123', 10)
@@ -525,6 +619,10 @@ async function seedCompleteDatabase() {
     )
 
     let studentCounter = 0
+    let busStudentCount = 0
+    const busAssignments: { [key: string]: number } = {}
+    busRoutes.forEach(bus => busAssignments[bus.id] = 0)
+    
     for (const classDoc of targetClasses) {
       const studentsInClass = []
       
@@ -534,6 +632,15 @@ async function seedCompleteDatabase() {
         const lastName = studentLastNames[Math.floor(Math.random() * studentLastNames.length)]
         const parentFirstName = parentNames[Math.floor(Math.random() * parentNames.length)]
         const parentLastName = lastName // Same last name as student
+        
+        // 70% of students use bus transportation, 30% use own vehicle
+        const useBus = Math.random() < 0.7
+        const selectedBus = useBus ? busRoutes[Math.floor(Math.random() * busRoutes.length)] : null
+        
+        if (useBus && selectedBus) {
+          busStudentCount++
+          busAssignments[selectedBus.id]++
+        }
         
         const student = await User.create({
           name: `${firstName} ${lastName}`,
@@ -545,10 +652,14 @@ async function seedCompleteDatabase() {
           rollNo: i + 1,
           parentName: `${parentFirstName} ${parentLastName}`,
           parentPhone: `+1-555-${Math.floor(Math.random() * 9000) + 1000}`,
+          parentEmail: `${parentFirstName.toLowerCase()}.${parentLastName.toLowerCase()}@parent.com`,
           phone: `+1-555-${Math.floor(Math.random() * 9000) + 1000}`,
           bio: `${classDoc.className} grade student at ${classDoc.section} section`,
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}${i}`,
           isActive: true,
+          // Transportation fields
+          transportMode: useBus ? 'bus' : 'own-vehicle',
+          busId: selectedBus?.id,
           // Legacy fields for backward compatibility
           className: classDoc.className,
           section: classDoc.section,
@@ -567,6 +678,17 @@ async function seedCompleteDatabase() {
     }
 
     console.log(`   ✓ Created ${totalStudents} students across selected classes`)
+    
+    // Bus Statistics
+    console.log(`   ✓ ${busStudentCount} students using bus transportation`)
+    console.log(`   ✓ ${totalStudents - busStudentCount} students using own vehicle`)
+    
+    // Show distribution per bus
+    console.log('\n🚌 Bus Assignment Statistics:')
+    for (const bus of busRoutes) {
+      const count = busAssignments[bus.id] || 0
+      console.log(`   ${bus.id} (${bus.route}): ${count}/${bus.capacity} students`)
+    }
 
     // ==================== ASSIGN TEACHERS TO CLASSES ====================
     console.log('\n👥 Assigning Teachers to Classes...')

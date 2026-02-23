@@ -717,3 +717,170 @@ export async function sendSchoolApprovalEmail(
     return false
   }
 }
+
+// Send bus attendance notification to parent
+export async function sendBusAttendanceNotification(
+  parentEmail: string,
+  studentName: string,
+  parentName: string,
+  status: 'present' | 'absent',
+  date: Date,
+  busId: string
+): Promise<boolean> {
+  try {
+    const transporter = createTransporter()
+    
+    const formattedDate = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(date)
+
+    const statusColor = status === 'present' ? '#10b981' : '#ef4444'
+    const statusEmoji = status === 'present' ? '✅' : '❌'
+    const statusText = status === 'present' ? 'Present' : 'Absent'
+    
+    const mailOptions = {
+      from: {
+        name: 'EduBridge AI Platform',
+        address: process.env.SMTP_EMAIL || '',
+      },
+      to: parentEmail,
+      subject: `Bus Attendance Alert: ${studentName} - ${statusText}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              padding: 30px;
+              text-align: center;
+              border-radius: 8px 8px 0 0;
+            }
+            .content {
+              background: #f9f9f9;
+              padding: 30px;
+              border: 1px solid #ddd;
+              border-radius: 0 0 8px 8px;
+            }
+            .status-card {
+              background: white;
+              padding: 20px;
+              border-radius: 8px;
+              margin: 20px 0;
+              border-left: 4px solid ${statusColor};
+            }
+            .status-badge {
+              display: inline-block;
+              background: ${statusColor};
+              color: white;
+              padding: 8px 16px;
+              border-radius: 20px;
+              font-weight: bold;
+              font-size: 18px;
+            }
+            .info-row {
+              margin: 10px 0;
+              padding: 10px;
+              background: #f0f0f0;
+              border-radius: 4px;
+            }
+            .label {
+              font-weight: bold;
+              color: #667eea;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              padding: 20px;
+              background: #f9f9f9;
+              border-radius: 8px;
+              font-size: 12px;
+              color: #666;
+            }
+            ${status === 'absent' ? `
+            .alert-box {
+              background: #fef2f2;
+              border: 2px solid #ef4444;
+              padding: 15px;
+              border-radius: 8px;
+              margin: 20px 0;
+            }
+            .alert-box p {
+              margin: 5px 0;
+              color: #991b1b;
+            }
+            ` : ''}
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${statusEmoji} Bus Attendance Notification</h1>
+          </div>
+          
+          <div class="content">
+            <h2>Dear ${parentName},</h2>
+            
+            <p>This is an automated notification regarding your child's bus attendance.</p>
+            
+            <div class="status-card">
+              <div class="info-row">
+                <span class="label">Student Name:</span> ${studentName}
+              </div>
+              <div class="info-row">
+                <span class="label">Date:</span> ${formattedDate}
+              </div>
+              <div class="info-row">
+                <span class="label">Bus Number:</span> ${busId}
+              </div>
+              <div class="info-row">
+                <span class="label">Status:</span> 
+                <span class="status-badge">${statusEmoji} ${statusText.toUpperCase()}</span>
+              </div>
+            </div>
+            
+            ${status === 'absent' ? `
+            <div class="alert-box">
+              <p><strong>⚠️ Important Notice:</strong></p>
+              <p>Your child was marked <strong>ABSENT</strong> on the school bus today. If this is unexpected, please contact the school administration immediately.</p>
+              <p>For your child's safety, please verify their whereabouts and transportation arrangements.</p>
+            </div>
+            ` : `
+            <p style="color: #10b981; font-weight: bold;">✓ Your child boarded the school bus safely and was marked present.</p>
+            `}
+            
+            <p>If you have any questions or concerns, please contact the school administration.</p>
+            
+            <p>Best regards,<br>
+            <strong>EduBridge AI Platform</strong><br>
+            School Transportation Department</p>
+          </div>
+          
+          <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>&copy; ${new Date().getFullYear()} EduBridge AI Platform. All rights reserved.</p>
+          </div>
+        </body>
+        </html>
+      `,
+    }
+    
+    await transporter.sendMail(mailOptions)
+    console.log(`Bus attendance notification sent to ${parentEmail} for ${studentName} - Status: ${status}`)
+    return true
+  } catch (error) {
+    console.error('Error sending bus attendance notification:', error)
+    return false
+  }
+}

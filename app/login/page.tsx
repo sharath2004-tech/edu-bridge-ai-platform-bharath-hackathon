@@ -235,6 +235,7 @@ function LoginForm() {
               <option value="admin">Administrator</option>
               <option value="principal">Principal / Head of School</option>
               <option value="teacher">Teacher</option>
+              <option value="transport">Transport Staff</option>
               <option value="student">Student</option>
             </select>
           </div>

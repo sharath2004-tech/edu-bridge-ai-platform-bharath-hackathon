@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import {
     BarChart3,
     BookOpen,
+    Bus,
     Calendar,
     ClipboardList,
     Clock,
@@ -27,6 +28,7 @@ const sidebarItems = [
   { name: "Students", href: "/principal/students", icon: Users },
   { name: "Classes", href: "/principal/classes", icon: BookOpen },
   { name: "Attendance", href: "/principal/attendance", icon: ClipboardList },
+  { name: "Bus Attendance", href: "/principal/bus-attendance", icon: Bus },
   { name: "Marks & Reports", href: "/principal/marks", icon: BarChart3 },
   { name: "Timetable", href: "/principal/timetable", icon: Clock },
   { name: "Courses", href: "/principal/courses", icon: Calendar },

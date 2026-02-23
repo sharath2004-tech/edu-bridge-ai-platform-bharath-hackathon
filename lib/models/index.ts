@@ -13,6 +13,8 @@ export type { ISubject } from './Subject';
 // Assessment Models
 export { default as Attendance } from './Attendance';
 export type { IAttendance } from './Attendance';
+export { default as BusAttendance } from './BusAttendance';
+export type { IBusAttendance } from './BusAttendance';
 export { default as Exam } from './Exam';
 export type { IExam } from './Exam';
 export { default as Mark } from './Mark';

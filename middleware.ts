@@ -7,6 +7,7 @@ const ROLE_HIERARCHY: Record<string, number> = {
   'admin': 4,
   'principal': 3,
   'teacher': 2,
+  'transport': 2, // Same level as teacher
   'student': 1,
 }
 
@@ -16,6 +17,7 @@ const ROUTE_ACCESS: Record<string, { minRole: string; allowedRoles?: string[] }>
   '/admin': { minRole: 'admin', allowedRoles: ['admin', 'super-admin'] },
   '/principal': { minRole: 'principal', allowedRoles: ['principal', 'admin', 'super-admin'] },
   '/teacher': { minRole: 'teacher', allowedRoles: ['teacher', 'principal', 'admin', 'super-admin'] },
+  '/transport': { minRole: 'transport', allowedRoles: ['transport', 'admin', 'super-admin'] },
   '/student': { minRole: 'student', allowedRoles: ['student', 'teacher', 'principal', 'admin', 'super-admin'] },
 }
 
@@ -111,7 +113,7 @@ export function middleware(req: NextRequest) {
   }
 
   // Redirect unauthenticated users from protected routes
-  const protectedPrefixes = ['/super-admin', '/admin', '/principal', '/teacher', '/student']
+  const protectedPrefixes = ['/super-admin', '/admin', '/principal', '/teacher', '/transport', '/student']
   for (const prefix of protectedPrefixes) {
     if (pathname.startsWith(prefix)) {
       if (!role) {

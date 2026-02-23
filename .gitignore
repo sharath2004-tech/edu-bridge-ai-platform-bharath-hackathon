@@ -71,3 +71,5 @@ pids/
 public/uploads/*
 !public/uploads/.gitkeep
 .vercel
+
+.vercel

@@ -4,7 +4,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: 'super-admin' | 'admin' | 'principal' | 'teacher' | 'student';
+  role: 'super-admin' | 'admin' | 'principal' | 'teacher' | 'student' | 'transport';
   schoolId?: mongoose.Types.ObjectId;
   avatar?: string;
   bio?: string;
@@ -22,6 +22,10 @@ export interface IUser extends Document {
   rollNo?: number;
   parentName?: string;
   parentPhone?: string;
+  parentEmail?: string; // Parent email for notifications
+  // Transportation fields
+  transportMode?: 'bus' | 'own-vehicle'; // How student commutes to school
+  busId?: string; // Bus number/identifier if using bus
   // Legacy fields (for backward compatibility)
   className?: string; // e.g., '10-A'
   section?: string; // e.g., 'A', 'B', 'C', 'D', 'E'
@@ -66,7 +70,7 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['super-admin', 'admin', 'principal', 'teacher', 'student'],
+      enum: ['super-admin', 'admin', 'principal', 'teacher', 'student', 'transport'],
       default: 'student',
       required: true,
     },
@@ -140,6 +144,26 @@ const UserSchema = new Schema<IUser>(
     parentPhone: {
       type: String,
       trim: true,
+    },
+    parentEmail: {
+      type: String,
+      lowercase: true,
+      trim: true,
+      match: [
+        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        'Please provide a valid parent email',
+      ],
+    },
+    // Transportation fields
+    transportMode: {
+      type: String,
+      enum: ['bus', 'own-vehicle'],
+      default: 'own-vehicle',
+    },
+    busId: {
+      type: String,
+      trim: true,
+      index: true,
     },
     // Legacy fields (backward compatibility)
     className: {

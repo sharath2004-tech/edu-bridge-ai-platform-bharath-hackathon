@@ -1,41 +1,20 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import {
-    AlertCircle,
-    BarChart3,
-    BookOpen,
-    Bus,
-    ClipboardList,
-    LayoutDashboard,
-    LogOut,
-    Menu,
-    MessageCircle,
-    Settings,
-    Shield,
-    Users,
-    X,
-} from "lucide-react"
+import { Bus, Calendar, LayoutDashboard, LogOut, Menu, Settings, Users, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 
 const menuItems = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/schools", label: "Schools", icon: BookOpen },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/classes", label: "Classes", icon: BookOpen },
-  { href: "/admin/courses", label: "Courses", icon: BookOpen },
-  { href: "/admin/bus-attendance", label: "Bus Attendance", icon: Bus },
-  { href: "/admin/quizzes", label: "Quiz Responses", icon: ClipboardList },
-  { href: "/admin/chat-history", label: "Chat History", icon: MessageCircle },
-  { href: "/admin/moderation", label: "Moderation", icon: Shield },
-  { href: "/admin/reports", label: "Reports", icon: BarChart3 },
-  { href: "/admin/alerts", label: "System Alerts", icon: AlertCircle },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/transport/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/transport/bus-attendance", label: "Bus Attendance", icon: Bus },
+  { href: "/transport/students", label: "Bus Students", icon: Users },
+  { href: "/transport/schedule", label: "Bus Schedule", icon: Calendar },
+  { href: "/transport/settings", label: "Settings", icon: Settings },
 ]
 
-export function AdminSidebar() {
+export function TransportSidebar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
 
@@ -55,11 +34,14 @@ export function AdminSidebar() {
         )}
       >
         <div className="p-6 border-b border-sidebar-border flex-shrink-0">
-          <Link href="/admin/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
-              <span className="text-sidebar-primary-foreground font-bold text-sm">EB</span>
+          <Link href="/transport/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
+              <Bus className="w-5 h-5 text-white" />
             </div>
-            <span className="font-semibold">Admin</span>
+            <div>
+              <span className="font-semibold block">Transport</span>
+              <span className="text-xs text-muted-foreground">Bus Management</span>
+            </div>
           </Link>
         </div>
 
@@ -75,7 +57,7 @@ export function AdminSidebar() {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
                   isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    ? "bg-orange-600 text-white"
                     : "text-sidebar-foreground hover:bg-sidebar-accent/20",
                 )}
               >

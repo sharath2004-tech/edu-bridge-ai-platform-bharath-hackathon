@@ -164,16 +164,16 @@ export default function CreateCoursePage() {
         <p className="text-muted-foreground">Design and publish your course content</p>
       </div>
 
-      {/* Bunny.net Setup Notice */}
+      {/* Bunny CDN Setup Notice */}
       <Card className="p-4 border-l-4 border-l-orange-500 bg-orange-50 dark:bg-orange-950/20">
         <div className="flex gap-3">
           <div className="flex-shrink-0">
             🐰
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">Bunny.net CDN Storage Enabled</h3>
+            <h3 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">Bunny CDN Storage Enabled</h3>
             <p className="text-sm text-orange-700 dark:text-orange-300">
-              Videos & images are now uploaded to <strong>Bunny.net CDN</strong> - perfect for Vercel deployments!
+              Videos & images are now uploaded to <strong>Bunny CDN</strong> - perfect for Vercel deployments!
             </p>
             <ul className="text-sm text-orange-700 dark:text-orange-300 mt-2 ml-4 list-disc">
               <li><strong>Setup</strong> - Add BUNNY_STORAGE_ZONE, BUNNY_API_KEY, BUNNY_CDN_HOSTNAME to environment variables</li>

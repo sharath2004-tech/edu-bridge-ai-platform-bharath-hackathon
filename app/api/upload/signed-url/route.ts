@@ -2,8 +2,8 @@ import { getSession } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
- * Generate a signed URL for direct client-side upload to Bunny.net
- * This bypasses Vercel's 4.5MB body size limit
+ * Generate signed URL for direct client-side upload to Bunny CDN
+ * Bypasses Vercel's 4.5MB body size limit for large files
  */
 export async function POST(request: NextRequest) {
   try {
@@ -32,10 +32,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if Bunny.net is configured
+    // Validate Bunny CDN configuration
     if (!process.env.BUNNY_STORAGE_ZONE || !process.env.BUNNY_API_KEY || !process.env.BUNNY_CDN_HOSTNAME) {
       return NextResponse.json(
-        { success: false, error: 'Bunny.net is not configured' },
+        { success: false, error: 'Bunny CDN is not configured' },
         { status: 500 }
       )
     }

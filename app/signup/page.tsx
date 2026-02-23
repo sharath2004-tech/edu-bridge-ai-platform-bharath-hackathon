@@ -33,6 +33,11 @@ export default function SignUpPage() {
     schoolCode: "",
     schoolId: "",
     classId: "",
+    parentName: "",
+    parentEmail: "",
+    parentPhone: "",
+    transportMode: "own-vehicle" as "bus" | "own-vehicle",
+    busId: "",
   })
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -154,6 +159,11 @@ export default function SignUpPage() {
           role: 'student', // Always student for self-registration
           schoolId: formData.schoolId,
           classId: formData.classId,
+          parentName: formData.parentName,
+          parentEmail: formData.parentEmail,
+          parentPhone: formData.parentPhone,
+          transportMode: formData.transportMode,
+          busId: formData.transportMode === 'bus' ? formData.busId : undefined,
         }),
       })
       
@@ -365,6 +375,91 @@ export default function SignUpPage() {
                   <p className="text-xs text-muted-foreground">No classes available. Contact your school admin.</p>
                 )}
               </div>
+            )}
+
+            {/* Parent Information */}
+            {verifiedSchool && (
+              <>
+                <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.39s" }}>
+                  <Label htmlFor="parentName">Parent/Guardian Name *</Label>
+                  <Input
+                    id="parentName"
+                    name="parentName"
+                    type="text"
+                    placeholder="Parent's full name"
+                    value={formData.parentName}
+                    onChange={handleChange}
+                    required
+                    className="bg-muted/50"
+                  />
+                </div>
+
+                <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.395s" }}>
+                  <Label htmlFor="parentEmail">Parent/Guardian Email *</Label>
+                  <Input
+                    id="parentEmail"
+                    name="parentEmail"
+                    type="email"
+                    placeholder="parent@example.com"
+                    value={formData.parentEmail}
+                    onChange={handleChange}
+                    required
+                    className="bg-muted/50"
+                  />
+                  <p className="text-xs text-muted-foreground">Bus attendance notifications will be sent here</p>
+                </div>
+
+                <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.397s" }}>
+                  <Label htmlFor="parentPhone">Parent/Guardian Phone</Label>
+                  <Input
+                    id="parentPhone"
+                    name="parentPhone"
+                    type="tel"
+                    placeholder="+1 234 567 8900"
+                    value={formData.parentPhone}
+                    onChange={handleChange}
+                    className="bg-muted/50"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Transportation Information */}
+            {verifiedSchool && (
+              <>
+                <div className="space-y-3 animate-slideInLeft" style={{ animationDelay: "0.398s" }}>
+                  <Label className="flex items-center gap-2">
+                    <Bus className="w-4 h-4 text-primary" />
+                    Mode of Transportation *
+                  </Label>
+                  <select
+                    className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                    value={formData.transportMode}
+                    onChange={(e) => setFormData({ ...formData, transportMode: e.target.value as "bus" | "own-vehicle" })}
+                    required
+                  >
+                    <option value="own-vehicle">Own Vehicle / Parent Drop-off</option>
+                    <option value="bus">School Bus</option>
+                  </select>
+                </div>
+
+                {formData.transportMode === 'bus' && (
+                  <div className="space-y-2 animate-slideInLeft" style={{ animationDelay: "0.399s" }}>
+                    <Label htmlFor="busId">Bus Number *</Label>
+                    <Input
+                      id="busId"
+                      name="busId"
+                      type="text"
+                      placeholder="e.g., BUS-001, Route 5, etc."
+                      value={formData.busId}
+                      onChange={handleChange}
+                      required={formData.transportMode === 'bus'}
+                      className="bg-muted/50"
+                    />
+                    <p className="text-xs text-muted-foreground">Enter your assigned bus number or route</p>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Password Input */}

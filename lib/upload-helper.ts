@@ -1,7 +1,7 @@
 /**
- * Upload file to Bunny.net with automatic fallback for large files
+ * Upload file to Bunny CDN with automatic fallback for large files
  * - Small files (<4MB): Upload through Vercel API
- * - Large files (>=4MB): Direct upload to Bunny.net
+ * - Large files (>=4MB): Direct upload to Bunny CDN
  */
 
 const MAX_VERCEL_SIZE = 4 * 1024 * 1024; // 4MB
@@ -16,7 +16,7 @@ export async function uploadFile(
       return await uploadViaVercel(file, onProgress);
     }
     
-    // For large files, use direct upload to Bunny.net
+    // For large files, use direct upload to Bunny CDN
     return await uploadDirectToBunny(file, onProgress);
   } catch (error: any) {
     console.error('Upload error:', error);
@@ -68,7 +68,7 @@ async function uploadViaVercel(
 }
 
 /**
- * Upload directly to Bunny.net (for large files)
+ * Upload directly to Bunny CDN (for large files)
  */
 async function uploadDirectToBunny(
   file: File,
@@ -95,7 +95,7 @@ async function uploadDirectToBunny(
 
     const { uploadUrl, cdnUrl, apiKey } = await signedUrlResponse.json();
 
-    // Step 2: Upload directly to Bunny.net
+    // Step 2: Upload directly to Bunny CDN
     const xhr = new XMLHttpRequest();
 
     return new Promise((resolve) => {

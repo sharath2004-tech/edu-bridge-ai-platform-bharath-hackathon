@@ -1,8 +1,9 @@
 "use client"
 
 import { offlineStorage } from "@/lib/offline-storage"
+import { fixBunnyCdnUrl } from "@/lib/utils"
 import { CheckCircle, Download, Maximize2, Monitor, WifiOff } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "./ui/button"
 
 type VideoSize = 'small' | 'medium' | 'large' | 'full'
@@ -22,6 +23,9 @@ export function VideoPlayerWithError({ videoUrl, title, courseId, lessonId }: Vi
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
   const [videoSize, setVideoSize] = useState<VideoSize>('medium')
   const videoRef = useRef<HTMLVideoElement>(null)
+
+  // Fix Bunny CDN URL if needed
+  const fixedVideoUrl = useMemo(() => fixBunnyCdnUrl(videoUrl) || videoUrl, [videoUrl])
 
   const videoId = `${courseId}-${lessonId}`
 
@@ -71,12 +75,12 @@ export function VideoPlayerWithError({ videoUrl, title, courseId, lessonId }: Vi
     setIsDownloading(true)
 
     try {
-      const url = await offlineStorage.downloadVideo(videoUrl, {
+      const url = await offlineStorage.downloadVideo(fixedVideoUrl, {
         id: videoId,
         courseId,
         lessonId,
         title,
-        fileUrl: videoUrl,
+        fileUrl: fixedVideoUrl,
         downloadedAt: Date.now(),
       })
 
@@ -93,7 +97,7 @@ export function VideoPlayerWithError({ videoUrl, title, courseId, lessonId }: Vi
 
   const handleRegularDownload = async () => {
     try {
-      const response = await fetch(videoUrl)
+      const response = await fetch(fixedVideoUrl)
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -142,7 +146,7 @@ export function VideoPlayerWithError({ videoUrl, title, courseId, lessonId }: Vi
     setVideoSize(sizes[nextIndex])
   }
 
-  const currentVideoUrl = (!isOnline && offlineUrl) ? offlineUrl : videoUrl
+  const currentVideoUrl = (!isOnline && offlineUrl) ? offlineUrl : fixedVideoUrl
 
   if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
     return (

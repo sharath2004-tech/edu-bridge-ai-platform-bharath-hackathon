@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { fixBunnyCdnUrl } from "@/lib/utils"
 import {
     CheckCircle,
     Download,
@@ -15,7 +16,7 @@ import {
     VolumeX,
     WifiOff
 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 type VideoPlayerProps = {
   videoUrl: string
@@ -38,6 +39,9 @@ export function VideoPlayer({ videoUrl, title, lessonId, courseId, onProgress }:
   const [isDownloaded, setIsDownloaded] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
 
+  // Fix Bunny CDN URL if needed
+  const fixedVideoUrl = useMemo(() => fixBunnyCdnUrl(videoUrl) || videoUrl, [videoUrl])
+
   useEffect(() => {
     checkOfflineStatus()
     checkIfDownloaded()
@@ -58,7 +62,7 @@ export function VideoPlayer({ videoUrl, title, lessonId, courseId, onProgress }:
   const checkIfDownloaded = async () => {
     if ('caches' in window && courseId && lessonId) {
       const cache = await caches.open('video-cache')
-      const response = await cache.match(videoUrl)
+      const response = await cache.match(fixedVideoUrl)
       setIsDownloaded(!!response)
     }
   }
@@ -135,7 +139,7 @@ export function VideoPlayer({ videoUrl, title, lessonId, courseId, onProgress }:
     setDownloadProgress(0)
 
     try {
-      const response = await fetch(videoUrl)
+      const response = await fetch(fixedVideoUrl)
       const reader = response.body?.getReader()
       const contentLength = parseInt(response.headers.get('Content-Length') || '0')
       
@@ -162,7 +166,7 @@ export function VideoPlayer({ videoUrl, title, lessonId, courseId, onProgress }:
         headers: { 'Content-Type': 'video/mp4' }
       })
       
-      await cache.put(videoUrl, cachedResponse)
+      await cache.put(fixedVideoUrl, cachedResponse)
       
       // Save metadata
       await fetch('/api/student/offline-content', {
@@ -222,7 +226,7 @@ export function VideoPlayer({ videoUrl, title, lessonId, courseId, onProgress }:
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
         >
-          <source src={videoUrl} type="video/mp4" />
+          <source src={fixedVideoUrl} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
