@@ -1,5 +1,5 @@
 import { getSession } from '@/lib/auth'
-import { generatePassword, sendAdminCredentials, sendStudentCredentials, sendTeacherCredentials } from '@/lib/email'
+import { generatePassword, sendAdminCredentials, sendStudentCredentials, sendTeacherCredentials, sendTransportCredentials } from '@/lib/email'
 import Class from '@/lib/models/Class'
 import School from '@/lib/models/School'
 import User from '@/lib/models/User'
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate role
-    const validRoles = ['super-admin', 'admin', 'principal', 'teacher', 'student']
+    const validRoles = ['super-admin', 'admin', 'principal', 'teacher', 'transport', 'student']
     if (!validRoles.includes(role)) {
       return NextResponse.json(
         { success: false, error: 'Invalid role' },
@@ -275,6 +275,14 @@ export async function POST(request: NextRequest) {
           )
         } else if (role === 'teacher') {
           await sendTeacherCredentials(
+            email.toLowerCase(),
+            name,
+            schoolName,
+            schoolCode,
+            generatedPassword
+          )
+        } else if (role === 'transport') {
+          await sendTransportCredentials(
             email.toLowerCase(),
             name,
             schoolName,

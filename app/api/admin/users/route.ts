@@ -1,5 +1,5 @@
 import { getSession } from '@/lib/auth'
-import { generatePassword, sendAdminCredentials, sendStudentCredentials, sendTeacherCredentials } from '@/lib/email'
+import { generatePassword, sendAdminCredentials, sendStudentCredentials, sendTeacherCredentials, sendTransportCredentials } from '@/lib/email'
 import { User } from '@/lib/models'
 import School from '@/lib/models/School'
 import connectDB from '@/lib/mongodb'
@@ -26,9 +26,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Name, email, and role are required' }, { status: 400 })
     }
     
-    // Admin can only create principal, teacher, or student
-    if (!['principal', 'teacher', 'student'].includes(role)) {
-      return NextResponse.json({ success: false, error: 'Admin can only create principals, teachers, or students' }, { status: 400 })
+    // Admin can only create principal, teacher, transport, or student
+    if (!['principal', 'teacher', 'transport', 'student'].includes(role)) {
+      return NextResponse.json({ success: false, error: 'Admin can only create principals, teachers, transport staff, or students' }, { status: 400 })
     }
     
     const exists = await User.findOne({ email: email.toLowerCase() })
@@ -78,6 +78,14 @@ export async function POST(req: NextRequest) {
           )
         } else if (role === 'teacher') {
           await sendTeacherCredentials(
+            email.toLowerCase(),
+            name,
+            schoolName,
+            schoolCode,
+            generatedPassword
+          )
+        } else if (role === 'transport') {
+          await sendTransportCredentials(
             email.toLowerCase(),
             name,
             schoolName,
