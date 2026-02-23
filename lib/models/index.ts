@@ -37,6 +37,8 @@ export { default as ChatMessage } from './ChatMessage';
 export type { IChatMessage } from './ChatMessage';
 export { default as Gamification } from './Gamification';
 export type { IGamification } from './Gamification';
+export { default as Ticket } from './Ticket';
+export type { ITicket } from './Ticket';
 
 // Notification Model
 export { default as Notification } from './Notification';

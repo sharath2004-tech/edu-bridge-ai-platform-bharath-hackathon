@@ -13,6 +13,7 @@ import {
     MessageCircle,
     Settings,
     Shield,
+    Ticket,
     Users,
     X,
 } from "lucide-react"
@@ -28,6 +29,7 @@ const menuItems = [
   { href: "/admin/courses", label: "Courses", icon: BookOpen },
   { href: "/admin/buses", label: "Bus Management", icon: Bus },
   { href: "/admin/bus-attendance", label: "Bus Attendance", icon: Bus },
+  { href: "/admin/tickets", label: "Support Tickets", icon: Ticket },
   { href: "/admin/quizzes", label: "Quiz Responses", icon: ClipboardList },
   { href: "/admin/chat-history", label: "Chat History", icon: MessageCircle },
   { href: "/admin/moderation", label: "Moderation", icon: Shield },
