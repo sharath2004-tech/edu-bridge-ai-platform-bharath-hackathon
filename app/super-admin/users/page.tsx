@@ -197,6 +197,7 @@ export default function SuperAdminUsersPage() {
       case 'super-admin': return 'default'
       case 'principal': return 'destructive'
       case 'teacher': return 'secondary'
+      case 'transport': return 'default'
       case 'student': return 'outline'
       default: return 'outline'
     }
@@ -331,6 +332,7 @@ export default function SuperAdminUsersPage() {
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="principal">Principal</SelectItem>
                         <SelectItem value="teacher">Teacher</SelectItem>
+                        <SelectItem value="transport">Transport Staff</SelectItem>
                         <SelectItem value="student">Student</SelectItem>
                       </SelectContent>
                     </Select>
@@ -420,6 +422,7 @@ export default function SuperAdminUsersPage() {
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="principal">Principal</SelectItem>
                 <SelectItem value="teacher">Teacher</SelectItem>
+                <SelectItem value="transport">Transport Staff</SelectItem>
                 <SelectItem value="student">Student</SelectItem>
               </SelectContent>
             </Select>

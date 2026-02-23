@@ -179,6 +179,7 @@ export default function AdminUsersPage() {
     switch (role) {
       case 'principal': return 'default'
       case 'teacher': return 'secondary'
+      case 'transport': return 'destructive'
       case 'student': return 'outline'
       default: return 'outline'
     }
@@ -209,7 +210,7 @@ export default function AdminUsersPage() {
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>
-              Create a new principal, teacher, or student account. A secure password will be generated automatically.
+              Create a new principal, teacher, transport staff, or student account. A secure password will be generated automatically.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateUser}>
@@ -226,6 +227,7 @@ export default function AdminUsersPage() {
                   <SelectContent>
                     <SelectItem value="principal">Principal</SelectItem>
                     <SelectItem value="teacher">Teacher</SelectItem>
+                    <SelectItem value="transport">Transport Staff</SelectItem>
                     <SelectItem value="student">Student</SelectItem>
                   </SelectContent>
                 </Select>
@@ -355,6 +357,7 @@ export default function AdminUsersPage() {
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="principal">Principal</SelectItem>
                 <SelectItem value="teacher">Teacher</SelectItem>
+                <SelectItem value="transport">Transport Staff</SelectItem>
                 <SelectItem value="student">Student</SelectItem>
               </SelectContent>
             </Select>
