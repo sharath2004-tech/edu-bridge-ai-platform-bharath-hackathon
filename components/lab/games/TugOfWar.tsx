@@ -26,6 +26,7 @@ interface GameState {
   teamAScore: number
   teamBScore: number
   currentQuestionIndex: number
+  currentTurn: 'alpha' | 'beta' // Track whose turn it is
   gameStatus: 'playing' | 'won' | 'lost'
   winningTeam: 'alpha' | 'beta' | null
   isAnimating: boolean
@@ -43,6 +44,7 @@ export default function TugOfWar({
     teamAScore: 0,
     teamBScore: 0,
     currentQuestionIndex: 0,
+    currentTurn: 'alpha', // Start with Team Alpha
     gameStatus: 'playing',
     winningTeam: null,
     isAnimating: false
@@ -126,14 +128,12 @@ export default function TugOfWar({
     setIsCorrect(correct)
     setShowFeedback(true)
 
-    // Randomly assign to a team for single player (or use team logic)
-    const randomTeam = Math.random() > 0.5 ? 'alpha' : 'beta'
-    
+    // Award point to current team if correct
     if (correct) {
-      updateRope(randomTeam)
+      updateRope(gameState.currentTurn)
     }
 
-    // Move to next question or end game
+    // Move to next question and switch turn
     setTimeout(() => {
       setShowFeedback(false)
       setSelectedAnswer(null)
@@ -141,7 +141,8 @@ export default function TugOfWar({
       if (gameState.currentQuestionIndex < questions.length - 1) {
         setGameState(prev => ({
           ...prev,
-          currentQuestionIndex: prev.currentQuestionIndex + 1
+          currentQuestionIndex: prev.currentQuestionIndex + 1,
+          currentTurn: prev.currentTurn === 'alpha' ? 'beta' : 'alpha' // Alternate turns
         }))
       }
     }, 2000)
@@ -154,6 +155,7 @@ export default function TugOfWar({
       teamAScore: 0,
       teamBScore: 0,
       currentQuestionIndex: 0,
+      currentTurn: 'alpha', // Reset to Team Alpha
       gameStatus: 'playing',
       winningTeam: null,
       isAnimating: false
@@ -206,77 +208,71 @@ export default function TugOfWar({
         </div>
 
         {/* Tug of War Arena */}
-        <Card className="p-8 relative overflow-hidden">
-          {/* Team Avatars with Animated Characters */}
-          <div className="flex items-center justify-between mb-8">
-            {/* Team Alpha - 3 characters pulling */}
-            <div className="flex flex-col items-center gap-4">
-              <div className="flex items-end gap-2">
-                <AnimatedCharacter 
-                  teamColor="blue" 
-                  isPulling={teamAPulling} 
-                  position={0}
-                  isWinner={gameState.winningTeam === 'alpha'}
-                />
-                <AnimatedCharacter 
-                  teamColor="blue" 
-                  isPulling={teamAPulling} 
-                  position={1}
-                  isWinner={gameState.winningTeam === 'alpha'}
-                />
-                <AnimatedCharacter 
-                  teamColor="blue" 
-                  isPulling={teamAPulling} 
-                  position={2}
-                  isWinner={gameState.winningTeam === 'alpha'}
-                />
-              </div>
-              <p className="text-center font-bold text-lg text-blue-600">{teamAName}</p>
+        <Card className="p-8 relative overflow-visible">
+          {/* Turn Indicator */}
+          <div className="mb-6 text-center">
+            <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-full font-bold text-lg shadow-lg transition-all ${
+              gameState.currentTurn === 'alpha' 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-red-500 text-white'
+            }`}>
+              <span className="animate-pulse">👉</span>
+              <span>{gameState.currentTurn === 'alpha' ? teamAName : teamBName}'s Turn</span>
+              <span className="animate-pulse">👈</span>
             </div>
-
-            {/* Team Beta - 3 characters pulling */}
-            <div className="flex flex-col items-center gap-4">
-              <div className="flex items-end gap-2">
-                <AnimatedCharacter 
-                  teamColor="red" 
-                  isPulling={teamBPulling} 
-                  position={0}
-                  isWinner={gameState.winningTeam === 'beta'}
-                />
-                <AnimatedCharacter 
-                  teamColor="red" 
-                  isPulling={teamBPulling} 
-                  position={1}
-                  isWinner={gameState.winningTeam === 'beta'}
-                />
-                <AnimatedCharacter 
-                  teamColor="red" 
-                  isPulling={teamBPulling} 
-                  position={2}
-                  isWinner={gameState.winningTeam === 'beta'}
-                />
-              </div>
-              <p className="text-center font-bold text-lg text-red-600">{teamBName}</p>
-            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Answer correctly to pull the rope toward your side!
+            </p>
           </div>
 
-          {/* Rope Track */}
-          <div className="relative h-24 bg-gradient-to-b from-gray-200 to-gray-300 rounded-lg shadow-inner">
+          {/* Rope Track with Characters */}
+          <div className="relative h-32 mb-8">
+
             {/* Threshold Markers */}
-            <div className="absolute left-[10%] top-0 bottom-0 w-0.5 bg-blue-500/30" />
-            <div className="absolute right-[10%] top-0 bottom-0 w-0.5 bg-red-500/30" />
+            <div className="absolute left-[10%] top-1/2 bottom-1/2 w-0.5 h-24 bg-blue-500/30 -translate-y-1/2" />
+            <div className="absolute right-[10%] top-1/2 bottom-1/2 w-0.5 h-24 bg-red-500/30 -translate-y-1/2" />
             
             {/* Center Line */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gray-400 -ml-0.5" />
+            <div className="absolute left-1/2 top-1/2 w-1 h-24 bg-gray-400 -ml-0.5 -translate-y-1/2" />
+
+            {/* Ground Track */}
+            <div className="absolute top-1/2 left-0 right-0 h-24 bg-gradient-to-b from-gray-200 to-gray-300 rounded-lg shadow-inner" />
 
             {/* Rope */}
-            <div className="absolute top-1/2 left-0 right-0 h-4 -mt-2">
-              <div className="h-full bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 rounded-full shadow-md" />
+            <div className="absolute top-1/2 left-0 right-0 h-3 -mt-1.5 z-10">
+              <div className="h-full bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 shadow-md" />
             </div>
 
-            {/* Knot Marker */}
+            {/* Team Alpha Characters - positioned on left side of knot */}
             <div 
-              className="absolute top-1/2 -mt-6 w-12 h-12 transition-all duration-500 ease-out"
+              className="absolute top-1/2 -translate-y-1/2 flex items-center gap-1 z-20 transition-all duration-500"
+              style={{ 
+                left: `calc(${gameState.ropePosition}% - 200px)`,
+              }}
+            >
+              <AnimatedCharacter 
+                teamColor="blue" 
+                isPulling={teamAPulling} 
+                position={2}
+                isWinner={gameState.winningTeam === 'alpha'}
+              />
+              <AnimatedCharacter 
+                teamColor="blue" 
+                isPulling={teamAPulling} 
+                position={1}
+                isWinner={gameState.winningTeam === 'alpha'}
+              />
+              <AnimatedCharacter 
+                teamColor="blue" 
+                isPulling={teamAPulling} 
+                position={0}
+                isWinner={gameState.winningTeam === 'alpha'}
+              />
+            </div>
+
+            {/* Knot Marker - where teams meet */}
+            <div 
+              className="absolute top-1/2 -mt-6 w-12 h-12 transition-all duration-500 ease-out z-30"
               style={{ 
                 left: `${gameState.ropePosition}%`,
                 transform: 'translateX(-50%)',
@@ -287,6 +283,39 @@ export default function TugOfWar({
                 <div className="w-3 h-3 bg-white rounded-full" />
               </div>
             </div>
+
+            {/* Team Beta Characters - positioned on right side of knot */}
+            <div 
+              className="absolute top-1/2 -translate-y-1/2 flex items-center gap-1 z-20 transition-all duration-500"
+              style={{ 
+                left: `calc(${gameState.ropePosition}% + 50px)`,
+              }}
+            >
+              <AnimatedCharacter 
+                teamColor="red" 
+                isPulling={teamBPulling} 
+                position={0}
+                isWinner={gameState.winningTeam === 'beta'}
+              />
+              <AnimatedCharacter 
+                teamColor="red" 
+                isPulling={teamBPulling} 
+                position={1}
+                isWinner={gameState.winningTeam === 'beta'}
+              />
+              <AnimatedCharacter 
+                teamColor="red" 
+                isPulling={teamBPulling} 
+                position={2}
+                isWinner={gameState.winningTeam === 'beta'}
+              />
+            </div>
+          </div>
+
+          {/* Team Labels */}
+          <div className="flex items-center justify-between mt-4 px-4">
+            <p className="font-bold text-lg text-blue-600">{teamAName}</p>
+            <p className="font-bold text-lg text-red-600">{teamBName}</p>
           </div>
 
           {/* Progress Bar */}
@@ -334,7 +363,10 @@ export default function TugOfWar({
               {showFeedback && (
                 <div className={`p-4 rounded-lg ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
                   <p className={`font-medium ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                    {isCorrect ? '🎉 Correct! Your team pulls the rope!' : '❌ Incorrect! The other team gets stronger!'}
+                    {isCorrect 
+                      ? `🎉 Correct! ${gameState.currentTurn === 'alpha' ? teamAName : teamBName} pulls the rope!` 
+                      : `❌ Incorrect! Turn passes to ${gameState.currentTurn === 'alpha' ? teamBName : teamAName}!`
+                    }
                   </p>
                 </div>
               )}
