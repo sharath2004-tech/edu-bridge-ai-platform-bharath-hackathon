@@ -155,8 +155,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Send notification to parent
-    if (student.parentEmail) {
+    // Send notification to parent only if absent
+    if (student.parentEmail && status === 'absent') {
       try {
         const notificationSent = await sendBusAttendanceNotification(
           student.parentEmail,
