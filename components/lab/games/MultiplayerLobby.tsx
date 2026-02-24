@@ -53,8 +53,9 @@ export default function MultiplayerLobby({ roomCode, onGameStart, onLeave }: Mul
       try {
         const res = await fetch('/api/users/me')
         const data = await res.json()
-        if (data._id) {
-          setCurrentUserId(data._id)
+        if (data.user && data.user._id) {
+          setCurrentUserId(data.user._id)
+          console.log('Current user ID fetched:', data.user._id)
         }
       } catch (error) {
         console.error('Error fetching current user:', error)
@@ -231,8 +232,28 @@ export default function MultiplayerLobby({ roomCode, onGameStart, onLeave }: Mul
   const teamAPlayers = room.players.filter((p) => p.team === 'alpha')
   const teamBPlayers = room.players.filter((p) => p.team === 'beta')
   const allReady = room.players.every((p) => p.isReady)
-  const isCreator = room.creatorId._id === currentUserId
-  const currentPlayer = room.players.find((p) => p.userId._id === currentUserId)
+  
+  // Find current player first
+  const currentPlayer = room.players.find((p) => 
+    p.userId._id === currentUserId || 
+    p.userId._id.toString() === currentUserId ||
+    String(p.userId._id) === String(currentUserId)
+  )
+  
+  // Check if current user is creator - handle multiple ID format comparisons
+  const isCreator = currentUserId && (
+    room.creatorId._id === currentUserId || 
+    room.creatorId._id.toString() === currentUserId ||
+    String(room.creatorId._id) === String(currentUserId) ||
+    (currentPlayer && String(room.creatorId._id) === String(currentPlayer.userId._id))
+  )
+
+  console.log('Debug - Creator check:', {
+    currentUserId,
+    creatorId: room.creatorId._id,
+    isCreator,
+    currentPlayer: currentPlayer?.name
+  })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
@@ -243,8 +264,18 @@ export default function MultiplayerLobby({ roomCode, onGameStart, onLeave }: Mul
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Users className="w-8 h-8" />
               Multiplayer Lobby
+              {isCreator && (
+                <Badge className="bg-yellow-500 text-white ml-2">
+                  <Crown className="w-3 h-3 mr-1" />
+                  Creator
+                </Badge>
+              )}
             </h1>
-            <p className="text-muted-foreground mt-1">Waiting for players to join...</p>
+            <p className="text-muted-foreground mt-1">
+              {isCreator 
+                ? 'You are the room creator - You can start the game when everyone is ready!' 
+                : 'Waiting for players to join...'}
+            </p>
           </div>
           <Button variant="outline" onClick={handleLeave}>
             <LogOut className="w-4 h-4 mr-2" />
@@ -476,6 +507,14 @@ export default function MultiplayerLobby({ roomCode, onGameStart, onLeave }: Mul
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
                   💡 <strong>Tip:</strong> You can switch teams using the "Switch" button next to your name before clicking Ready!
+                </p>
+              </div>
+            )}
+
+            {!isCreator && allReady && (
+              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-sm text-purple-800">
+                  ⏳ Waiting for the room creator to start the game...
                 </p>
               </div>
             )}
