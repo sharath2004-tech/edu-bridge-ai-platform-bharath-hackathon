@@ -99,15 +99,17 @@ export default function AnimatedCharacter({
           strokeWidth="2"
         />
         
-        {/* Arms - pulling position */}
+        {/* Arms - extended forward to grip rope */}
         <g className={isPulling ? 'arm-pulling' : ''}>
-          {/* Left arm */}
+          {/* Left arm - extended forward */}
           <path 
-            d={isPulling 
-              ? teamColor === 'blue' 
-                ? "M 20 35 Q 10 40 12 50" 
-                : "M 20 35 Q 10 40 8 50"
-              : "M 20 35 Q 15 45 18 55"
+            d={teamColor === 'blue'
+              ? (isPulling 
+                ? "M 20 35 Q 15 40 8 42" 
+                : "M 20 35 Q 15 40 10 42")
+              : (isPulling
+                ? "M 20 35 Q 30 38 45 42"
+                : "M 20 35 Q 30 38 42 42")
             }
             fill="none" 
             stroke={shirtColor} 
@@ -115,13 +117,15 @@ export default function AnimatedCharacter({
             strokeLinecap="round"
           />
           
-          {/* Right arm */}
+          {/* Right arm - extended forward */}
           <path 
-            d={isPulling 
-              ? teamColor === 'blue' 
-                ? "M 40 35 Q 50 40 48 50"
-                : "M 40 35 Q 50 40 52 50"
-              : "M 40 35 Q 45 45 42 55"
+            d={teamColor === 'blue'
+              ? (isPulling
+                ? "M 40 35 Q 35 38 12 42"
+                : "M 40 35 Q 35 38 15 42")
+              : (isPulling
+                ? "M 40 35 Q 45 40 52 42"
+                : "M 40 35 Q 45 40 48 42")
             }
             fill="none" 
             stroke={shirtColor} 
@@ -129,18 +133,18 @@ export default function AnimatedCharacter({
             strokeLinecap="round"
           />
           
-          {/* Hands */}
+          {/* Hands gripping rope */}
           <circle 
-            cx={isPulling ? (teamColor === 'blue' ? '12' : '8') : '18'} 
-            cy={isPulling ? '50' : '55'} 
+            cx={teamColor === 'blue' ? (isPulling ? '8' : '10') : (isPulling ? '52' : '48')} 
+            cy="42" 
             r="4" 
             fill={skinColor}
             stroke="#D4A574"
             strokeWidth="1"
           />
           <circle 
-            cx={isPulling ? (teamColor === 'blue' ? '48' : '52') : '42'} 
-            cy={isPulling ? '50' : '55'} 
+            cx={teamColor === 'blue' ? (isPulling ? '12' : '15') : (isPulling ? '45' : '42')} 
+            cy="42" 
             r="4" 
             fill={skinColor}
             stroke="#D4A574"

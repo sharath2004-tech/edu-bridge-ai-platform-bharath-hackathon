@@ -133,18 +133,18 @@ export default function TugOfWar({
       updateRope(gameState.currentTurn)
     }
 
-    // Move to next question and switch turn
+    // Move to next question and switch turn - loop questions until someone wins
     setTimeout(() => {
       setShowFeedback(false)
       setSelectedAnswer(null)
 
-      if (gameState.currentQuestionIndex < questions.length - 1) {
-        setGameState(prev => ({
-          ...prev,
-          currentQuestionIndex: prev.currentQuestionIndex + 1,
-          currentTurn: prev.currentTurn === 'alpha' ? 'beta' : 'alpha' // Alternate turns
-        }))
-      }
+      // Continue playing - loop questions if needed until win condition is met
+      setGameState(prev => ({
+        ...prev,
+        // Loop back to start if we've reached the end of questions
+        currentQuestionIndex: (prev.currentQuestionIndex + 1) % questions.length,
+        currentTurn: prev.currentTurn === 'alpha' ? 'beta' : 'alpha' // Alternate turns
+      }))
     }, 2000)
   }
 
@@ -226,28 +226,25 @@ export default function TugOfWar({
           </div>
 
           {/* Rope Track with Characters */}
-          <div className="relative h-32 mb-8">
+          <div className="relative h-40 mb-8">
 
             {/* Threshold Markers */}
-            <div className="absolute left-[10%] top-1/2 bottom-1/2 w-0.5 h-24 bg-blue-500/30 -translate-y-1/2" />
-            <div className="absolute right-[10%] top-1/2 bottom-1/2 w-0.5 h-24 bg-red-500/30 -translate-y-1/2" />
+            <div className="absolute left-[10%] top-1/2 w-0.5 h-32 bg-blue-500/30 -translate-y-1/2" />
+            <div className="absolute right-[10%] top-1/2 w-0.5 h-32 bg-red-500/30 -translate-y-1/2" />
             
             {/* Center Line */}
-            <div className="absolute left-1/2 top-1/2 w-1 h-24 bg-gray-400 -ml-0.5 -translate-y-1/2" />
+            <div className="absolute left-1/2 top-1/2 w-1 h-32 bg-gray-400 -ml-0.5 -translate-y-1/2" />
 
             {/* Ground Track */}
-            <div className="absolute top-1/2 left-0 right-0 h-24 bg-gradient-to-b from-gray-200 to-gray-300 rounded-lg shadow-inner" />
+            <div className="absolute top-1/2 left-0 right-0 h-28 bg-gradient-to-b from-gray-200 to-gray-300 rounded-lg shadow-inner -translate-y-1/2" />
 
-            {/* Rope */}
-            <div className="absolute top-1/2 left-0 right-0 h-3 -mt-1.5 z-10">
-              <div className="h-full bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 shadow-md" />
-            </div>
-
-            {/* Team Alpha Characters - positioned on left side of knot */}
+            {/* Team Alpha Characters - positioned to grip rope from left */}
             <div 
-              className="absolute top-1/2 -translate-y-1/2 flex items-center gap-1 z-20 transition-all duration-500"
+              className="absolute flex items-center gap-1 z-20 transition-all duration-500"
               style={{ 
-                left: `calc(${gameState.ropePosition}% - 200px)`,
+                left: `calc(${gameState.ropePosition}% - 210px)`,
+                top: '50%',
+                transform: 'translateY(-50%)'
               }}
             >
               <AnimatedCharacter 
@@ -270,12 +267,18 @@ export default function TugOfWar({
               />
             </div>
 
+            {/* Rope - positioned at hand height */}
+            <div className="absolute left-0 right-0 h-4 z-10" style={{ top: '50%', transform: 'translateY(-50%)' }}>
+              <div className="h-full bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 shadow-md rounded-sm" />
+            </div>
+
             {/* Knot Marker - where teams meet */}
             <div 
-              className="absolute top-1/2 -mt-6 w-12 h-12 transition-all duration-500 ease-out z-30"
+              className="absolute -mt-6 w-12 h-12 transition-all duration-500 ease-out z-30"
               style={{ 
                 left: `${gameState.ropePosition}%`,
-                transform: 'translateX(-50%)',
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
                 transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
               }}
             >
@@ -284,11 +287,13 @@ export default function TugOfWar({
               </div>
             </div>
 
-            {/* Team Beta Characters - positioned on right side of knot */}
+            {/* Team Beta Characters - positioned to grip rope from right */}
             <div 
-              className="absolute top-1/2 -translate-y-1/2 flex items-center gap-1 z-20 transition-all duration-500"
+              className="absolute flex items-center gap-1 z-20 transition-all duration-500"
               style={{ 
-                left: `calc(${gameState.ropePosition}% + 50px)`,
+                left: `calc(${gameState.ropePosition}% + 30px)`,
+                top: '50%',
+                transform: 'translateY(-50%)'
               }}
             >
               <AnimatedCharacter 
