@@ -1,5 +1,6 @@
 'use client'
 
+import AnimatedCharacter from './AnimatedCharacter'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Trophy, Users, Zap } from 'lucide-react'
@@ -32,8 +33,8 @@ interface GameState {
 
 export default function TugOfWar({
   questions,
-  teamAName = 'Team Alpha',
-  teamBName = 'Team Beta',
+  teamAName = 'You',
+  teamBName = 'Computer',
   pullDistance = 5,
   winThreshold = 90
 }: TugOfWarProps) {
@@ -165,6 +166,13 @@ export default function TugOfWar({
     <div className="w-full min-h-screen p-4" style={{ background: getBackgroundGradient() }}>
       <div className="max-w-6xl mx-auto space-y-6">
         
+        {/* Info Banner */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800 text-center">
+            ⚡ <strong>Single-Player Challenge:</strong> Answer questions correctly to pull the rope toward your side and beat the computer!
+          </p>
+        </div>
+
         {/* Score Header */}
         <div className="flex items-center justify-between gap-4">
           <Card className="flex-1 p-4">
@@ -199,22 +207,56 @@ export default function TugOfWar({
 
         {/* Tug of War Arena */}
         <Card className="p-8 relative overflow-hidden">
-          {/* Team Avatars */}
+          {/* Team Avatars with Animated Characters */}
           <div className="flex items-center justify-between mb-8">
-            {/* Team Alpha Avatar */}
-            <div className={`transition-all duration-300 ${teamAPulling ? 'animate-pull-left' : ''} ${gameState.winningTeam === 'alpha' ? 'animate-celebration' : ''} ${gameState.winningTeam === 'beta' ? 'animate-defeat' : ''}`}>
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                <Users className="w-12 h-12 text-white" />
+            {/* Team Alpha - 3 characters pulling */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex items-end gap-2">
+                <AnimatedCharacter 
+                  teamColor="blue" 
+                  isPulling={teamAPulling} 
+                  position={0}
+                  isWinner={gameState.winningTeam === 'alpha'}
+                />
+                <AnimatedCharacter 
+                  teamColor="blue" 
+                  isPulling={teamAPulling} 
+                  position={1}
+                  isWinner={gameState.winningTeam === 'alpha'}
+                />
+                <AnimatedCharacter 
+                  teamColor="blue" 
+                  isPulling={teamAPulling} 
+                  position={2}
+                  isWinner={gameState.winningTeam === 'alpha'}
+                />
               </div>
-              <p className="text-center mt-2 font-medium text-blue-600">{teamAName}</p>
+              <p className="text-center font-bold text-lg text-blue-600">{teamAName}</p>
             </div>
 
-            {/* Team Beta Avatar */}
-            <div className={`transition-all duration-300 ${teamBPulling ? 'animate-pull-right' : ''} ${gameState.winningTeam === 'beta' ? 'animate-celebration' : ''} ${gameState.winningTeam === 'alpha' ? 'animate-defeat' : ''}`}>
-              <div className="w-24 h-24 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center shadow-lg">
-                <Users className="w-12 h-12 text-white" />
+            {/* Team Beta - 3 characters pulling */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex items-end gap-2">
+                <AnimatedCharacter 
+                  teamColor="red" 
+                  isPulling={teamBPulling} 
+                  position={0}
+                  isWinner={gameState.winningTeam === 'beta'}
+                />
+                <AnimatedCharacter 
+                  teamColor="red" 
+                  isPulling={teamBPulling} 
+                  position={1}
+                  isWinner={gameState.winningTeam === 'beta'}
+                />
+                <AnimatedCharacter 
+                  teamColor="red" 
+                  isPulling={teamBPulling} 
+                  position={2}
+                  isWinner={gameState.winningTeam === 'beta'}
+                />
               </div>
-              <p className="text-center mt-2 font-medium text-red-600">{teamBName}</p>
+              <p className="text-center font-bold text-lg text-red-600">{teamBName}</p>
             </div>
           </div>
 
@@ -328,7 +370,7 @@ export default function TugOfWar({
               <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg">
                 <p className="text-sm font-medium">🎊 Congratulations! 🎊</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Amazing teamwork and knowledge!
+                  {gameState.winningTeam === 'alpha' ? 'You showed great knowledge!' : 'Better luck next time!'}
                 </p>
               </div>
 

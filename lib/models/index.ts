@@ -39,6 +39,8 @@ export { default as Gamification } from './Gamification';
 export type { IGamification } from './Gamification';
 export { default as Ticket } from './Ticket';
 export type { ITicket } from './Ticket';
+export { default as GameRoom } from './GameRoom';
+export type { IGameRoom } from './GameRoom';
 
 // Notification Model
 export { default as Notification } from './Notification';
