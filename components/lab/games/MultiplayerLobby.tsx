@@ -232,6 +232,10 @@ export default function MultiplayerLobby({ roomCode, onGameStart, onLeave }: Mul
   const teamAPlayers = room.players.filter((p) => p.team === 'alpha')
   const teamBPlayers = room.players.filter((p) => p.team === 'beta')
   const allReady = room.players.every((p) => p.isReady)
+  const totalPlayers = room.players.length
+  
+  // New flexible start condition: at least 2 players AND both teams have at least 1 player
+  const canStartGame = totalPlayers >= 2 && teamAPlayers.length >= 1 && teamBPlayers.length >= 1
   
   // Find current player first
   const currentPlayer = room.players.find((p) => 
@@ -273,7 +277,7 @@ export default function MultiplayerLobby({ roomCode, onGameStart, onLeave }: Mul
             </h1>
             <p className="text-muted-foreground mt-1">
               {isCreator 
-                ? 'You are the room creator - You can start the game when everyone is ready!' 
+                ? 'You are the room creator - You can start the game when both teams have players!' 
                 : 'Waiting for players to join...'}
             </p>
           </div>
@@ -478,7 +482,7 @@ export default function MultiplayerLobby({ roomCode, onGameStart, onLeave }: Mul
                 {isCreator && (
                   <Button
                     onClick={handleStartGame}
-                    disabled={!allReady || updating || teamAPlayers.length === 0 || teamBPlayers.length === 0}
+                    disabled={!canStartGame || updating}
                     size="lg"
                     className="bg-green-600 hover:bg-green-700"
                   >
@@ -493,12 +497,12 @@ export default function MultiplayerLobby({ roomCode, onGameStart, onLeave }: Mul
               </div>
             </div>
 
-            {isCreator && (!allReady || teamAPlayers.length === 0 || teamBPlayers.length === 0) && (
+            {isCreator && !canStartGame && (
               <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">
-                  {teamAPlayers.length === 0 || teamBPlayers.length === 0
-                    ? '⚠️ Both teams need at least one player to start'
-                    : '⚠️ All players must be ready before starting'}
+                  {totalPlayers < 2
+                    ? '⚠️ Need at least 2 players to start the game'
+                    : '⚠️ Both teams need at least one player to start'}
                 </p>
               </div>
             )}
@@ -511,7 +515,7 @@ export default function MultiplayerLobby({ roomCode, onGameStart, onLeave }: Mul
               </div>
             )}
 
-            {!isCreator && allReady && (
+            {!isCreator && canStartGame && (
               <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                 <p className="text-sm text-purple-800">
                   ⏳ Waiting for the room creator to start the game...

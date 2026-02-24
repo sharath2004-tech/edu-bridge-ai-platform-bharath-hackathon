@@ -338,13 +338,22 @@ export default function ChallengesPage() {
           </Button>
         </div>
         
-        <TugOfWar 
-          questions={selectedChallenge.questions}
-          teamAName="Team Alpha"
-          teamBName="Team Beta"
-          pullDistance={5}
-          winThreshold={90}
-        />
+        {selectedChallenge.gameType === 'racing' ? (
+          <RacingGame 
+            questions={selectedChallenge.questions}
+            playerName="Team Alpha"
+            opponentName="Team Beta"
+            speedPerCorrect={12}
+          />
+        ) : (
+          <TugOfWar 
+            questions={selectedChallenge.questions}
+            teamAName="Team Alpha"
+            teamBName="Team Beta"
+            pullDistance={5}
+            winThreshold={90}
+          />
+        )}
       </div>
     )
   }
