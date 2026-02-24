@@ -1,10 +1,10 @@
 'use client'
 
-import AnimatedCharacter from './AnimatedCharacter'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Trophy, Users, Zap } from 'lucide-react'
 import { useCallback, useState } from 'react'
+import AnimatedCharacter from './AnimatedCharacter'
 
 interface TugOfWarProps {
   questions: QuizQuestion[]

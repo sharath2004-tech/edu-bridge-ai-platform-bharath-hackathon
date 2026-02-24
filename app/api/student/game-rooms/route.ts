@@ -1,6 +1,6 @@
 import { getSession } from '@/lib/auth'
-import GameRoom from '@/lib/models/GameRoom'
 import { User } from '@/lib/models'
+import GameRoom from '@/lib/models/GameRoom'
 import connectDB from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
